@@ -12,10 +12,6 @@ against minified builds, then you don't need this plugin.
 
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
-Keeper is fast. For us - the inference step takes ~10 seconds and the classpath jar steps take
-around 5-10sec each, for a total of 25-30 added seconds of build time for minified `androidTest`
-builds.
-
 **Note:** Keeper uses private APIs from AGP and could break between releases. We currently
 support AGP 3.5.3, and will support 3.6 once it is released.
 
@@ -84,6 +80,25 @@ if (project.hasProperty("buildVariant")) {
 ```
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snapshots].
+
+## Under the hood
+
+The general logic flow:
+- Create a custom `r8` configuration for the R8 dependency.
+- Register three jar tasks. One for all the classes in the app variant, one for all the classes in
+  the androidTest variant, and one copy of the compiled android.jar for classpath linking. This
+  will use their variant-provided `JavaCompile` tasks and `KotlinCompile` tasks if available.
+- Register a [`inferAndroidTestUsage`](https://github.com/slackhq/keeper/blob/master/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt)
+  task that plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred
+  proguard rules into a new intermediate `.pro` file.
+- Finally - the generated file is wired in to Proguard/R8 via private `ProguardConfigurable` API.
+  This works by looking for the relevant `TransformTask` that uses it.
+
+Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is
+automatically run as part of the target app variant's full minified APK.
+
+The tasks themselves take roughly ~20 seconds total extra work in our Slack android app, with the
+infer and app jar tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.
 
 License
 -------
