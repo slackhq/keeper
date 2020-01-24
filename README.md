@@ -10,7 +10,11 @@ result in runtime errors if APIs used by tests are removed.
 
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
-**Note:** This plugin uses private APIs from AGP and could break between releases. We currently
+Keeper is fast. For us - the inference step takes ~10 seconds and the classpath jar steps take
+around 5-10sec each, for a total of 25-30 added seconds of build time for minified `androidTest`
+builds.
+
+**Note:** Keeper uses private APIs from AGP and could break between releases. We currently
 support AGP 3.5.3, and will support 3.6 once it is released.
 
 ## Installation
