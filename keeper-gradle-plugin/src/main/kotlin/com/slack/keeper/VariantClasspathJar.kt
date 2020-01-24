@@ -24,7 +24,7 @@ import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
 /**
- * A simple cacheable [Jar] task. Normally these aren't intended to be cacheable, but in our case it's fine since this
+ * A simple cacheable [Jar] task. Normally these aren't intended to be cacheable, but in our case it's fine since
  * the resulting jar is an input of a task and not just a transient operation of another plugin.
  */
 @CacheableTask
