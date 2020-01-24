@@ -18,7 +18,7 @@ support AGP 3.5.3, and will support 3.6 once it is released.
 Apply keeper _after_ the `android {}` block in your application's build.gradle file and configure
 via the `keeper {}` extension.
 
-```
+```gradle
 buildscript {
   repositories {
     mavenCentral()
