@@ -6,9 +6,12 @@ A Gradle plugin that infers Proguard/R8 keep rules for androidTest sources.
 Keeper hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the
 target app's sources. This is necessary because the Android Gradle Plugin (AGP) does not currently
 factor in androidTest usages of target app sources when running the minification step, which can
-result in runtime errors if APIs used by tests are removed. This is (really) useful _only_ if you
-run your instrumentation tests against your minified release builds! If you don't run these tests
-against minified builds, then you don't need this plugin.
+result in runtime errors if APIs used by tests are removed.
+
+This is (really) useful _only_ if you run your instrumentation tests against your minified release
+builds! If you don't run these tests against minified builds, then you don't need this plugin. The
+build type that you test against is controlled by the `testBuildType` flag,  which is set to
+`debug` by default.
 
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
