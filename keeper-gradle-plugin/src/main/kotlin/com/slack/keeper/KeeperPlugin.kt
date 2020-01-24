@@ -123,7 +123,7 @@ class KeeperPlugin : Plugin<Project> {
                 intermediateAndroidTestJar,
                 intermediateAppJar,
                 androidJar,
-                extension.jvmArgs,
+                extension.r8JvmArgs,
                 r8Configuration
             )
         )

@@ -44,5 +44,5 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    *
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
    */
-  val jvmArgs: ListProperty<String> = objects.listProperty()
+  val r8JvmArgs: ListProperty<String> = objects.listProperty()
 }
