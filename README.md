@@ -69,13 +69,13 @@ gradle property and use its value to gate application of this plugin and which v
 
 ```gradle
 if (project.hasProperty("buildVariant")) {
-    String buildVariant = project.getProperty("buildVariant")
-    apply plugin: 'com.slack.keeper'
+  String buildVariant = project.getProperty("buildVariant")
+  apply plugin: 'com.slack.keeper
 
-    keeper {
-        androidTestVariant = "${buildVariant}AndroidTest"
-        appVariant = buildVariant
-    }
+  keeper {
+    androidTestVariant = "${buildVariant}AndroidTest"
+    appVariant = buildVariant
+  }
 }
 ```
 
