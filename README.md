@@ -1,4 +1,4 @@
-Keeper 🥅
+🥅 Keeper
 ========
 
 A Gradle plugin that infers Proguard/R8 keep rules for androidTest sources.
