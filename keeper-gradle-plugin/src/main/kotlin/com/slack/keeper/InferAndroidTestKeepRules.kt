@@ -94,6 +94,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         extensionJvmArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
+      group = KEEPER_TASK_GROUP
       androidTestJar.set(androidTestJarProvider.map { it.archiveFile.get() })
       appJar.set(releaseClassesJarProvider.map { it.archiveFile.get() })
       classpathJar.set(androidJar)

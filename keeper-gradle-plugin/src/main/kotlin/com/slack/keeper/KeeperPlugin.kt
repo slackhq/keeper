@@ -46,6 +46,7 @@ import java.util.Locale.US
 private const val TAG = "AndroidTestKeepRules"
 private const val NAME_ANDROID_TEST_JAR = "androidTest"
 private const val NAME_APP_JAR = "app"
+internal const val KEEPER_TASK_GROUP = "keeper"
 
 // In AGP 3.6, this can be removed in favor of using the new ProguardConfigurableTask
 private val proguardConfigurableConfigurationFilesField by lazy {
@@ -88,8 +89,8 @@ private val proguardConfigurableConfigurationFilesField by lazy {
 class KeeperPlugin : Plugin<Project> {
 
   companion object {
-    const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val DEFAULT_R8_VERSION = "1.6.53"
+    internal const val INTERMEDIATES_DIR = "intermediates/keeper"
+    internal const val DEFAULT_R8_VERSION = "1.6.53"
   }
 
   override fun apply(project: Project) {
@@ -161,6 +162,7 @@ class KeeperPlugin : Plugin<Project> {
   ): TaskProvider<out Jar> {
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jarAndroidTestClassesForAndroidTestKeepRules") {
+      group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
       archiveBaseName.set(NAME_ANDROID_TEST_JAR)
 
@@ -208,6 +210,7 @@ class KeeperPlugin : Plugin<Project> {
       appExtension: AppExtension
   ): TaskProvider<out Jar> {
     return tasks.register<VariantClasspathJar>("jarAppClassesForAndroidTestKeepRules") {
+      group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
       archiveBaseName.set(NAME_APP_JAR)
       appExtension.applicationVariants.configureEach {
