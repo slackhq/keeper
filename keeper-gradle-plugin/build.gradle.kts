@@ -34,6 +34,13 @@ buildscript {
 
 pluginManager.apply("com.vanniktech.maven.publish")
 
+repositories {
+    google()
+    gradlePluginPortal()
+    mavenCentral()
+    jcenter()
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs = listOf("-progressive")
@@ -67,11 +74,4 @@ dependencies {
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")
-}
-
-repositories {
-    google()
-    gradlePluginPortal()
-    mavenCentral()
-    jcenter()
 }
