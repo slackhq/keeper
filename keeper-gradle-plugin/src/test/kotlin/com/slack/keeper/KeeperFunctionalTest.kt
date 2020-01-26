@@ -132,7 +132,6 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
   }
 
   // TODO test cases
-  //  Transitive deps
   //  Transitive androidTest deps using transitive android deps (i.e. like IdlingResource)
   //  multidex (zip64 use in jars)
   //  Error cases
@@ -303,9 +302,12 @@ private val ANDROID_TEST_SOURCES = setOf(
     }
 )
 
+// We include Unit.class here because that allows us to also test that App's transitive dependencies
+// are included in the jar and excluded from the androidTest jar (anything present in both is only
+// stored in the app jar). Unit is from the Kotlin stdlib.
 private val EXPECTED_APP_CLASSES: Set<String> = MAIN_SOURCES.mapToSet {
   "${it.name}.class"
-}
+} + "Unit.class"
 
 private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.mapToSet {
   "${it.name}.class"
