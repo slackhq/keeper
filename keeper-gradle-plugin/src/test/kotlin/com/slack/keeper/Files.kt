@@ -16,6 +16,10 @@
 
 package com.slack.keeper
 
+import com.slack.keeper.SourceFile.JavaSourceFile
+import com.slack.keeper.SourceFile.KotlinSourceFile
+import com.squareup.javapoet.JavaFile
+import com.squareup.kotlinpoet.FileSpec
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -46,3 +50,24 @@ internal fun File.newDir(path: String): File {
 
 internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", path)
 internal fun File.child(vararg path: String) = File(this, path.toList().joinToString(File.separator))
+
+internal sealed class SourceFile(val name: String) {
+  abstract fun writeTo(file: File)
+
+  data class JavaSourceFile(val javaFile: JavaFile) : SourceFile(javaFile.typeSpec.name) {
+    override fun writeTo(file: File) = javaFile.writeTo(file)
+  }
+
+  data class KotlinSourceFile(
+      val fileSpec: FileSpec
+  ) : SourceFile(fileSpec.members.filterIsInstance<FileSpec>().first().name) {
+    override fun writeTo(file: File) = fileSpec.writeTo(file)
+  }
+}
+
+internal operator fun File.plusAssign(sourceFile: SourceFile) {
+  sourceFile.writeTo(this)
+}
+
+internal fun JavaFile.asSourceFile(): SourceFile = JavaSourceFile(this)
+internal fun FileSpec.asSourceFile(): SourceFile = KotlinSourceFile(this)

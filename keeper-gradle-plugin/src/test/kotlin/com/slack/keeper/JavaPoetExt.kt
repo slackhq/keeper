@@ -19,23 +19,19 @@ package com.slack.keeper
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
-import java.io.File
 import javax.lang.model.element.Modifier.PUBLIC
 
 internal fun javaFile(packageName: String, className: String,
-    body: TypeSpec.Builder.() -> Unit): JavaFile {
+    body: TypeSpec.Builder.() -> Unit): SourceFile {
   return JavaFile.builder(packageName,
       TypeSpec.classBuilder(className)
           .addModifiers(PUBLIC)
           .apply(body)
           .build())
       .build()
+      .asSourceFile()
 }
 
 internal fun TypeSpec.Builder.methodSpec(name: String, body: MethodSpec.Builder.() -> Unit) {
   addMethod(MethodSpec.methodBuilder(name).addModifiers(PUBLIC).apply(body).build())
-}
-
-internal operator fun File.plusAssign(javaFile: JavaFile) {
-  javaFile.writeTo(this)
 }

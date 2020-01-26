@@ -51,8 +51,8 @@ import javax.lang.model.element.Modifier.STATIC
  *     - androidTest
  *       - AndroidManifest.xml
  *       - java/com/slack/keeper/example
- *         - SampleApplication.java
  *         - ApplicationUsedClass.java
+ *         - SampleApplication.java
  *         - TestOnlyClass.java
  *         - UnusedClass.java
  *     - main
@@ -233,12 +233,12 @@ private val ANDROID_TEST_SOURCES = setOf(
 )
 
 private val EXPECTED_APP_CLASSES: Set<String> = MAIN_SOURCES.mapTo(mutableSetOf()) {
-  "${it.typeSpec.name}.class"
+  "${it.name}.class"
 }
 
 private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.mapTo(
     mutableSetOf()) {
-  "${it.typeSpec.name}.class"
+  "${it.name}.class"
 }
 
 private data class ProjectData(val dir: File, val proguardConfigOutput: File)
