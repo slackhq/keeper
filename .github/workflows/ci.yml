@@ -21,7 +21,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean check --stacktrace
       - name: Reclaim memory
-        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9
+        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
 #      - name: Upload snapshot (master only)
 #        run: |
 #          ./gradlew uploadArchives -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
