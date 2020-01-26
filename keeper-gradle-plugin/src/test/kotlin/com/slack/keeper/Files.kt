@@ -50,7 +50,8 @@ internal fun File.newDir(path: String): File {
 }
 
 internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", path)
-internal fun File.child(vararg path: String) = File(this, path.toList().joinToString(File.separator))
+internal fun File.child(vararg path: String) = File(this,
+    path.toList().joinToString(File.separator))
 
 internal sealed class SourceFile(val name: String) {
   abstract fun writeTo(file: File)

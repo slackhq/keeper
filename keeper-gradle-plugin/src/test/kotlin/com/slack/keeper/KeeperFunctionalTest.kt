@@ -18,7 +18,6 @@ package com.slack.keeper
 
 import com.google.common.truth.Truth.assertThat
 import com.squareup.javapoet.ClassName
-import com.squareup.kotlinpoet.ClassName as KpClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -32,6 +31,7 @@ import org.junit.runners.Parameterized.Parameters
 import java.io.File
 import java.util.zip.ZipFile
 import javax.lang.model.element.Modifier.STATIC
+import com.squareup.kotlinpoet.ClassName as KpClassName
 
 /**
  * Testing gradle plugins is finicky. If you get errors when running from the IDE, try following
@@ -105,7 +105,9 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
 
     // Ensure the expected parameterized minifier ran
     val expectedMinifier = if (useR8) "R8" else "Proguard"
-    assertThat(result.task(":transformClassesAndResourcesWith${expectedMinifier}ForReleaseAndroidTest")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.task(
+        ":transformClassesAndResourcesWith${expectedMinifier}ForReleaseAndroidTest")?.outcome).isEqualTo(
+        TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("app.jar")
