@@ -26,6 +26,9 @@ import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameters
 import java.io.File
 import java.util.zip.ZipFile
 import javax.lang.model.element.Modifier.STATIC
@@ -64,7 +67,19 @@ import javax.lang.model.element.Modifier.STATIC
  *         - TestOnlyKotlinClassCaller.kt
  * ```
  */
-class KeeperFunctionalTest {
+@RunWith(Parameterized::class)
+class KeeperFunctionalTest(private val useR8: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameters(name = "useR8={0}")
+    fun data(): List<Array<*>> {
+      return listOf(
+          arrayOf(true),
+          arrayOf(false)
+      )
+    }
+  }
 
   @Rule
   @JvmField
@@ -88,6 +103,10 @@ class KeeperFunctionalTest {
         TaskOutcome.SUCCESS)
     assertThat(result.task(":inferAndroidTestUsage")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
+    // Ensure the expected parameterized minifier ran
+    val expectedMinifier = if (useR8) "R8" else "Proguard"
+    assertThat(result.task(":transformClassesAndResourcesWith${expectedMinifier}ForReleaseAndroidTest")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("app.jar")
     val appClasses = ZipFile(appJar).readClasses()
@@ -105,7 +124,9 @@ class KeeperFunctionalTest {
     assertThat(generatedRules.readText().trim()).isEqualTo(EXPECTED_GENERATED_RULES)
 
     // Finally - verify our rules were included in the final minification execution.
-    assertThat(proguardConfigOutput.readText().trim()).contains(EXPECTED_GENERATED_RULES)
+    // Have to compare slightly different strings because proguard's format is a little different
+    val expected = if (useR8) EXPECTED_GENERATED_RULES else EXPECTED_PROGUARD_CONFIG
+    assertThat(proguardConfigOutput.readText().trim()).contains(expected)
   }
 
   // TODO test cases
@@ -116,8 +137,18 @@ class KeeperFunctionalTest {
   //    missing variants - but shouldn't be necessary after https://github.com/slackhq/keeper/issues/2
   //    ordering - missing android jar message
   //  Custom r8 versions
-  //  Proguard vs r8 transforms
-  //    Maybe parameterized with and without -Pandroid.enableR8=false?
+
+  private fun runGradle(projectDir: File, vararg args: String): BuildResult {
+    val r8ControlArgs = if (useR8) emptyArray() else arrayOf("-Pandroid.enableR8=false")
+    return GradleRunner.create()
+        .forwardStdOutput(System.out.writer())
+        .forwardStdError(System.err.writer())
+        .withProjectDir(projectDir)
+        .withArguments("--stacktrace", "-x", "lint", *r8ControlArgs, *args)
+        .withPluginClasspath()
+//        .withDebug(true)
+        .build()
+  }
 }
 
 @Language("PROGUARD")
@@ -129,6 +160,18 @@ private val EXPECTED_GENERATED_RULES = """
     public void testOnlyMethod();
     com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
   }
+""".trimIndent()
+
+@Language("PROGUARD")
+private val EXPECTED_PROGUARD_CONFIG = """
+    -keep class com.slack.keeper.sample.TestOnlyClass {
+        public static void testOnlyMethod();
+    }
+    
+    -keep class com.slack.keeper.sample.TestOnlyKotlinClass {
+        com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
+        public void testOnlyMethod();
+    }
 """.trimIndent()
 
 @Language("PROGUARD")
@@ -315,15 +358,4 @@ private fun prepareProject(temporaryFolder: TemporaryFolder): ProjectData {
 
 private fun <T, R> Collection<T>.mapToSet(mapper: (T) -> R): Set<R> {
   return mapTo(mutableSetOf(), mapper)
-}
-
-private fun runGradle(projectDir: File, vararg args: String): BuildResult {
-  return GradleRunner.create()
-      .forwardStdOutput(System.out.writer())
-      .forwardStdError(System.err.writer())
-      .withProjectDir(projectDir)
-      .withArguments("--stacktrace", "-x", "lint", *args)
-      .withPluginClasspath()
-//        .withDebug(true)
-      .build()
 }
