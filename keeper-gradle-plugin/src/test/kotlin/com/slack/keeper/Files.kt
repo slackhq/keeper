@@ -20,6 +20,7 @@ import com.slack.keeper.SourceFile.JavaSourceFile
 import com.slack.keeper.SourceFile.KotlinSourceFile
 import com.squareup.javapoet.JavaFile
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.TypeSpec
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -60,7 +61,7 @@ internal sealed class SourceFile(val name: String) {
 
   data class KotlinSourceFile(
       val fileSpec: FileSpec
-  ) : SourceFile(fileSpec.members.filterIsInstance<FileSpec>().first().name) {
+  ) : SourceFile(fileSpec.members.filterIsInstance<TypeSpec>().first().name!!) {
     override fun writeTo(file: File) = fileSpec.writeTo(file)
   }
 }

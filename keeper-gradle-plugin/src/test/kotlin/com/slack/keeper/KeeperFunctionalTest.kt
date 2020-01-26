@@ -18,6 +18,7 @@ package com.slack.keeper
 
 import com.google.common.truth.Truth.assertThat
 import com.squareup.javapoet.ClassName
+import com.squareup.kotlinpoet.ClassName as KpClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -54,11 +55,13 @@ import javax.lang.model.element.Modifier.STATIC
  *         - ApplicationUsedClass.java
  *         - SampleApplication.java
  *         - TestOnlyClass.java
+ *         - TestOnlyKotlinClass.kt
  *         - UnusedClass.java
  *     - main
  *       - AndroidManifest.xml
  *       - java/com/slack/keeper/example
  *         - TestOnlyClassCaller.java
+ *         - TestOnlyKotlinClassCaller.kt
  * ```
  */
 class KeeperFunctionalTest {
@@ -70,7 +73,7 @@ class KeeperFunctionalTest {
   /**
    * Basic smoke test. This covers the standard flow and touches on the following:
    * - Variant configuration
-   * - Packaging of intermediate jars with compiled sources
+   * - Packaging of intermediate jars with compiled sources (including Kotlin sources)
    * - Generation of inferred rules
    * - Inclusion of generated rules in the final proguard configuration
    */
@@ -115,13 +118,16 @@ class KeeperFunctionalTest {
   //  Custom r8 versions
   //  Proguard vs r8 transforms
   //    Maybe parameterized with and without -Pandroid.enableR8=false?
-  //  Ensure kotlin classes are included
 }
 
 @Language("PROGUARD")
 private val EXPECTED_GENERATED_RULES = """
   -keep class com.slack.keeper.sample.TestOnlyClass {
     public static void testOnlyMethod();
+  }
+  -keep class com.slack.keeper.sample.TestOnlyKotlinClass {
+    public void testOnlyMethod();
+    com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
   }
 """.trimIndent()
 
@@ -147,6 +153,7 @@ private val BUILD_GRADLE_CONTENT = """
 
     dependencies {
       classpath "com.android.tools.build:gradle:3.5.3"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61"
     }
   }
 
@@ -155,6 +162,7 @@ private val BUILD_GRADLE_CONTENT = """
   }
 
   apply plugin: 'com.android.application'
+  apply plugin: 'org.jetbrains.kotlin.android'
 
   android {
     compileSdkVersion 29
@@ -188,9 +196,21 @@ private val BUILD_GRADLE_CONTENT = """
     androidTestVariant = "releaseAndroidTest"
     appVariant = "release"
   }
+  
+  dependencies {
+    //noinspection DifferentStdlibGradleVersion
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.3.61"
+  }
 """.trimIndent()
 
 private val MAIN_SOURCES = setOf(
+    // Class that's accessed from the application but not test sources
+    javaFile("com.slack.keeper.sample", "ApplicationUsedClass") {
+      methodSpec("applicationCalledMethod") {
+        addModifiers(STATIC)
+        addComment("This method is called from the application class")
+      }
+    },
     javaFile("com.slack.keeper.sample", "SampleApplication") {
       superclass(ClassName.get("android.app", "Application"))
       methodSpec("onCreate") {
@@ -199,17 +219,16 @@ private val MAIN_SOURCES = setOf(
             ClassName.get("com.slack.keeper.sample", "ApplicationUsedClass"))
       }
     },
-    // Class that's accessed from the application but not test sources
-    javaFile("com.slack.keeper.sample", "ApplicationUsedClass") {
-      methodSpec("applicationCalledMethod") {
-        addModifiers(STATIC)
-        addComment("This method is called from the application class")
-      }
-    },
     // Class that's only accessed from androidTest
     javaFile("com.slack.keeper.sample", "TestOnlyClass") {
       methodSpec("testOnlyMethod") {
         addModifiers(STATIC)
+        addComment("This method is only called from androidTest sources!")
+      }
+    },
+    // Class that's only accessed from androidTest
+    kotlinFile("com.slack.keeper.sample", "TestOnlyKotlinClass") {
+      funSpec("testOnlyMethod") {
         addComment("This method is only called from androidTest sources!")
       }
     },
@@ -229,15 +248,21 @@ private val ANDROID_TEST_SOURCES = setOf(
         addStatement("\$T.testOnlyMethod()",
             ClassName.get("com.slack.keeper.sample", "TestOnlyClass"))
       }
+    },
+    // AndroidTest file that uses the TestOnlyKotlinClass
+    kotlinFile("com.slack.keeper.sample", "TestOnlyKotlinClassCaller") {
+      funSpec("callTestOnlyMethod") {
+        addStatement("%T.testOnlyMethod()",
+            KpClassName("com.slack.keeper.sample", "TestOnlyKotlinClass"))
+      }
     }
 )
 
-private val EXPECTED_APP_CLASSES: Set<String> = MAIN_SOURCES.mapTo(mutableSetOf()) {
+private val EXPECTED_APP_CLASSES: Set<String> = MAIN_SOURCES.mapToSet {
   "${it.name}.class"
 }
 
-private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.mapTo(
-    mutableSetOf()) {
+private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.mapToSet {
   "${it.name}.class"
 }
 
@@ -286,6 +311,10 @@ private fun prepareProject(temporaryFolder: TemporaryFolder): ProjectData {
   }
 
   return ProjectData(projectDir, proguardConfigOutput)
+}
+
+private fun <T, R> Collection<T>.mapToSet(mapper: (T) -> R): Set<R> {
+  return mapTo(mutableSetOf(), mapper)
 }
 
 private fun runGradle(projectDir: File, vararg args: String): BuildResult {
