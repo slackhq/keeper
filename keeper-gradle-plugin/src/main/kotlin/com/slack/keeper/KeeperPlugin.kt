@@ -20,13 +20,12 @@ package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.internal.transforms.ProguardConfigurable
+import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -47,13 +46,6 @@ private const val TAG = "AndroidTestKeepRules"
 private const val NAME_ANDROID_TEST_JAR = "androidTest"
 private const val NAME_APP_JAR = "app"
 internal const val KEEPER_TASK_GROUP = "keeper"
-
-// In AGP 3.6, this can be removed in favor of using the new ProguardConfigurableTask
-private val proguardConfigurableConfigurationFilesField by lazy {
-  ProguardConfigurable::class.java.getDeclaredField("configurationFiles").apply {
-    isAccessible = true
-  }
-}
 
 /**
  * A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from
@@ -137,14 +129,10 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          // In AGP 3.6, this has to change to use the new ProguardConfigurableTask
-          tasks.withType<TransformTask>().configureEach {
-            if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-                transform is ProguardConfigurable) {
-              project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
-              val configurable = transform as ProguardConfigurable
-              (proguardConfigurableConfigurationFilesField.get(configurable) as ConfigurableFileCollection)
-                  .from(prop)
+          tasks.withType<ProguardConfigurableTask>().configureEach {
+            if (name.endsWith(extension.appVariant, ignoreCase = true)) {
+              project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
+              configurationFiles.from(prop)
             }
           }
         }
