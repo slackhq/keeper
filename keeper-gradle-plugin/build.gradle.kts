@@ -74,4 +74,8 @@ dependencies {
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")
+
+    testImplementation("com.squareup:javapoet:1.12.1")
+    testImplementation("com.google.truth:truth:1.0.1")
+    testImplementation("junit:junit:4.13")
 }
