@@ -20,7 +20,7 @@ jobs:
           java-version: ${{ matrix.ci_java_version }}
       - name: Build with Gradle
         run: |
-          cd redacted-compiler-gradle-plugin
+          cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace
           cd ..
           ./gradlew clean check --stacktrace
@@ -29,6 +29,6 @@ jobs:
 #      - name: Upload snapshot (master only)
 #        run: |
 #          ./gradlew uploadArchives -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
-#          cd redacted-compiler-gradle-plugin
+#          cd keeper-gradle-plugin
 #          ./gradlew uploadArchives -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
 #        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8'
