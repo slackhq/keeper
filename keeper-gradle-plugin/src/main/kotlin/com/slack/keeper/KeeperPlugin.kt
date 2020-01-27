@@ -19,12 +19,15 @@
 package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
+import com.android.build.gradle.internal.pipeline.TransformTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -68,8 +71,8 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
  * - Register a [`inferAndroidTestUsage`][InferAndroidTestKeepRules] task that plugs the two aforementioned jars into
  *   R8's `PrintUses` CLI and outputs the inferred proguard rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private [ProguardConfigurableTask] task and setting
- *   its `configurationFiles` to include our generated one.
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [ProguardTaskPatcher])
+ *   and setting their `configurationFiles` to include our generated one.
  *
  * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
  * of the target app variant's full minified APK.
@@ -128,12 +131,7 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          tasks.withType<ProguardConfigurableTask>().configureEach {
-            if (name.endsWith(extension.appVariant, ignoreCase = true)) {
-              project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
-              configurationFiles.from(prop)
-            }
-          }
+          ProguardTaskPatcher.create().applyGeneratedRules(project, extension, prop)
         }
       }
     }
@@ -220,6 +218,105 @@ class KeeperPlugin : Plugin<Project> {
 
       // Because we have more than 65535 classes. Dex method limit's distant cousin.
       isZip64 = true
+    }
+  }
+}
+
+/**
+ * Sealed type hierarchy of different supported proguard task patchers.
+ */
+private sealed class ProguardTaskPatcher {
+
+  companion object {
+    /** Known patchers, listed in order of preference. */
+    private val PATCHERS = listOf(Agp36xPatcher, Agp35xPatcher)
+
+    /** Creates a new patcher for the given environment. */
+    fun create(): ProguardTaskPatcher {
+      return PATCHERS.firstOrNull(ProguardTaskPatcher::isApplicable)
+          ?: error(
+              "No applicable proguard task patchers found for this version of AGP. Please file a bug report with your AGP version")
+    }
+  }
+
+  /** Checks if this patcher can be applied to the current environment. */
+  abstract fun isApplicable(): Boolean
+
+  /** Patches the provided [prop] into the target available proguard task. */
+  abstract fun applyGeneratedRules(
+      project: Project,
+      extension: KeeperExtension,
+      prop: Provider<Directory>
+  )
+
+  /** Patcher for AGP 3.5.x. */
+  object Agp35xPatcher : ProguardTaskPatcher() {
+    private val PROGUARD_CONFIGURABLE_TRANSFORM: Class<out TransformTask>? = try {
+      @Suppress("UNCHECKED_CAST")
+      Class.forName(
+          "com.android.build.gradle.internal.transforms.ProguardConfigurable") as Class<out TransformTask>
+    } catch (e: ClassNotFoundException) {
+      null
+    }
+
+    private val CONFIGURATION_FILES_FIELD by lazy {
+      PROGUARD_CONFIGURABLE_TRANSFORM?.getDeclaredField("configurationFiles")?.apply {
+        isAccessible = true
+      }
+    }
+
+    override fun isApplicable(): Boolean {
+      return PROGUARD_CONFIGURABLE_TRANSFORM != null && CONFIGURATION_FILES_FIELD != null
+    }
+
+    override fun applyGeneratedRules(
+        project: Project,
+        extension: KeeperExtension,
+        prop: Provider<Directory>
+    ) {
+      project.tasks.withType<TransformTask>().configureEach {
+        if (name.endsWith(extension.appVariant, ignoreCase = true) &&
+            PROGUARD_CONFIGURABLE_TRANSFORM!!.isAssignableFrom(PROGUARD_CONFIGURABLE_TRANSFORM)) {
+          project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
+          (CONFIGURATION_FILES_FIELD!!.get(transform) as ConfigurableFileCollection)
+              .from(prop)
+        }
+      }
+    }
+  }
+
+  /** Patcher for AGP 3.6.x and above. */
+  object Agp36xPatcher : ProguardTaskPatcher() {
+    internal val PROGUARD_CONFIGURABLE_TASK: Class<out Task>? = try {
+      @Suppress("UNCHECKED_CAST")
+      Class.forName(
+          "com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
+    } catch (e: ClassNotFoundException) {
+      null
+    }
+
+    private val CONFIGURATION_FILES_FIELD by lazy {
+      PROGUARD_CONFIGURABLE_TASK?.getDeclaredField("configurationFiles")?.apply {
+        isAccessible = true
+      }
+    }
+
+    override fun isApplicable(): Boolean {
+      return PROGUARD_CONFIGURABLE_TASK != null && CONFIGURATION_FILES_FIELD != null
+    }
+
+    override fun applyGeneratedRules(
+        project: Project,
+        extension: KeeperExtension,
+        prop: Provider<Directory>
+    ) {
+      project.tasks.withType(PROGUARD_CONFIGURABLE_TASK!!).configureEach {
+        if (name.endsWith(extension.appVariant, ignoreCase = true)) {
+          project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
+          (CONFIGURATION_FILES_FIELD!!.get(this@configureEach) as ConfigurableFileCollection)
+              .from(prop)
+        }
+      }
     }
   }
 }

@@ -70,7 +70,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-    implementation("com.android.tools.build:gradle:3.6.0-rc01")
+    implementation("com.android.tools.build:gradle:3.5.3")
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")
