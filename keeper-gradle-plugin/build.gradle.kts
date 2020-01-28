@@ -66,12 +66,16 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
+tasks.withType<PluginUnderTestMetadata>().configureEach {
+    pluginClasspath.from(configurations.named("compileOnly"))
+}
+
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: "3.5.3"
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-    implementation("com.android.tools.build:gradle:$agpVersion")
+    compileOnly("com.android.tools.build:gradle:$agpVersion")
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")
