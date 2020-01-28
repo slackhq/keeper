@@ -229,7 +229,7 @@ private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
 }
 
 /** Copy of the stdlib version until it's stable. */
-private fun String.capitalize(locale: Locale): String {
+internal fun String.capitalize(locale: Locale): String {
   if (isNotEmpty()) {
     val firstChar = this[0]
     if (firstChar.isLowerCase()) {

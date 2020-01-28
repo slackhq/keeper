@@ -13,37 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// TODO Can't use the newer `com.android.Version` until AGP 3.6.0+
+@file:Suppress("deprecation")
 package com.slack.keeper
 
-// TODO Can't use the newer `com.android.Version` until AGP 3.6.0+
 import com.android.build.api.transform.Transform
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.google.auto.service.AutoService
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.withType
 import org.gradle.util.VersionNumber
 import java.lang.reflect.Field
+import java.util.Locale
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
+
+internal val AGP_VERSION get() = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
 
 interface ProguardTaskPatcher {
 
   companion object {
     /** Known patchers, listed in order of preference. */
-    private val PATCHERS = listOf(Agp35xPatcher())
+    private val PATCHERS = listOf(Agp35xPatcher(), Agp36xPatcher())
 
     /** Creates a new patcher for the given environment. */
     fun create(project: Project): ProguardTaskPatcher {
-      val version = ANDROID_GRADLE_PLUGIN_VERSION
-      val currentVersionNumber = VersionNumber.parse(version)
-      project.logger.debug("$TAG AGP version is $version")
-      return PATCHERS.filter { currentVersionNumber.baseVersion >= it.minVersion }
+      project.logger.debug("$TAG AGP version is $AGP_VERSION")
+      val baseVersion = AGP_VERSION.baseVersion
+      return PATCHERS.filter { baseVersion >= it.minVersion }
           .maxBy(ProguardTaskPatcher::minVersion)
           ?: error(
-              "$TAG No applicable proguard task patchers found for this version of AGP ($version). Please file a bug report with your AGP version")
+              "$TAG No applicable proguard task patchers found for this version of AGP ($AGP_VERSION). Please file a bug report with your AGP version")
     }
   }
 
@@ -79,9 +84,36 @@ class Agp35xPatcher : ProguardTaskPatcher {
     project.tasks.withType<TransformTask>().configureEach {
       if (name.endsWith(extension.appVariant, ignoreCase = true) &&
           proguardConfigurable.isInstance(transform)) {
-        project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
+        project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
             .from(prop)
+      }
+    }
+  }
+}
+
+@AutoService(ProguardTaskPatcher::class)
+class Agp36xPatcher : ProguardTaskPatcher {
+  private val proguardConfigurableTask: Class<out Task> by lazy {
+    @Suppress("UNCHECKED_CAST")
+    Class.forName("com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
+  }
+
+  private val configurationFilesProperty: KProperty1<in Task, ConfigurableFileCollection> by lazy {
+    @Suppress("UNCHECKED_CAST")
+    proguardConfigurableTask.kotlin.memberProperties.first { it.name == "configurationFiles" } as KProperty1<in Task, ConfigurableFileCollection>
+  }
+
+  override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
+
+  override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
+      prop: Provider<Directory>) {
+    val targetNamePrefix = "minify${extension.appVariant.capitalize(Locale.US)}With"
+    project.tasks.withType(proguardConfigurableTask).configureEach {
+      // Names are minify{variant}WithProguard
+      if (name.startsWith(targetNamePrefix)) {
+        project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
+        (configurationFilesProperty.get(this)).from(prop)
       }
     }
   }
