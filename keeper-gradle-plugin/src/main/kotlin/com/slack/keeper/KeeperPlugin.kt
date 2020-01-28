@@ -19,8 +19,6 @@
 package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.internal.transforms.ProguardConfigurable
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
