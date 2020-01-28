@@ -129,6 +129,7 @@ class KeeperPlugin : Plugin<Project> {
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
           ProguardTaskPatcher.create(project)
+              .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
               .applyGeneratedRules(project, extension, prop)
         }
       }
