@@ -67,7 +67,6 @@ kotlinDslPluginOptions {
 }
 
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: "3.5.3"
-println("Running with $agpVersion")
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
