@@ -75,7 +75,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     @JvmStatic
     @Parameters(name = "{0}")
     fun data(): List<Array<*>> {
-      return listOf(MinifierType.values())
+      return listOf(*MinifierType.values().map { arrayOf(it) }.toTypedArray())
     }
   }
 
