@@ -17,6 +17,7 @@
 package com.slack.keeper
 
 import com.google.common.truth.Truth.assertThat
+import com.slack.keeper.KeeperFunctionalTest.MinifierType.R8
 import com.squareup.javapoet.ClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -68,22 +69,25 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  * ```
  */
 @RunWith(Parameterized::class)
-class KeeperFunctionalTest(private val useR8: Boolean) {
+class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
   companion object {
     @JvmStatic
-    @Parameters(name = "useR8={0}")
+    @Parameters(name = "{0}")
     fun data(): List<Array<*>> {
-      return listOf(
-          arrayOf(true),
-          arrayOf(false)
-      )
+      return listOf(MinifierType.values())
     }
+  }
+
+  enum class MinifierType {
+    R8, Proguard
   }
 
   @Rule
   @JvmField
   val temporaryFolder = TemporaryFolder()
+
+  private val useR8 = minifierType == R8
 
   /**
    * Basic smoke test. This covers the standard flow and touches on the following:
@@ -104,7 +108,7 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
     assertThat(result.task(":inferAndroidTestUsage")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifier ran
-    val expectedMinifier = if (useR8) "R8" else "Proguard"
+    val expectedMinifier = minifierType.name
     assertThat(result.task(
         ":transformClassesAndResourcesWith${expectedMinifier}ForReleaseAndroidTest")?.outcome).isEqualTo(
         TaskOutcome.SUCCESS)
@@ -196,7 +200,9 @@ private val BUILD_GRADLE_CONTENT = """
     }
 
     dependencies {
-      classpath "com.android.tools.build:gradle:3.5.3"
+      // It doesn't matter what versions we put here! Plugin's versions will take precedent. Super 
+      // annoying Gradle test behavior.
+      classpath "com.android.tools.build:gradle:+"
       classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61"
     }
   }
