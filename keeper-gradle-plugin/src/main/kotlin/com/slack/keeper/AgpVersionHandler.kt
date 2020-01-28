@@ -61,6 +61,9 @@ interface AgpVersionHandler {
   /** Minimum AGP version for this patcher. */
   val minVersion: VersionNumber
 
+  /** Returns the expected minifier name (i.e. 'R8' or 'Proguard') for the givven [project]. */
+  fun expectedMinifier(project: Project): String
+
   /** Returns the interpolated task name for given [minifier] (i.e. 'R8' or 'Proguard') and variant. */
   fun interpolatedTaskName(minifier: String, variant: String): String
 
@@ -88,15 +91,24 @@ class Agp35xPatcher : AgpVersionHandler {
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.5.0")
 
+  override fun expectedMinifier(project: Project): String {
+    // On <3.6, proguard is the default
+    return if (project.findProperty("android.enableR8")?.toString()?.toBoolean() == true) {
+      "R8"
+    } else {
+      "Proguard"
+    }
+  }
+
   override fun interpolatedTaskName(minifier: String, variant: String): String {
-    return ":transformClassesAndResourcesWith${minifier}For${variant}"
+    return "transformClassesAndResourcesWith${minifier}For${variant}"
   }
 
   override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
       prop: Provider<Directory>) {
+    val targetName = interpolatedTaskName(expectedMinifier(project), extension.appVariant.capitalize(Locale.US))
     project.tasks.withType<TransformTask>().configureEach {
-      if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-          proguardConfigurable.isInstance(transform)) {
+      if (name == targetName && proguardConfigurable.isInstance(transform)) {
         project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
             .from(prop)
@@ -119,17 +131,26 @@ class Agp36xPatcher : AgpVersionHandler {
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
 
+  override fun expectedMinifier(project: Project): String {
+    // On 3.6+, R8 is the default
+    return if (project.findProperty("android.enableR8")?.toString()?.toBoolean() == false) {
+      "Proguard"
+    } else {
+      "R8"
+    }
+  }
+
   override fun interpolatedTaskName(minifier: String, variant: String): String {
-    return ":minify${variant}With${minifier}"
+    return "minify${variant}With${minifier}"
   }
 
   override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
       prop: Provider<Directory>) {
-    val targetNamePrefix = "minify${extension.appVariant.capitalize(Locale.US)}With"
+    val targetName = interpolatedTaskName(expectedMinifier(project), extension.appVariant.capitalize(Locale.US))
     project.tasks.withType(proguardConfigurableTask).configureEach {
       // Names are minify{variant}WithProguard
-      if (name.startsWith(targetNamePrefix)) {
-        project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
+      if (name == targetName) {
+        println("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         (configurationFilesProperty.get(this)).from(prop)
       }
     }

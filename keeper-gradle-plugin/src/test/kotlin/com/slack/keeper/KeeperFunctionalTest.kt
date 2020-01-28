@@ -110,16 +110,16 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder)
 
     val result = runGradle(projectDir, "assembleReleaseAndroidTest")
-    assertThat(result.task(":jarAndroidTestClassesForAndroidTestKeepRules")?.outcome).isEqualTo(
+    assertThat(result.resultOf("jarAndroidTestClassesForAndroidTestKeepRules")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.task(":jarAppClassesForAndroidTestKeepRules")?.outcome).isEqualTo(
+    assertThat(result.resultOf("jarAppClassesForAndroidTestKeepRules")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.task(":inferAndroidTestUsage")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferAndroidTestUsage")).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifiers ran
     val agpVersion = AgpVersionHandler.getInstance()
-    assertThat(result.task(agpVersion.interpolatedTaskName(minifierType.taskName, "Release"))?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.task(agpVersion.interpolatedTaskName(minifierType.taskName, "ReleaseAndroidTest"))?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "Release"))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ReleaseAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("app.jar")
@@ -160,7 +160,15 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
 //        .withDebug(true)
         .build()
   }
+
+  private fun BuildResult.resultOf(name: String): TaskOutcome {
+    return task(name.prefixIfNot(":"))?.outcome
+        ?: error("Could not find task '$name', which is usually an indication that it didn't run. See GradleRunner's printed task graph for more details.")
+  }
 }
+
+private fun String.prefixIfNot(prefix: String) =
+    if (this.startsWith(prefix)) this else "$prefix$this"
 
 @Language("PROGUARD")
 private val EXPECTED_GENERATED_RULES = """
