@@ -17,8 +17,8 @@
 package com.slack.keeper
 
 // TODO Can't use the newer `com.android.Version` until AGP 3.6.0+
+import com.android.build.api.transform.Transform
 import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.internal.transforms.ProguardConfigurable
 import com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.google.auto.service.AutoService
 import org.gradle.api.Project
@@ -27,6 +27,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.withType
 import org.gradle.util.VersionNumber
+import java.lang.reflect.Field
 
 interface ProguardTaskPatcher {
 
@@ -59,8 +60,14 @@ interface ProguardTaskPatcher {
 
 @AutoService(ProguardTaskPatcher::class)
 class Agp35xPatcher : ProguardTaskPatcher {
-  private val proguardConfigurableConfigurationFilesField by lazy {
-    ProguardConfigurable::class.java.getDeclaredField("configurationFiles").apply {
+  private val proguardConfigurable: Class<out Transform> by lazy {
+    @Suppress("UNCHECKED_CAST")
+    Class.forName(
+        "com.android.build.gradle.internal.transforms.ProguardConfigurable") as Class<out Transform>
+  }
+
+  private val configurationFilesField: Field by lazy {
+    proguardConfigurable.getDeclaredField("configurationFiles").apply {
       isAccessible = true
     }
   }
@@ -71,10 +78,9 @@ class Agp35xPatcher : ProguardTaskPatcher {
       prop: Provider<Directory>) {
     project.tasks.withType<TransformTask>().configureEach {
       if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-          transform is ProguardConfigurable) {
-        project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
-        val configurable = transform as ProguardConfigurable
-        (proguardConfigurableConfigurationFilesField.get(configurable) as ConfigurableFileCollection)
+          proguardConfigurable.isInstance(transform)) {
+        project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
+        (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
             .from(prop)
       }
     }
