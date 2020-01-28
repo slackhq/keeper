@@ -21,7 +21,6 @@ import com.squareup.javapoet.ClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.VersionNumber
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
@@ -95,34 +94,6 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     PROGUARD("Proguard", EXPECTED_PROGUARD_CONFIG, "-Pandroid.enableR8=false")
   }
 
-  @Suppress("unused") // Sealed subtypes are looked up reflectively
-  sealed class TestAgpVersion(versionString: String) {
-    companion object {
-      val VERSION = run {
-        val currentBase = AGP_VERSION.baseVersion
-        TestAgpVersion::class.sealedSubclasses.map { it.objectInstance!! }
-            .filter { currentBase >= it.minVersion }
-            .maxBy { it.minVersion }
-            ?: error("No matching proguard version")
-      }
-    }
-
-    val minVersion = VersionNumber.parse(versionString)
-    abstract fun interpolatedTaskName(minifier: String, variant: String): String
-
-    object Agp350 : TestAgpVersion("3.5.0") {
-      override fun interpolatedTaskName(minifier: String, variant: String): String {
-        return ":transformClassesAndResourcesWith${minifier}For${variant}"
-      }
-    }
-
-    object Agp360 : TestAgpVersion("3.6.0") {
-      override fun interpolatedTaskName(minifier: String, variant: String): String {
-        return ":minify${variant}With${minifier}"
-      }
-    }
-  }
-
   @Rule
   @JvmField
   val temporaryFolder = TemporaryFolder()
@@ -146,7 +117,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.task(":inferAndroidTestUsage")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifiers ran
-    val agpVersion = TestAgpVersion.VERSION
+    val agpVersion = AgpVersionHandler.getInstance()
     assertThat(result.task(agpVersion.interpolatedTaskName(minifierType.taskName, "Release"))?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.task(agpVersion.interpolatedTaskName(minifierType.taskName, "ReleaseAndroidTest"))?.outcome).isEqualTo(TaskOutcome.SUCCESS)
 

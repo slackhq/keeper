@@ -35,18 +35,24 @@ import kotlin.reflect.full.memberProperties
 
 internal val AGP_VERSION get() = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
 
-interface ProguardTaskPatcher {
+interface AgpVersionHandler {
 
   companion object {
-    /** Known patchers, listed in order of preference. */
-    private val PATCHERS = listOf(Agp35xPatcher(), Agp36xPatcher())
+    fun getInstance(): AgpVersionHandler = lazyInstance
+
+    private val lazyInstance by lazy {
+      createHandler()
+    }
 
     /** Creates a new patcher for the given environment. */
-    fun create(project: Project): ProguardTaskPatcher {
-      project.logger.debug("$TAG AGP version is $AGP_VERSION")
+    private fun createHandler(): AgpVersionHandler {
+      /** Known patchers, listed in order of preference. */
+      // TODO(zsweers) properly use a ServiceLoader for these?
+      val handlers = listOf(Agp35xPatcher(), Agp36xPatcher())
+
       val baseVersion = AGP_VERSION.baseVersion
-      return PATCHERS.filter { baseVersion >= it.minVersion }
-          .maxBy(ProguardTaskPatcher::minVersion)
+      return handlers.filter { baseVersion >= it.minVersion }
+          .maxBy(AgpVersionHandler::minVersion)
           ?: error(
               "$TAG No applicable proguard task patchers found for this version of AGP ($AGP_VERSION). Please file a bug report with your AGP version")
     }
@@ -54,6 +60,9 @@ interface ProguardTaskPatcher {
 
   /** Minimum AGP version for this patcher. */
   val minVersion: VersionNumber
+
+  /** Returns the interpolated task name for given [minifier] (i.e. 'R8' or 'Proguard') and variant. */
+  fun interpolatedTaskName(minifier: String, variant: String): String
 
   /** Patches the provided [prop] into the target available proguard task. */
   fun applyGeneratedRules(
@@ -63,8 +72,8 @@ interface ProguardTaskPatcher {
   )
 }
 
-@AutoService(ProguardTaskPatcher::class)
-class Agp35xPatcher : ProguardTaskPatcher {
+@AutoService(AgpVersionHandler::class)
+class Agp35xPatcher : AgpVersionHandler {
   private val proguardConfigurable: Class<out Transform> by lazy {
     @Suppress("UNCHECKED_CAST")
     Class.forName(
@@ -79,6 +88,10 @@ class Agp35xPatcher : ProguardTaskPatcher {
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.5.0")
 
+  override fun interpolatedTaskName(minifier: String, variant: String): String {
+    return ":transformClassesAndResourcesWith${minifier}For${variant}"
+  }
+
   override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
       prop: Provider<Directory>) {
     project.tasks.withType<TransformTask>().configureEach {
@@ -92,8 +105,8 @@ class Agp35xPatcher : ProguardTaskPatcher {
   }
 }
 
-@AutoService(ProguardTaskPatcher::class)
-class Agp36xPatcher : ProguardTaskPatcher {
+@AutoService(AgpVersionHandler::class)
+class Agp36xPatcher : AgpVersionHandler {
   private val proguardConfigurableTask: Class<out Task> by lazy {
     @Suppress("UNCHECKED_CAST")
     Class.forName("com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
@@ -105,6 +118,10 @@ class Agp36xPatcher : ProguardTaskPatcher {
   }
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
+
+  override fun interpolatedTaskName(minifier: String, variant: String): String {
+    return ":minify${variant}With${minifier}"
+  }
 
   override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
       prop: Provider<Directory>) {

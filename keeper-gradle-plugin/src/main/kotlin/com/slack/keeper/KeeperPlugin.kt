@@ -66,7 +66,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
  * - Register a [`inferAndroidTestUsage`][InferAndroidTestKeepRules] task that plugs the two aforementioned jars into
  *   R8's `PrintUses` CLI and outputs the inferred proguard rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [ProguardTaskPatcher])
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [AgpVersionHandler])
  *   and setting their `configurationFiles` to include our generated one.
  *
  * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
@@ -126,7 +126,7 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          ProguardTaskPatcher.create(project)
+          AgpVersionHandler.getInstance()
               .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
               .applyGeneratedRules(project, extension, prop)
         }
