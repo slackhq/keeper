@@ -20,6 +20,8 @@ package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.pipeline.TransformTask
+// TODO Can't use the newer `com.android.Version` until AGP 3.6.0+
+import com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -39,8 +41,11 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
 import org.gradle.kotlin.dsl.withType
+import org.gradle.util.VersionNumber
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.util.Locale
 import java.util.Locale.US
 
@@ -131,7 +136,9 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          ProguardTaskPatcher.create().applyGeneratedRules(project, extension, prop)
+          ProguardTaskPatcher.create(project)
+              .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
+              .applyGeneratedRules(project, extension, prop)
         }
       }
     }
@@ -232,15 +239,19 @@ private sealed class ProguardTaskPatcher {
     private val PATCHERS = listOf(Agp36xPatcher, Agp35xPatcher)
 
     /** Creates a new patcher for the given environment. */
-    fun create(): ProguardTaskPatcher {
-      return PATCHERS.firstOrNull(ProguardTaskPatcher::isApplicable)
+    fun create(project: Project): ProguardTaskPatcher {
+      val version = ANDROID_GRADLE_PLUGIN_VERSION
+      val currentVersionNumber = VersionNumber.parse(version)
+      project.logger.debug("$TAG AGP version is $version")
+      return PATCHERS.filter { currentVersionNumber.baseVersion >= it.minVersion }
+          .maxBy(ProguardTaskPatcher::minVersion)
           ?: error(
-              "No applicable proguard task patchers found for this version of AGP. Please file a bug report with your AGP version")
+              "No applicable proguard task patchers found for this version of AGP ($version). Please file a bug report with your AGP version")
     }
   }
 
-  /** Checks if this patcher can be applied to the current environment. */
-  abstract fun isApplicable(): Boolean
+  /** Minimum AGP version for this patcher. */
+  abstract val minVersion: VersionNumber
 
   /** Patches the provided [prop] into the target available proguard task. */
   abstract fun applyGeneratedRules(
@@ -251,23 +262,19 @@ private sealed class ProguardTaskPatcher {
 
   /** Patcher for AGP 3.5.x. */
   object Agp35xPatcher : ProguardTaskPatcher() {
-    private val PROGUARD_CONFIGURABLE_TRANSFORM: Class<out TransformTask>? = try {
+    private val PROGUARD_CONFIGURABLE_TRANSFORM: Class<out TransformTask> by lazy {
       @Suppress("UNCHECKED_CAST")
       Class.forName(
           "com.android.build.gradle.internal.transforms.ProguardConfigurable") as Class<out TransformTask>
-    } catch (e: ClassNotFoundException) {
-      null
     }
 
-    private val CONFIGURATION_FILES_FIELD by lazy {
-      PROGUARD_CONFIGURABLE_TRANSFORM?.getDeclaredField("configurationFiles")?.apply {
+    private val CONFIGURATION_FILES_FIELD: Field by lazy {
+      PROGUARD_CONFIGURABLE_TRANSFORM.getDeclaredField("configurationFiles").apply {
         isAccessible = true
       }
     }
 
-    override fun isApplicable(): Boolean {
-      return PROGUARD_CONFIGURABLE_TRANSFORM != null && CONFIGURATION_FILES_FIELD != null
-    }
+    override val minVersion = VersionNumber.parse("3.5.3")
 
     override fun applyGeneratedRules(
         project: Project,
@@ -276,9 +283,9 @@ private sealed class ProguardTaskPatcher {
     ) {
       project.tasks.withType<TransformTask>().configureEach {
         if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-            PROGUARD_CONFIGURABLE_TRANSFORM!!.isAssignableFrom(PROGUARD_CONFIGURABLE_TRANSFORM)) {
+            PROGUARD_CONFIGURABLE_TRANSFORM.isAssignableFrom(javaClass)) {
           project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
-          (CONFIGURATION_FILES_FIELD!!.get(transform) as ConfigurableFileCollection)
+          (CONFIGURATION_FILES_FIELD.get(transform) as ConfigurableFileCollection)
               .from(prop)
         }
       }
@@ -287,33 +294,26 @@ private sealed class ProguardTaskPatcher {
 
   /** Patcher for AGP 3.6.x and above. */
   object Agp36xPatcher : ProguardTaskPatcher() {
-    internal val PROGUARD_CONFIGURABLE_TASK: Class<out Task>? = try {
-      @Suppress("UNCHECKED_CAST")
-      Class.forName(
-          "com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
-    } catch (e: ClassNotFoundException) {
-      null
+    @Suppress("UNCHECKED_CAST")
+    internal val PROGUARD_CONFIGURABLE_TASK: Class<out Task> by lazy {
+      Class.forName("com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
     }
 
-    private val CONFIGURATION_FILES_FIELD by lazy {
-      PROGUARD_CONFIGURABLE_TASK?.getDeclaredField("configurationFiles")?.apply {
-        isAccessible = true
-      }
+    private val CONFIGURATION_FILES_PROPERTY: Method by lazy {
+      PROGUARD_CONFIGURABLE_TASK.getDeclaredMethod("getConfigurationFiles")
     }
 
-    override fun isApplicable(): Boolean {
-      return PROGUARD_CONFIGURABLE_TASK != null && CONFIGURATION_FILES_FIELD != null
-    }
+    override val minVersion = VersionNumber.parse("3.6.0")
 
     override fun applyGeneratedRules(
         project: Project,
         extension: KeeperExtension,
         prop: Provider<Directory>
     ) {
-      project.tasks.withType(PROGUARD_CONFIGURABLE_TASK!!).configureEach {
+      project.tasks.withType(PROGUARD_CONFIGURABLE_TASK).configureEach {
         if (name.endsWith(extension.appVariant, ignoreCase = true)) {
           project.logger.debug("$TAG: Patching $name with inferred androidTest proguard rules")
-          (CONFIGURATION_FILES_FIELD!!.get(this@configureEach) as ConfigurableFileCollection)
+          (CONFIGURATION_FILES_PROPERTY.invoke(this@configureEach) as ConfigurableFileCollection)
               .from(prop)
         }
       }
