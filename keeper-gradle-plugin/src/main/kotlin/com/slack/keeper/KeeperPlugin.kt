@@ -26,7 +26,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -37,23 +36,15 @@ import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
 import java.util.Locale.US
 
-private const val TAG = "AndroidTestKeepRules"
+internal const val TAG = "Keeper"
 private const val NAME_ANDROID_TEST_JAR = "androidTest"
 private const val NAME_APP_JAR = "app"
 internal const val KEEPER_TASK_GROUP = "keeper"
-
-// In AGP 3.6, this can be removed in favor of using the new ProguardConfigurableTask
-private val proguardConfigurableConfigurationFilesField by lazy {
-  ProguardConfigurable::class.java.getDeclaredField("configurationFiles").apply {
-    isAccessible = true
-  }
-}
 
 /**
  * A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from
@@ -137,16 +128,8 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          // In AGP 3.6, this has to change to use the new ProguardConfigurableTask
-          tasks.withType<TransformTask>().configureEach {
-            if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-                transform is ProguardConfigurable) {
-              project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
-              val configurable = transform as ProguardConfigurable
-              (proguardConfigurableConfigurationFilesField.get(configurable) as ConfigurableFileCollection)
-                  .from(prop)
-            }
-          }
+          ProguardTaskPatcher.create(project)
+              .applyGeneratedRules(project, extension, prop)
         }
       }
     }
