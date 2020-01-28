@@ -68,17 +68,30 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  * ```
  */
 @RunWith(Parameterized::class)
-class KeeperFunctionalTest(private val useR8: Boolean) {
+class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
   companion object {
     @JvmStatic
-    @Parameters(name = "useR8={0}")
+    @Parameters(name = "{0}")
     fun data(): List<Array<*>> {
-      return listOf(
-          arrayOf(true),
-          arrayOf(false)
-      )
+      return listOf(*MinifierType.values().map { arrayOf(it) }.toTypedArray())
     }
+  }
+
+  /**
+   * Represents a minifier type.
+   *
+   * @property taskName The representation in a gradle task name.
+   * @property expectedRules The expected generated rules outputted by `-printconfiguration`.
+   * @property gradleArgs The requisite gradle invocation parameters to enable this minifier.
+   */
+  enum class MinifierType(
+      val taskName: String,
+      val expectedRules: String,
+      vararg val gradleArgs: String
+  ) {
+    R8("R8", EXPECTED_GENERATED_RULES, "-Pandroid.enableR8=true"),
+    PROGUARD("Proguard", EXPECTED_PROGUARD_CONFIG, "-Pandroid.enableR8=false")
   }
 
   @Rule
@@ -104,9 +117,8 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
     assertThat(result.task(":inferAndroidTestUsage")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifier ran
-    val expectedMinifier = if (useR8) "R8" else "Proguard"
     assertThat(result.task(
-        ":transformClassesAndResourcesWith${expectedMinifier}ForReleaseAndroidTest")?.outcome).isEqualTo(
+        ":transformClassesAndResourcesWith${minifierType.taskName}ForReleaseAndroidTest")?.outcome).isEqualTo(
         TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
@@ -127,8 +139,7 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
 
     // Finally - verify our rules were included in the final minification execution.
     // Have to compare slightly different strings because proguard's format is a little different
-    val expected = if (useR8) EXPECTED_GENERATED_RULES else EXPECTED_PROGUARD_CONFIG
-    assertThat(proguardConfigOutput.readText().trim()).contains(expected)
+    assertThat(proguardConfigOutput.readText().trim()).contains(minifierType.expectedRules)
   }
 
   // TODO test cases
@@ -140,12 +151,11 @@ class KeeperFunctionalTest(private val useR8: Boolean) {
   //  Custom r8 versions
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
-    val r8ControlArgs = if (useR8) emptyArray() else arrayOf("-Pandroid.enableR8=false")
     return GradleRunner.create()
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
-        .withArguments("--stacktrace", "-x", "lint", *r8ControlArgs, *args)
+        .withArguments("--stacktrace", "-x", "lint", *minifierType.gradleArgs, *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()
