@@ -68,8 +68,8 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
  * - Register a [`inferAndroidTestUsage`][InferAndroidTestKeepRules] task that plugs the two aforementioned jars into
  *   R8's `PrintUses` CLI and outputs the inferred proguard rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private [ProguardConfigurable] API. This works by
- *   looking for the relevant [TransformTask] that uses it.
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [ProguardTaskPatcher])
+ *   and setting their `configurationFiles` to include our generated one.
  *
  * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
  * of the target app variant's full minified APK.
