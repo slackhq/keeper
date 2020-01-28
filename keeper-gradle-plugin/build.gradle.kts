@@ -34,6 +34,13 @@ buildscript {
 
 pluginManager.apply("com.vanniktech.maven.publish")
 
+repositories {
+    google()
+    gradlePluginPortal()
+    mavenCentral()
+    jcenter()
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs = listOf("-progressive")
@@ -67,11 +74,9 @@ dependencies {
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")
-}
 
-repositories {
-    google()
-    gradlePluginPortal()
-    mavenCentral()
-    jcenter()
+    testImplementation("com.squareup:javapoet:1.12.1")
+    testImplementation("com.squareup:kotlinpoet:1.5.0")
+    testImplementation("com.google.truth:truth:1.0.1")
+    testImplementation("junit:junit:4.13")
 }
