@@ -66,13 +66,14 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
-val agpVersionOverride: String = System.getProperty("keeperTest.agpVersion", "3.5.3")
+val agpVersion: String = System.getProperty("keeperTest.agpVersion", "3.5.3")
+println("Using AGP $agpVersion")
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-    implementation("com.android.tools.build:gradle:$agpVersionOverride")
+    implementation("com.android.tools.build:gradle:$agpVersion")
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")

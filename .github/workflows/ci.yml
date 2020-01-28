@@ -22,7 +22,7 @@ jobs:
       - name: Build with Gradle
         run: |
           cd keeper-gradle-plugin
-          ./gradlew clean check --stacktrace -DkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+          ./gradlew clean pluginUnderTestMetadata check --stacktrace -DkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
           ./gradlew clean check --stacktrace
       - name: Reclaim memory
