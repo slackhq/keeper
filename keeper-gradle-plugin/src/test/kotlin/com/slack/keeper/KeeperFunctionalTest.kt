@@ -159,7 +159,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
-        .withArguments("--stacktrace", "-x", "lint", *minifierType.gradleArgs, *args)
+        .withArguments("--stacktrace", "-x", "lintVitalRelease", *minifierType.gradleArgs, *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()

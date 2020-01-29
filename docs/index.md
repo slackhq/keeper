@@ -37,7 +37,7 @@ apply plugin: "com.slack.keeper"
 There are optional configurations available via the `keeper` extension, mostly just for debugging
 purposes or setting a custom R8 version.
 
-```
+```groovy
 keeper {
   /**
    * R8 version, only used for PrintUses and does _not_ override the R8 version used for
@@ -52,6 +52,17 @@ keeper {
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
    */
   r8JvmArgs = []
+}
+```
+
+Keeper uses R8's `PrintUses` CLI under the hood for rules inference. By default it uses R8 version
+`1.6.53`. If you want to customize what version is used, you can specify the dependency via the
+`keeperR8` configuration. Note that these must be tags from R8's
+[`r8-releases/raw`](https://storage.googleapis.com/r8-releases/raw) maven repo.
+
+```groovy
+dependencies {
+  keeperR8 "com.android.tools:r8:x.y.z"
 }
 ```
 

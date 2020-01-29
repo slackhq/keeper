@@ -32,7 +32,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
@@ -53,11 +52,10 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *
  * This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
  *
- * This is configurable via the [`keeper`][KeeperExtension] extension. For example:
+ * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
  * ```
  * keeper {
- *   androidTestVariant = "internalDebugAndroidTest"
- *   appVariant = "externalStaging"
+ *   r8JvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"]
  * }
  * ```
  *
@@ -83,6 +81,7 @@ class KeeperPlugin : Plugin<Project> {
   companion object {
     internal const val INTERMEDIATES_DIR = "intermediates/keeper"
     internal const val DEFAULT_R8_VERSION = "1.6.53"
+    internal const val CONFIGURATION_NAME = "keeperR8"
   }
 
   override fun apply(project: Project) {
@@ -91,11 +90,27 @@ class KeeperPlugin : Plugin<Project> {
         val extension = project.extensions.create<KeeperExtension>("keeper")
 
         // Set up r8 configuration
-        val r8Configuration = configurations.maybeCreate("r8")
+        val r8Configuration = configurations.create(CONFIGURATION_NAME) {
+          description = "R8 dependencies for Keeper. This is used solely for the PrintUses CLI"
+          isVisible = false
+          isCanBeConsumed = false
+          isCanBeResolved = true
+          defaultDependencies {
+            add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+          }
+        }
 
-        // This is the maven repo where r8 releases are hosted
+        // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is allowed
+        // to be fetched from this.
+        // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't support
+        // this yet.
         repositories {
-          maven("https://storage.googleapis.com/r8-releases/raw")
+          maven {
+            url = uri("https://storage.googleapis.com/r8-releases/raw")
+            content {
+              includeModule("com.android.tools", "r8")
+            }
+          }
         }
 
         val appExtension = project.extensions.getByType<AppExtension>()
@@ -110,9 +125,6 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
-        val r8Version = extension.r8Version.getOrElse(DEFAULT_R8_VERSION)
-        logger.debug("$TAG: Using R8 version '$r8Version'")
-        dependencies.add(r8Configuration.name, "com.android.tools:r8:$r8Version")
 
         appExtension.testVariants.configureEach {
           val appVariant = testedVariant
