@@ -21,6 +21,9 @@ package com.slack.keeper
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
+import com.android.build.gradle.api.UnitTestVariant
+import com.android.builder.model.BuildType
+import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -35,6 +38,7 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
+import org.jetbrains.kotlin.gradle.internal.KaptVariantData
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -127,7 +131,22 @@ class KeeperPlugin : Plugin<Project> {
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
 
         appExtension.testVariants.configureEach {
-          val appVariant = testedVariant
+          val appVariant = unwrapTestedVariant(this)
+          if (appVariant != null) {
+            val extensionFilter = extension._variantFilter
+            if (extensionFilter != null) {
+              project.logger.debug("$TAG Resolving ignored status for android variant ${appVariant.name}")
+              val filter = VariantFilterImpl(appVariant)
+              extensionFilter.execute(filter)
+              project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+              if (filter._ignored) {
+                return@configureEach
+              }
+            }
+          } else {
+            project.logger.lifecycle("$TAG Unable to resolve tested variant for $this. Ignoring it.")
+            return@configureEach
+          }
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
           val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
@@ -257,4 +276,30 @@ internal fun String.capitalize(locale: Locale): String {
     }
   }
   return this
+}
+
+private fun unwrapTestedVariant(variantData: Any?): BaseVariant? {
+  return when (variantData) {
+    is BaseVariant -> {
+      when (variantData) {
+        is TestVariant -> variantData.testedVariant
+        is UnitTestVariant -> variantData.testedVariant as? BaseVariant
+        else -> variantData
+      }
+    }
+    is KaptVariantData<*> -> unwrapTestedVariant(variantData.variantData)
+    else -> null
+  }
+}
+
+private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
+  var _ignored: Boolean = true
+
+  override fun setIgnore(ignore: Boolean) {
+    _ignored = ignore
+  }
+
+  override val buildType: BuildType = variant.buildType
+  override val flavors: List<ProductFlavor> = variant.productFlavors
+  override val name: String = variant.name
 }
