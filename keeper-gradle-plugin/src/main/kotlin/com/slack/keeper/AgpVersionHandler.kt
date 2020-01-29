@@ -61,8 +61,15 @@ interface AgpVersionHandler {
   /** Minimum AGP version for this patcher. */
   val minVersion: VersionNumber
 
-  /** Returns the expected minifier name (i.e. 'R8' or 'Proguard') for the givven [project]. */
-  fun expectedMinifier(project: Project): String
+  /** Returns the expected minifier name (i.e. 'R8' or 'Proguard') for the given [project]. */
+  fun expectedMinifier(project: Project): String {
+    // On 3.4+, R8 is the default. We support 3.5+, so we'll only look to see if it's explicitly disabled
+    return if (project.findProperty("android.enableR8")?.toString()?.toBoolean() == false) {
+      "Proguard"
+    } else {
+      "R8"
+    }
+  }
 
   /** Returns the interpolated task name for given [minifier] (i.e. 'R8' or 'Proguard') and variant. */
   fun interpolatedTaskName(minifier: String, variant: String): String
@@ -90,15 +97,6 @@ class Agp35xPatcher : AgpVersionHandler {
   }
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.5.0")
-
-  override fun expectedMinifier(project: Project): String {
-    // On <3.6, proguard is the default
-    return if (project.findProperty("android.enableR8")?.toString()?.toBoolean() == true) {
-      "R8"
-    } else {
-      "Proguard"
-    }
-  }
 
   override fun interpolatedTaskName(minifier: String, variant: String): String {
     return "transformClassesAndResourcesWith${minifier}For${variant}"
@@ -130,15 +128,6 @@ class Agp36xPatcher : AgpVersionHandler {
   }
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
-
-  override fun expectedMinifier(project: Project): String {
-    // On 3.6+, R8 is the default
-    return if (project.findProperty("android.enableR8")?.toString()?.toBoolean() == false) {
-      "Proguard"
-    } else {
-      "R8"
-    }
-  }
 
   override fun interpolatedTaskName(minifier: String, variant: String): String {
     return "minify${variant}With${minifier}"
