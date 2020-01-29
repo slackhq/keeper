@@ -33,7 +33,7 @@ if [[ "$1" = "--local" ]]; then local=true; fi
 
 # Copy in special files that GitHub wants in the project root.
 cp CHANGELOG.md docs/changelog.md
-cp CONTRIBUTING.md docs/contributing.md
+cp .github/CONTRIBUTING.md docs/contributing.md
 cp CODE_OF_CONDUCT.md docs/code-of-conduct.md
 
 # Build the site and push the new files up to GitHub
