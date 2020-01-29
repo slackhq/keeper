@@ -21,7 +21,6 @@ package com.slack.keeper
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
-import com.android.build.gradle.api.UnitTestVariant
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
@@ -130,21 +129,16 @@ class KeeperPlugin : Plugin<Project> {
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
 
         appExtension.testVariants.configureEach {
-          val appVariant = unwrapTestedVariant(this)
-          if (appVariant != null) {
-            val extensionFilter = extension._variantFilter
-            if (extensionFilter != null) {
-              project.logger.debug("$TAG Resolving ignored status for android variant ${appVariant.name}")
-              val filter = VariantFilterImpl(appVariant)
-              extensionFilter.execute(filter)
-              project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
-              if (filter._ignored) {
-                return@configureEach
-              }
+          val appVariant = testedVariant
+          val extensionFilter = extension._variantFilter
+          if (extensionFilter != null) {
+            project.logger.debug("$TAG Resolving ignored status for android variant ${appVariant.name}")
+            val filter = VariantFilterImpl(appVariant)
+            extensionFilter.execute(filter)
+            project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+            if (filter._ignored) {
+              return@configureEach
             }
-          } else {
-            project.logger.lifecycle("$TAG Unable to resolve tested variant for $this. Ignoring it.")
-            return@configureEach
           }
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
           val intermediateAppJar = createIntermediateAppJar(appVariant)
@@ -275,19 +269,6 @@ internal fun String.capitalize(locale: Locale): String {
     }
   }
   return this
-}
-
-private fun unwrapTestedVariant(variantData: Any?): BaseVariant? {
-  return when (variantData) {
-    is BaseVariant -> {
-      when (variantData) {
-        is TestVariant -> variantData.testedVariant
-        is UnitTestVariant -> variantData.testedVariant as? BaseVariant
-        else -> variantData
-      }
-    }
-    else -> null
-  }
 }
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
