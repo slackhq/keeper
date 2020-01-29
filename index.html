@@ -36,7 +36,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="images/slack_logo_small.png">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.2">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.5.0">
     
     
       
@@ -44,7 +44,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/application.30686662.css">
+      <link rel="stylesheet" href="assets/stylesheets/application.1b62728e.css">
       
         <link rel="stylesheet" href="assets/stylesheets/application-palette.a8b3c06d.css">
       
@@ -55,7 +55,7 @@
       
     
     
-      <script src="assets/javascripts/modernizr.74668098.js"></script>
+      <script src="assets/javascripts/modernizr.268332fc.js"></script>
     
     
       
@@ -263,8 +263,23 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dynamic-configuration" class="md-nav__link">
-    Dynamic Configuration
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simplest-solution" class="md-nav__link">
+    Simplest solution
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#property-based-examples" class="md-nav__link">
+    Property-based Examples
   </a>
   
     <nav class="md-nav">
@@ -280,6 +295,18 @@
           <li class="md-nav__item">
   <a href="#avoid-applying-the-plugin-entirely" class="md-nav__link">
     Avoid applying the plugin entirely
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-r8-behavior" class="md-nav__link">
+    Custom R8 behavior
   </a>
   
 </li>
@@ -384,8 +411,23 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dynamic-configuration" class="md-nav__link">
-    Dynamic Configuration
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simplest-solution" class="md-nav__link">
+    Simplest solution
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#property-based-examples" class="md-nav__link">
+    Property-based Examples
   </a>
   
     <nav class="md-nav">
@@ -401,6 +443,18 @@
           <li class="md-nav__item">
   <a href="#avoid-applying-the-plugin-entirely" class="md-nav__link">
     Avoid applying the plugin entirely
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-r8-behavior" class="md-nav__link">
+    Custom R8 behavior
   </a>
   
 </li>
@@ -467,22 +521,88 @@ vars are described <a href="https://github.com/slackhq/keeper/blob/master/.githu
 build.gradle.</p>
 <div class="codehilite"><pre><span></span><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">dependencies</span> <span class="o">{</span>
+    <span class="c1">// ...</span>
     <span class="n">classpath</span> <span class="s2">&quot;com.slack.keeper:keeper:x.y.z&quot;</span>
   <span class="o">}</span>
 <span class="o">}</span>
 
+<span class="n">apply</span> <span class="nl">plugin:</span> <span class="s2">&quot;com.android.application&quot;</span> <span class="c1">// &lt;- Keeper only works with com.android.application!</span>
 <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s2">&quot;com.slack.keeper&quot;</span>
 </pre></div>
 
-<p>There are optional configurations available via the <code>keeper</code> extension, mostly just for debugging
-purposes or setting a custom R8 version.</p>
-<div class="codehilite"><pre><span></span><span class="n">keeper</span> <span class="o">{</span>
-  <span class="cm">/**</span>
-<span class="cm">   * R8 version, only used for PrintUses and does _not_ override the R8 version used for</span>
-<span class="cm">   * minification. Must be a tag. Default defined below.</span>
-<span class="cm">   */</span>
-  <span class="n">r8Version</span> <span class="o">=</span> <span class="s2">&quot;1.6.53&quot;</span>
+<p>Snapshots of the development version are available in <a href="https://oss.sonatype.org/content/repositories/snapshots/">Sonatype&rsquo;s <code>snapshots</code> repository</a>.</p>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<p>As mentioned above, Keeper&rsquo;s default behavior with no configuration will enable it for <em>all</em>
+androidTest variants. This may not be what you want for your actual production builds that you plan
+to distribute.</p>
+<p>Normally, your app variant&rsquo;s minification task doesn&rsquo;t depend on compilation of its corresponding
+<code>androidTest</code> variant. This means you can call <code>assembleRelease</code> and <code>assembleAndroidTestRelease</code>
+ won&rsquo;t inherently run. Keeper, however, changes this since it requires the compiled androidTest
+ sources in order to correctly infer how they use APIs in the app variant. For a production build,
+you likely <em>do</em> want these &ldquo;test-only&rdquo; APIs removed if possible though. There are a few patterns to
+better control this behavior via Gradle property.</p>
+<h4 id="simplest-solution">Simplest solution<a class="headerlink" href="#simplest-solution" title="Permanent link">&para;</a></h4>
+<p>The simplest solution is to add a new build type that extends release but is solely used for these
+tests. This way it&rsquo;s identical to release in everything except the name.</p>
+<div class="codehilite"><pre><span></span><span class="n">android</span> <span class="o">{</span>
+  <span class="n">buildTypes</span> <span class="o">{</span>
+    <span class="n">staging</span> <span class="o">{</span>
+      <span class="n">initWith</span> <span class="n">release</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
 
+  <span class="n">testBuildType</span> <span class="o">=</span> <span class="s2">&quot;staging&quot;</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Now Keeper will only wire for the StagingAndroidTest build type and the <code>assembleRelease</code> dependency
+tree will remain untouched.</p>
+<p>This is the <strong>recommended</strong> solution, since builds that need this plugin likely already have custom
+logic in place for controlling <code>testBuildType</code> and it avoids messing with your normal release build.
+ This is what we do internally at Slack as well.</p>
+<h4 id="property-based-examples">Property-based Examples<a class="headerlink" href="#property-based-examples" title="Permanent link">&para;</a></h4>
+<p>Let&rsquo;s assume an example command to build a production app with custom property <code>productionBuild</code>.</p>
+<div class="codehilite"><pre><span></span>./gradlew :myapp:assembleRelease -PproductionBuild<span class="o">=</span><span class="nb">true</span>
+</pre></div>
+
+<h5 id="use-the-testbuildtype-option">Use the <code>testBuildType</code> option<a class="headerlink" href="#use-the-testbuildtype-option" title="Permanent link">&para;</a></h5>
+<p>If you avoid setting your <code>testBuildType</code> to your &ldquo;release&rdquo; build type in a production build, then
+Keeper won&rsquo;t configure your release artifact to depend on test sources since your release variant
+would no longer be the <code>testedVariant</code> of any <code>androidTest</code> variants.</p>
+<div class="codehilite"><pre><span></span><span class="n">android</span> <span class="o">{</span>
+  <span class="c1">// ...</span>
+
+  <span class="k">if</span> <span class="o">(</span><span class="n">hasProperty</span><span class="o">(</span><span class="s2">&quot;productionBuild&quot;</span><span class="o">))</span> <span class="o">{</span>
+    <span class="n">testBuildType</span> <span class="o">=</span> <span class="s2">&quot;debug&quot;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+    <span class="n">testBuildType</span> <span class="o">=</span> <span class="s2">&quot;release&quot;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<h5 id="avoid-applying-the-plugin-entirely">Avoid applying the plugin entirely<a class="headerlink" href="#avoid-applying-the-plugin-entirely" title="Permanent link">&para;</a></h5>
+<p>This is probably the simplest approach, but not as dynamic as controlling the <code>testBuildType</code>.</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(!</span><span class="n">hasProperty</span><span class="o">(</span><span class="s2">&quot;productionBuild&quot;</span><span class="o">))</span> <span class="o">{</span>
+  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s2">&quot;com.slack.keeper&quot;</span>
+<span class="o">}</span>
+</pre></div>
+
+<h5 id="_1"><your build here><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h5>
+<p>Everyone&rsquo;s project is different, so you should do whatever works for you! We&rsquo;re open to suggestions
+of better ways to support configuration for this, so please do file issues if you have any proposals.</p>
+<h4 id="custom-r8-behavior">Custom R8 behavior<a class="headerlink" href="#custom-r8-behavior" title="Permanent link">&para;</a></h4>
+<p>Keeper uses R8&rsquo;s <code>PrintUses</code> CLI under the hood for rules inference. By default it uses R8 version
+<code>1.6.53</code>. If you want to customize what version is used, you can specify the dependency via the
+<code>keeperR8</code> configuration. Note that these must be tags from R8&rsquo;s
+<a href="https://storage.googleapis.com/r8-releases/raw"><code>r8-releases/raw</code></a> maven repo.</p>
+<div class="codehilite"><pre><span></span><span class="n">dependencies</span> <span class="o">{</span>
+  <span class="n">keeperR8</span> <span class="s2">&quot;com.android.tools:r8:x.y.z&quot;</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>If you want to add custom JVM arguments to its invocation (i.e. for debugging), you and set them 
+via the <code>keeper</code> extension.</p>
+<div class="codehilite"><pre><span></span><span class="n">keeper</span> <span class="o">{</span>
   <span class="cm">/**</span>
 <span class="cm">   * Optional custom jvm arguments to pass into the R8 `PrintUses` execution. Useful if you want</span>
 <span class="cm">   * to enable debugging in R8. Default is empty.</span>
@@ -493,68 +613,19 @@ purposes or setting a custom R8 version.</p>
 <span class="o">}</span>
 </pre></div>
 
-<p>Keeper uses R8&rsquo;s <code>PrintUses</code> CLI under the hood for rules inference. By default it uses R8 version
-<code>1.6.53</code>. If you want to customize what version is used, you can specify the dependency via the
-<code>keeperR8</code> configuration. Note that these must be tags from R8&rsquo;s
-<a href="https://storage.googleapis.com/r8-releases/raw"><code>r8-releases/raw</code></a> maven repo.</p>
-<div class="codehilite"><pre><span></span><span class="n">dependencies</span> <span class="o">{</span>
-  <span class="n">keeperR8</span> <span class="s2">&quot;com.android.tools:r8:x.y.z&quot;</span>
-<span class="o">}</span>
-</pre></div>
-
-<p>Snapshots of the development version are available in <a href="https://oss.sonatype.org/content/repositories/snapshots/">Sonatype&rsquo;s <code>snapshots</code> repository</a>.</p>
-<h3 id="dynamic-configuration">Dynamic Configuration<a class="headerlink" href="#dynamic-configuration" title="Permanent link">&para;</a></h3>
-<p>As mentioned above, Keeper&rsquo;s default behavior with no configuration will enable it for <em>all</em>
-androidTest variants. This may not be what you want for your actual production builds that you plan
-to distribute.</p>
-<p>Normally, your app variant&rsquo;s minification task doesn&rsquo;t depend on compilation of its corresponding
-<code>androidTest</code> variant. This means you can call <code>assembleRelease</code> and <code>assembleAndroidTestRelease</code>
- won&rsquo;t inherently run. Keeper, however, changes this since it requires the compiled androidTest
- sources in order to correctly infer how they use APIs in the app variant. For a production build,
-you likely <em>do</em> want these &ldquo;test-only&rdquo; APIs removed if possible though. There are a few patterns to
-better control this behavior via Gradle property.</p>
-<p>Let&rsquo;s assume an example command to build a production app with custom property <code>productionBuild</code>.</p>
-<div class="codehilite"><pre><span></span>./gradlew :myapp:assembleRelease -PproductionBuild<span class="o">=</span><span class="nb">true</span>
-</pre></div>
-
-<h4 id="use-the-testbuildtype-option">Use the <code>testBuildType</code> option<a class="headerlink" href="#use-the-testbuildtype-option" title="Permanent link">&para;</a></h4>
-<p>If you avoid setting your <code>testBuildType</code> to your &ldquo;release&rdquo; build type in a production build, then
-Keeper won&rsquo;t configure your release artifact to depend on test sources since your release variant
-would no longer be the <code>testedVariant</code> of any <code>androidTest</code> variants.</p>
-<p>This is the <em>recommended</em> solution.</p>
-<div class="codehilite"><pre><span></span><span class="n">android</span> <span class="o">{</span>
-  <span class="c1">// ...</span>
-
-  <span class="k">if</span> <span class="o">(</span><span class="n">hasProperty</span><span class="o">(</span><span class="s2">&quot;productionBuild&quot;</span><span class="o">))</span> <span class="o">{</span>
-    <span class="n">testBuildType</span> <span class="o">=</span> <span class="s2">&quot;debug&quot;</span>
-  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-    <span class="c1">// You would have had to have been doing something like this anyway if you&#39;re using Keeper!</span>
-    <span class="n">testBuildType</span> <span class="o">=</span> <span class="s2">&quot;release&quot;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-</pre></div>
-
-<h4 id="avoid-applying-the-plugin-entirely">Avoid applying the plugin entirely<a class="headerlink" href="#avoid-applying-the-plugin-entirely" title="Permanent link">&para;</a></h4>
-<p>This is probably the simplest approach, but not as dynamic as controlling the <code>testBuildType</code>.</p>
-<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(!</span><span class="n">hasProperty</span><span class="o">(</span><span class="s2">&quot;productionBuild&quot;</span><span class="o">))</span> <span class="o">{</span>
-  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="err">&#39;</span><span class="n">com</span><span class="o">.</span><span class="na">slack</span><span class="o">.</span><span class="na">keeper</span>
-<span class="o">}</span>
-</pre></div>
-
-<h3 id="_1"><your build here><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
-<p>Everyone&rsquo;s project is different, so you should do whatever works for you! We&rsquo;re open to suggestions
-of better ways to support configuration for this, so please do file issues if you have any proposals.</p>
 <h2 id="under-the-hood">Under the hood<a class="headerlink" href="#under-the-hood" title="Permanent link">&para;</a></h2>
-<p>The general logic flow:
-- Create a custom <code>r8</code> configuration for the R8 dependency.
-- Register two jar tasks per <code>androidTest</code> variant. One for all the classes in its target <code>testedVariant</code>
+<p>The general logic flow:</p>
+<ul>
+<li>Create a custom <code>r8</code> configuration for the R8 dependency.</li>
+<li>Register two jar tasks per <code>androidTest</code> variant. One for all the classes in its target <code>testedVariant</code>
   and one for all the classes in the androidTest variant itself. This will use their variant-provided
-  <code>JavaCompile</code> tasks and <code>KotlinCompile</code> tasks if available.
-- Register a <a href="https://github.com/slackhq/keeper/blob/master/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt"><code>infer${androidTestVariant}UsageForKeeper</code></a>
+  <code>JavaCompile</code> tasks and <code>KotlinCompile</code> tasks if available.</li>
+<li>Register a <a href="https://github.com/slackhq/keeper/blob/master/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt"><code>infer${androidTestVariant}UsageForKeeper</code></a>
   task that plugs the two aforementioned jars into R8&rsquo;s <code>PrintUses</code> CLI and outputs the inferred
-  proguard rules into a new intermediate <code>.pro</code> file.
-- Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
-  <code>configurationFiles</code> to include our generated one.</p>
+  proguard rules into a new intermediate <code>.pro</code> file.</li>
+<li>Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
+  <code>configurationFiles</code> to include our generated one.</li>
+</ul>
 <p>Appropriate task dependencies (via inputs/outputs, not <code>dependsOn</code>) are set up, so this is
 automatically run as part of the target app variant&rsquo;s full minified APK.</p>
 <p>The tasks themselves take roughly ~20 seconds total extra work in our Slack android app, with the
@@ -633,7 +704,7 @@ limitations under the License.
       
     </div>
     
-      <script src="assets/javascripts/application.c648116f.js"></script>
+      <script src="assets/javascripts/application.a8b5e56f.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:"."}})</script>
       
