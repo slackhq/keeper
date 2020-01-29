@@ -101,8 +101,7 @@ class KeeperPlugin : Plugin<Project> {
 
         val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found. Make sure to apply the keeper plugin after the android block in build.gradle.")
         val androidJar =
-            File(
-                "${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
+            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
               check(it.exists()) {
                 "No android.jar found! Expected to find it at: $it"
               }
