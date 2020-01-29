@@ -38,7 +38,6 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
-import org.jetbrains.kotlin.gradle.internal.KaptVariantData
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -287,7 +286,6 @@ private fun unwrapTestedVariant(variantData: Any?): BaseVariant? {
         else -> variantData
       }
     }
-    is KaptVariantData<*> -> unwrapTestedVariant(variantData.variantData)
     else -> null
   }
 }
