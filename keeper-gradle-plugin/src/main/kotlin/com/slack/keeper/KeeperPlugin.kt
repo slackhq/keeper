@@ -104,7 +104,7 @@ class KeeperPlugin : Plugin<Project> {
             File(
                 "${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
               check(it.exists()) {
-                "No android.jar found! $it"
+                "No android.jar found! Expected to find it at: $it"
               }
             }
 
