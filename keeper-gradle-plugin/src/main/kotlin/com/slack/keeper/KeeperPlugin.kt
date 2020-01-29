@@ -99,9 +99,10 @@ class KeeperPlugin : Plugin<Project> {
         val intermediateAndroidTestJar = createIntermediateAndroidTestJar(extension, appExtension)
         val intermediateAppJar = createIntermediateAppJar(extension, appExtension)
 
+        val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found. Make sure to apply the keeper plugin after the android block in build.gradle.")
         val androidJar =
             File(
-                "${appExtension.sdkDirectory}/platforms/${appExtension.compileSdkVersion}/android.jar").also {
+                "${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
               check(it.exists()) {
                 "No android.jar found! $it"
               }
