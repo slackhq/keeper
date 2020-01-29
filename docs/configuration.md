@@ -72,9 +72,6 @@ if (!hasProperty("productionBuild")) {
 ### Variant filter
 
 You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
-Keeper operates on. This is nearly identical to the `android.variantFilter` API
-
-You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
 Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except that there
 is no `defaultConfig` property.
 
