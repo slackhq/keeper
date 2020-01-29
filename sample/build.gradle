@@ -16,6 +16,7 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'com.slack.keeper'
 
 android {
   compileSdkVersion 29
@@ -41,12 +42,6 @@ android {
   }
 
   testBuildType = "release"
-}
-
-apply plugin: 'com.slack.keeper'
-keeper {
-  androidTestVariant = "releaseAndroidTest"
-  appVariant = "release"
 }
 
 dependencies {

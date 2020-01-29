@@ -114,11 +114,11 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder)
 
     val result = runGradle(projectDir, "assembleReleaseAndroidTest")
-    assertThat(result.resultOf("jarAndroidTestClassesForAndroidTestKeepRules")).isEqualTo(
+    assertThat(result.resultOf("jarReleaseAndroidTestClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("jarAppClassesForAndroidTestKeepRules")).isEqualTo(
+    assertThat(result.resultOf("jarReleaseClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferAndroidTestUsage")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferReleaseAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifiers ran
     val agpVersion = AgpVersionHandler.getInstance()
@@ -159,7 +159,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
-        .withArguments("--stacktrace", "-x", "lint", *minifierType.gradleArgs, *args)
+        .withArguments("--stacktrace", "-x", "lintVitalRelease", *minifierType.gradleArgs, *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()
@@ -230,6 +230,7 @@ private val BUILD_GRADLE_CONTENT = """
 
   apply plugin: 'com.android.application'
   apply plugin: 'org.jetbrains.kotlin.android'
+  apply plugin: 'com.slack.keeper'
 
   android {
     compileSdkVersion 29
@@ -256,12 +257,6 @@ private val BUILD_GRADLE_CONTENT = """
     google()
     mavenCentral()
     jcenter()
-  }
-
-  apply plugin: 'com.slack.keeper'
-  keeper {
-    androidTestVariant = "releaseAndroidTest"
-    appVariant = "release"
   }
   
   dependencies {

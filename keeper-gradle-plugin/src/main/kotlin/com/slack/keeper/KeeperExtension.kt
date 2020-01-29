@@ -18,26 +18,11 @@ package com.slack.keeper
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.listProperty
-import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
-
-  /**
-   * The name of the androidTest variant to infer for. This should include the "AndroidTest"
-   * suffix. Required.
-   */
-  lateinit var androidTestVariant: String
-
-  /** The name of the application variant to infer for. Required. */
-  lateinit var appVariant: String
-
-  /** R8 version. Can be a tag or sha. Default is 1.6.53. */
-  val r8Version: Property<String> = objects.property()
-
   /**
    * Optional custom jvm arguments to pass into the R8 `PrintUses` execution. Useful if you want
    * to enable debugging in R8.

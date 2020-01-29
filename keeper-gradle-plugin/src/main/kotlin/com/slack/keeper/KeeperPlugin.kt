@@ -19,6 +19,8 @@
 package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.api.TestVariant
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -30,7 +32,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
@@ -51,21 +52,21 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *
  * This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
  *
- * This is configurable via the [`keeper`][KeeperExtension] extension. For example:
+ * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
  * ```
  * keeper {
- *   androidTestVariant = "internalDebugAndroidTest"
- *   appVariant = "externalStaging"
+ *   r8JvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"]
  * }
  * ```
  *
  * The general logic flow:
  * - Create a custom `r8` configuration for the R8 dependency.
- * - Register three jar tasks. One for all the classes in the app variant, one for all the classes in the androidTest
- *   variant, and one copy of the compiled android.jar for classpath linking. This will use their variant-provided
- *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
- * - Register a [`inferAndroidTestUsage`][InferAndroidTestKeepRules] task that plugs the two aforementioned jars into
- *   R8's `PrintUses` CLI and outputs the inferred proguard rules into a new intermediate .pro file.
+ * - Register two jar tasks. One for all the classes in its target `testedVariant` and one for all
+ *   the classes in the androidTest variant itself. This will use their variant-provided [JavaCompile]
+ *   tasks and [KotlinCompile] tasks if available.
+ * - Register a [`infer${androidTestVariant}UsageForKeeper`][InferAndroidTestKeepRules] task that
+ *   plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred proguard
+ *   rules into a new intermediate .pro file.
  * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [AgpVersionHandler])
  *   and setting their `configurationFiles` to include our generated one.
  *
@@ -80,6 +81,7 @@ class KeeperPlugin : Plugin<Project> {
   companion object {
     internal const val INTERMEDIATES_DIR = "intermediates/keeper"
     internal const val DEFAULT_R8_VERSION = "1.6.53"
+    internal const val CONFIGURATION_NAME = "keeperR8"
   }
 
   override fun apply(project: Project) {
@@ -88,47 +90,62 @@ class KeeperPlugin : Plugin<Project> {
         val extension = project.extensions.create<KeeperExtension>("keeper")
 
         // Set up r8 configuration
-        val r8Configuration = configurations.maybeCreate("r8")
+        val r8Configuration = configurations.create(CONFIGURATION_NAME) {
+          description = "R8 dependencies for Keeper. This is used solely for the PrintUses CLI"
+          isVisible = false
+          isCanBeConsumed = false
+          isCanBeResolved = true
+          defaultDependencies {
+            add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+          }
+        }
 
-        // This is the maven repo where r8 releases are hosted
+        // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is allowed
+        // to be fetched from this.
+        // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't support
+        // this yet.
         repositories {
-          maven("https://storage.googleapis.com/r8-releases/raw")
+          maven {
+            url = uri("https://storage.googleapis.com/r8-releases/raw")
+            content {
+              includeModule("com.android.tools", "r8")
+            }
+          }
         }
 
         val appExtension = project.extensions.getByType<AppExtension>()
-        val intermediateAndroidTestJar = createIntermediateAndroidTestJar(extension, appExtension)
-        val intermediateAppJar = createIntermediateAppJar(extension, appExtension)
 
-        val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found. Make sure to apply the keeper plugin after the android block in build.gradle.")
-        val androidJar =
-            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
-              check(it.exists()) {
-                "No android.jar found! Expected to find it at: $it"
-              }
+        val androidJarFileProvider = project.provider {
+          val compileSdkVersion = appExtension.compileSdkVersion
+              ?: error("No compileSdkVersion found")
+          File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
+            check(it.exists()) {
+              "No android.jar found! Expected to find it at: $it"
             }
+          }
+        }
+        val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
 
-        val inferAndroidTestUsageProvider = tasks.register(
-            "inferAndroidTestUsage",
-            InferAndroidTestKeepRules(
-                intermediateAndroidTestJar,
-                intermediateAppJar,
-                androidJar,
-                extension.r8JvmArgs,
-                r8Configuration
-            )
-        )
-
-        // Have to run the proguard task configuration afterEvaluate because the transform property isn't set until later
-        afterEvaluate {
-          val r8Version = extension.r8Version.getOrElse(DEFAULT_R8_VERSION)
-          logger.debug("$TAG: Using R8 version '$r8Version'")
-          dependencies.add(r8Configuration.name, "com.android.tools:r8:$r8Version")
+        appExtension.testVariants.configureEach {
+          val appVariant = testedVariant
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
+          val intermediateAppJar = createIntermediateAppJar(appVariant)
+          val inferAndroidTestUsageProvider = tasks.register(
+              "infer${name.capitalize(US)}UsageForKeeper",
+              InferAndroidTestKeepRules(
+                  intermediateAndroidTestJar,
+                  intermediateAppJar,
+                  androidJarRegularFileProvider,
+                  extension.r8JvmArgs,
+                  r8Configuration
+              )
+          )
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
           AgpVersionHandler.getInstance()
               .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
-              .applyGeneratedRules(project, extension, prop)
+              .applyGeneratedRules(project, appVariant.name, prop)
         }
       }
     }
@@ -139,43 +156,40 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
-      extension: KeeperExtension,
-      appExtension: AppExtension
+      testVariant: TestVariant,
+      appVariant: BaseVariant
   ): TaskProvider<out Jar> {
     return tasks.register<AndroidTestVariantClasspathJar>(
-        "jarAndroidTestClassesForAndroidTestKeepRules") {
+        "jar${testVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
       archiveBaseName.set(NAME_ANDROID_TEST_JAR)
 
-      appExtension.applicationVariants.configureEach {
-        if (name == extension.appVariant) {
-          appRuntime.from(runtimeConfiguration.incoming.artifactView {
-            attributes {
-              attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-            }
-          }.files)
-        }
-      }
-
-      appExtension.testVariants.configureEach {
-        if (name == extension.androidTestVariant) {
-          from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-          androidTestRuntime.from(runtimeConfiguration.incoming.artifactView {
-            attributes {
-              attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-            }
-          }.files)
-        }
-      }
-
-      tasks.providerWithNameOrNull<KotlinCompile>(
-          "compile${extension.androidTestVariant.capitalize(US)}Kotlin")
-          ?.let { kotlinCompileTask ->
-            from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
-              include("**/*.class")
-            }
+      with(appVariant) {
+        appRuntime.from(runtimeConfiguration.incoming.artifactView {
+          attributes {
+            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
           }
+        }.files)
+      }
+
+      with(testVariant) {
+        from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
+        androidTestRuntime.from(runtimeConfiguration.incoming.artifactView {
+          attributes {
+            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
+          }
+        }.files)
+
+        tasks.providerWithNameOrNull<KotlinCompile>(
+            "compile${name.capitalize(US)}Kotlin")
+            ?.let { kotlinCompileTask ->
+              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
+                include("**/*.class")
+              }
+            }
+      }
+
       destinationDirectory.set(outputDir)
 
       // Because we may have more than 65535 classes. Dex method limit's distant cousin.
@@ -188,29 +202,27 @@ class KeeperPlugin : Plugin<Project> {
    * output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
-      extension: KeeperExtension,
-      appExtension: AppExtension
+      appVariant: BaseVariant
   ): TaskProvider<out Jar> {
-    return tasks.register<VariantClasspathJar>("jarAppClassesForAndroidTestKeepRules") {
+    return tasks.register<VariantClasspathJar>("jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
       archiveBaseName.set(NAME_APP_JAR)
-      appExtension.applicationVariants.configureEach {
-        if (name == extension.appVariant) {
-          from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-          from(javaCompileProvider.map { javaCompileTask ->
-            javaCompileTask.classpath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
-          })
-        }
+      with(appVariant) {
+        from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
+        from(javaCompileProvider.map { javaCompileTask ->
+          javaCompileTask.classpath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
+        })
+
+        tasks.providerWithNameOrNull<KotlinCompile>(
+            "compile${name.capitalize(US)}Kotlin")
+            ?.let { kotlinCompileTask ->
+              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
+                include("**/*.class")
+              }
+            }
       }
 
-      tasks.providerWithNameOrNull<KotlinCompile>(
-          "compile${extension.appVariant.capitalize(US)}Kotlin")
-          ?.let { kotlinCompileTask ->
-            from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
-              include("**/*.class")
-            }
-          }
       destinationDirectory.set(outputDir)
 
       // Because we have more than 65535 classes. Dex method limit's distant cousin.
