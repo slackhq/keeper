@@ -69,7 +69,29 @@ if (!hasProperty("productionBuild")) {
 }
 ```
 
-##### <your build here>
+### Variant filter
+
+You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
+Keeper operates on. This is nearly identical to the `android.variantFilter` API
+
+You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
+Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except that there
+is no `defaultConfig` property.
+
+**Note:** Variants with different `enabled` values will have to be compiled separately. This is common
+in most multi-variant projects anyway, but something to be aware of.
+
+```groovy
+keeper {
+  variantFilter {
+    if (name == "variantThatShouldTotallyBeIgnored") {
+      setIgnore(true)
+    }
+  }
+}
+```
+
+### <your build here>
 
 Everyone's project is different, so you should do whatever works for you! We're open to suggestions
 of better ways to support configuration for this, so please do file issues if you have any proposals.
