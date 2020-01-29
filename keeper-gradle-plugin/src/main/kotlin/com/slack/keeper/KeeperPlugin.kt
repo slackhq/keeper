@@ -56,6 +56,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
  * ```
  * keeper {
+ *   automaticR8RepoManagement = false
  *   r8JvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"]
  * }
  * ```
