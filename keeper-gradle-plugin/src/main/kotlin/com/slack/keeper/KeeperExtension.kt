@@ -25,7 +25,10 @@ import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
-  /** R8 version. Can be a tag or sha. Default is 1.6.53. */
+  /**
+   * R8 version, only used for PrintUses and does _not_ override the R8 version used for
+   * minification. Must be a tag. Default defined below.
+   */
   val r8Version: Property<String> = objects.property()
 
   /**

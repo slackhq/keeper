@@ -21,35 +21,28 @@ vars are described [here](https://github.com/slackhq/keeper/blob/master/.github/
 
 ## Installation
 
-Apply keeper _after_ the `android {}` block in your application's build.gradle file and configure
-via the `keeper {}` extension.
+Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application's
+build.gradle.
 
 ```groovy
 buildscript {
-  repositories {
-    mavenCentral()
-    // ...
-  }
-
   dependencies {
-    // ...
     classpath "com.slack.keeper:keeper:x.y.z"
   }
-
-}
-
-android {
-  // ...
 }
 
 apply plugin: "com.slack.keeper"
+```
 
-// Optional configuration
+There are optional configurations available via the `keeper` extension, mostly just for debugging
+purposes or setting a custom R8 version.
+
+```
 keeper {
-  /** Controls whether or not to enable Keeper. Default is true. */
-  enabled = true
-
-  /** R8 version. Must be a tag. Default defined below. */
+  /**
+   * R8 version, only used for PrintUses and does _not_ override the R8 version used for
+   * minification. Must be a tag. Default defined below.
+   */
   r8Version = "1.6.53"
 
   /**
