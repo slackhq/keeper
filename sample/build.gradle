@@ -36,12 +36,35 @@ android {
   buildTypes {
     release {
       minifyEnabled = true
-      signingConfig = buildTypes.debug.signingConfig
+      signingConfig = signingConfigs.debug
       proguardFiles getDefaultProguardFile('proguard-android.txt')
+    }
+    staging {
+      initWith release
+      matchingFallbacks = ['release']
+    }
+  }
+
+  flavorDimensions "environment"
+  productFlavors {
+    internal {
+      dimension "environment"
+      applicationIdSuffix ".internal"
+      versionNameSuffix "-internal"
+    }
+
+    external {
+      dimension "environment"
     }
   }
 
   testBuildType = "release"
+}
+
+keeper {
+  variantFilter {
+    setIgnore(name == "externalRelease")
+  }
 }
 
 dependencies {
