@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         ci_java_version: [1.8]
-        ci_agp_version: [3.5.3, 3.6.0-rc01]
+        ci_agp_version: [3.5.3, 3.6.0-rc01, 4.0.0-alpha09]
     steps:
       - name: Checkout
         uses: actions/checkout@v1
