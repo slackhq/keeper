@@ -33,8 +33,7 @@ import java.util.Locale
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-internal val AGP_VERSION get() = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
-
+/** A handler API for working with different AGP versions. */
 interface AgpVersionHandler {
 
   companion object {
@@ -50,11 +49,12 @@ interface AgpVersionHandler {
       // TODO(zsweers) properly use a ServiceLoader for these?
       val handlers = listOf(Agp35xPatcher(), Agp36xPatcher())
 
-      val baseVersion = AGP_VERSION.baseVersion
+      val agpVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+      val baseVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION).baseVersion
       return handlers.filter { baseVersion >= it.minVersion }
           .maxBy(AgpVersionHandler::minVersion)
           ?: error(
-              "$TAG No applicable proguard task patchers found for this version of AGP ($AGP_VERSION). Please file a bug report with your AGP version")
+              "$TAG No applicable proguard task patchers found for this version of AGP ($agpVersion). Please file a bug report with your AGP version")
     }
   }
 
