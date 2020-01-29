@@ -66,11 +66,20 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
+val defaultAgpVersion = "3.5.3"
+val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
+
+// See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
+val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-    implementation("com.android.tools.build:gradle:3.5.3")
+    if (releaseMode) {
+        compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
+    } else {
+        implementation("com.android.tools.build:gradle:$agpVersion")
+    }
 
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
     kapt("com.google.auto.service:auto-service:1.0-rc6")

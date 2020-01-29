@@ -19,14 +19,11 @@
 package com.slack.keeper
 
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.internal.transforms.ProguardConfigurable
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -37,23 +34,15 @@ import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.repositories
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
 import java.util.Locale.US
 
-private const val TAG = "AndroidTestKeepRules"
+internal const val TAG = "Keeper"
 private const val NAME_ANDROID_TEST_JAR = "androidTest"
 private const val NAME_APP_JAR = "app"
 internal const val KEEPER_TASK_GROUP = "keeper"
-
-// In AGP 3.6, this can be removed in favor of using the new ProguardConfigurableTask
-private val proguardConfigurableConfigurationFilesField by lazy {
-  ProguardConfigurable::class.java.getDeclaredField("configurationFiles").apply {
-    isAccessible = true
-  }
-}
 
 /**
  * A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from
@@ -77,8 +66,8 @@ private val proguardConfigurableConfigurationFilesField by lazy {
  *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
  * - Register a [`inferAndroidTestUsage`][InferAndroidTestKeepRules] task that plugs the two aforementioned jars into
  *   R8's `PrintUses` CLI and outputs the inferred proguard rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private [ProguardConfigurable] API. This works by
- *   looking for the relevant [TransformTask] that uses it.
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [AgpVersionHandler])
+ *   and setting their `configurationFiles` to include our generated one.
  *
  * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
  * of the target app variant's full minified APK.
@@ -110,11 +99,11 @@ class KeeperPlugin : Plugin<Project> {
         val intermediateAndroidTestJar = createIntermediateAndroidTestJar(extension, appExtension)
         val intermediateAppJar = createIntermediateAppJar(extension, appExtension)
 
+        val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found. Make sure to apply the keeper plugin after the android block in build.gradle.")
         val androidJar =
-            File(
-                "${appExtension.sdkDirectory}/platforms/${appExtension.compileSdkVersion}/android.jar").also {
+            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
               check(it.exists()) {
-                "No android.jar found! $it"
+                "No android.jar found! Expected to find it at: $it"
               }
             }
 
@@ -137,16 +126,9 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          // In AGP 3.6, this has to change to use the new ProguardConfigurableTask
-          tasks.withType<TransformTask>().configureEach {
-            if (name.endsWith(extension.appVariant, ignoreCase = true) &&
-                transform is ProguardConfigurable) {
-              project.logger.debug("$TAG: Patching $this with inferred androidTest proguard rules")
-              val configurable = transform as ProguardConfigurable
-              (proguardConfigurableConfigurationFilesField.get(configurable) as ConfigurableFileCollection)
-                  .from(prop)
-            }
-          }
+          AgpVersionHandler.getInstance()
+              .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
+              .applyGeneratedRules(project, extension, prop)
         }
       }
     }
@@ -247,7 +229,7 @@ private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
 }
 
 /** Copy of the stdlib version until it's stable. */
-private fun String.capitalize(locale: Locale): String {
+internal fun String.capitalize(locale: Locale): String {
   if (isNotEmpty()) {
     val firstChar = this[0]
     if (firstChar.isLowerCase()) {
