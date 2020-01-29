@@ -105,11 +105,14 @@ class Agp35xPatcher : AgpVersionHandler {
   override fun applyGeneratedRules(project: Project, appVariant: String,
       prop: Provider<Directory>) {
     val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
-    project.tasks.withType<TransformTask>().configureEach {
-      if (name == targetName && proguardConfigurable.isInstance(transform)) {
-        project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
-        (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
-            .from(prop)
+    // Have to run the proguard task configuration in afterEvaluate because the transform property isn't set until later
+    project.afterEvaluate {
+      project.tasks.withType<TransformTask>().configureEach {
+        if (name == targetName && proguardConfigurable.isInstance(transform)) {
+          project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
+          (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
+              .from(prop)
+        }
       }
     }
   }

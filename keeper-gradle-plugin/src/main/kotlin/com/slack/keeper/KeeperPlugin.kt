@@ -110,34 +110,30 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
+        val r8Version = extension.r8Version.getOrElse(DEFAULT_R8_VERSION)
+        logger.debug("$TAG: Using R8 version '$r8Version'")
+        dependencies.add(r8Configuration.name, "com.android.tools:r8:$r8Version")
 
-        // Have to run the proguard task configuration afterEvaluate because the transform property isn't set until later
-        afterEvaluate {
-          val r8Version = extension.r8Version.getOrElse(DEFAULT_R8_VERSION)
-          logger.debug("$TAG: Using R8 version '$r8Version'")
-          dependencies.add(r8Configuration.name, "com.android.tools:r8:$r8Version")
+        appExtension.testVariants.configureEach {
+          val appVariant = testedVariant
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
+          val intermediateAppJar = createIntermediateAppJar(appVariant)
+          val inferAndroidTestUsageProvider = tasks.register(
+              "infer${name.capitalize(US)}UsageForKeeper",
+              InferAndroidTestKeepRules(
+                  intermediateAndroidTestJar,
+                  intermediateAppJar,
+                  androidJarRegularFileProvider,
+                  extension.r8JvmArgs,
+                  r8Configuration
+              )
+          )
 
-          appExtension.testVariants.configureEach {
-            val appVariant = testedVariant
-            val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
-            val intermediateAppJar = createIntermediateAppJar(appVariant)
-            val inferAndroidTestUsageProvider = tasks.register(
-                "infer${name.capitalize(US)}UsageForKeeper",
-                InferAndroidTestKeepRules(
-                    intermediateAndroidTestJar,
-                    intermediateAppJar,
-                    androidJarRegularFileProvider,
-                    extension.r8JvmArgs,
-                    r8Configuration
-                )
-            )
-
-            val prop = project.layout.dir(
-                inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-            AgpVersionHandler.getInstance()
-                .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
-                .applyGeneratedRules(project, appVariant.name, prop)
-          }
+          val prop = project.layout.dir(
+              inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+          AgpVersionHandler.getInstance()
+              .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
+              .applyGeneratedRules(project, appVariant.name, prop)
         }
       }
     }
