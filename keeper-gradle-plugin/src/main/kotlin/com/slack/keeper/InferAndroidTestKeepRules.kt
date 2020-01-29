@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -28,6 +29,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.repositories
 
 /**
  * Generates proguard keep rules from the generated [androidTestJar] and [appJar] tasks,
@@ -92,9 +94,25 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         androidTestJarProvider: TaskProvider<out Jar>,
         releaseClassesJarProvider: TaskProvider<out Jar>,
         androidJar: Provider<RegularFile>,
+        automaticallyAddR8Repo: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
+      if (automaticallyAddR8Repo.get()) {
+        // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is
+        // allowed to be fetched from this.
+        // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't
+        // support this yet.
+        project.repositories {
+          maven {
+            url = project.uri("https://storage.googleapis.com/r8-releases/raw")
+            content {
+              includeModule("com.android.tools", "r8")
+            }
+          }
+        }
+      }
+
       group = KEEPER_TASK_GROUP
       androidTestJar.set(androidTestJarProvider.map { it.archiveFile.get() })
       appJar.set(releaseClassesJarProvider.map { it.archiveFile.get() })
