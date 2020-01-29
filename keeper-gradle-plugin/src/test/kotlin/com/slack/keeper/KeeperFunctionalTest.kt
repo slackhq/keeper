@@ -230,6 +230,7 @@ private val BUILD_GRADLE_CONTENT = """
 
   apply plugin: 'com.android.application'
   apply plugin: 'org.jetbrains.kotlin.android'
+  apply plugin: 'com.slack.keeper'
 
   android {
     compileSdkVersion 29
@@ -257,8 +258,6 @@ private val BUILD_GRADLE_CONTENT = """
     mavenCentral()
     jcenter()
   }
-
-  apply plugin: 'com.slack.keeper'
   
   dependencies {
     //noinspection DifferentStdlibGradleVersion

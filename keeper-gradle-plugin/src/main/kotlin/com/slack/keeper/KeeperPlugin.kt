@@ -100,14 +100,16 @@ class KeeperPlugin : Plugin<Project> {
 
         val appExtension = project.extensions.getByType<AppExtension>()
 
-        val compileSdkVersion = appExtension.compileSdkVersion ?: error(
-            "No compileSdkVersion found. Make sure to apply the keeper plugin after the android block in build.gradle.")
-        val androidJar =
-            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
-              check(it.exists()) {
-                "No android.jar found! Expected to find it at: $it"
-              }
+        val androidJarFileProvider = project.provider {
+          val compileSdkVersion = appExtension.compileSdkVersion
+              ?: error("No compileSdkVersion found")
+          File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
+            check(it.exists()) {
+              "No android.jar found! Expected to find it at: $it"
             }
+          }
+        }
+        val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
 
         // Have to run the proguard task configuration afterEvaluate because the transform property isn't set until later
         afterEvaluate {
@@ -124,7 +126,7 @@ class KeeperPlugin : Plugin<Project> {
                 InferAndroidTestKeepRules(
                     intermediateAndroidTestJar,
                     intermediateAppJar,
-                    androidJar,
+                    androidJarRegularFileProvider,
                     extension.r8JvmArgs,
                     r8Configuration
                 )

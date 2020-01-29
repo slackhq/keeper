@@ -17,8 +17,10 @@
 package com.slack.keeper
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -26,7 +28,6 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
-import java.io.File
 
 /**
  * Generates proguard keep rules from the generated [androidTestJar] and [appJar] tasks,
@@ -90,7 +91,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
     operator fun invoke(
         androidTestJarProvider: TaskProvider<out Jar>,
         releaseClassesJarProvider: TaskProvider<out Jar>,
-        androidJar: File,
+        androidJar: Provider<RegularFile>,
         extensionJvmArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
