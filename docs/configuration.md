@@ -106,6 +106,16 @@ dependencies {
 }
 ```
 
+If you don't want Keeper to automatically manage adding R8's maven repo, you can set disable it
+via `automaticR8RepoManagement`. Note that you'll need to manually add your own repo that the
+`keeperR8` configuration mentioned above can resolve from.
+
+```groovy
+keeper {
+  automaticR8RepoManagement = false
+}
+```
+
 If you want to add custom JVM arguments to its invocation (i.e. for debugging), you and set them
 via the `keeper` extension.
 
