@@ -28,6 +28,7 @@ import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
+  @Suppress("PropertyName")
   internal var _variantFilter: Action<VariantFilter>? = null
 
   /**
@@ -44,6 +45,7 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * Controls whether or not to automatically add the R8 repository for dependencies. Default is
    * true. Disable if you want to define your own repo for fetching the R8 dependency.
    */
+  @Suppress("UnstableApiUsage")
   val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().apply {
     convention(true)
   }
