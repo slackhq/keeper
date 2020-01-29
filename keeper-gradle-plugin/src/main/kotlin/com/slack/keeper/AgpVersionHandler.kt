@@ -77,7 +77,7 @@ interface AgpVersionHandler {
   /** Patches the provided [prop] into the target available proguard task. */
   fun applyGeneratedRules(
       project: Project,
-      extension: KeeperExtension,
+      appVariant: String,
       prop: Provider<Directory>
   )
 }
@@ -102,9 +102,9 @@ class Agp35xPatcher : AgpVersionHandler {
     return "transformClassesAndResourcesWith${minifier}For${variant}"
   }
 
-  override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
+  override fun applyGeneratedRules(project: Project, appVariant: String,
       prop: Provider<Directory>) {
-    val targetName = interpolatedTaskName(expectedMinifier(project), extension.appVariant.capitalize(Locale.US))
+    val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
     project.tasks.withType<TransformTask>().configureEach {
       if (name == targetName && proguardConfigurable.isInstance(transform)) {
         project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
@@ -133,9 +133,9 @@ class Agp36xPatcher : AgpVersionHandler {
     return "minify${variant}With${minifier}"
   }
 
-  override fun applyGeneratedRules(project: Project, extension: KeeperExtension,
+  override fun applyGeneratedRules(project: Project, appVariant: String,
       prop: Provider<Directory>) {
-    val targetName = interpolatedTaskName(expectedMinifier(project), extension.appVariant.capitalize(Locale.US))
+    val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
     project.tasks.withType(proguardConfigurableTask).configureEach {
       // Names are minify{variant}WithProguard
       if (name == targetName) {

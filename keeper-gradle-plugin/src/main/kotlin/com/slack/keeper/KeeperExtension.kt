@@ -25,16 +25,6 @@ import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
-
-  /**
-   * The name of the androidTest variant to infer for. This should include the "AndroidTest"
-   * suffix. Required.
-   */
-  lateinit var androidTestVariant: String
-
-  /** The name of the application variant to infer for. Required. */
-  lateinit var appVariant: String
-
   /** R8 version. Can be a tag or sha. Default is 1.6.53. */
   val r8Version: Property<String> = objects.property()
 

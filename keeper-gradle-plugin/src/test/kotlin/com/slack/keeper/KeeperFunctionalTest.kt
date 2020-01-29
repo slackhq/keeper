@@ -114,11 +114,11 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder)
 
     val result = runGradle(projectDir, "assembleReleaseAndroidTest")
-    assertThat(result.resultOf("jarAndroidTestClassesForAndroidTestKeepRules")).isEqualTo(
+    assertThat(result.resultOf("jarReleaseAndroidTestClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("jarAppClassesForAndroidTestKeepRules")).isEqualTo(
+    assertThat(result.resultOf("jarReleaseClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferAndroidTestUsage")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferReleaseAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifiers ran
     val agpVersion = AgpVersionHandler.getInstance()
@@ -259,10 +259,6 @@ private val BUILD_GRADLE_CONTENT = """
   }
 
   apply plugin: 'com.slack.keeper'
-  keeper {
-    androidTestVariant = "releaseAndroidTest"
-    appVariant = "release"
-  }
   
   dependencies {
     //noinspection DifferentStdlibGradleVersion
