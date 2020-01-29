@@ -19,6 +19,7 @@ package com.slack.keeper
 import com.google.common.truth.Truth.assertThat
 import com.squareup.javapoet.ClassName
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.intellij.lang.annotations.Language
@@ -111,19 +112,19 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
    */
   @Test
   fun standard() {
-    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder)
+    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder, "staging")
 
-    val result = runGradle(projectDir, "assembleReleaseAndroidTest")
-    assertThat(result.resultOf("jarReleaseAndroidTestClassesForKeeper")).isEqualTo(
+    val result = runGradle(projectDir, "assembleExternalStagingAndroidTest", "-x", "lintVitalExternalStaging")
+    assertThat(result.resultOf("jarExternalStagingAndroidTestClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("jarReleaseClassesForKeeper")).isEqualTo(
+    assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferReleaseAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferExternalStagingAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
 
     // Ensure the expected parameterized minifiers ran
     val agpVersion = AgpVersionHandler.getInstance()
-    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "Release"))).isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ReleaseAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStaging"))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStagingAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("app.jar")
@@ -146,6 +147,18 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(proguardConfigOutput.readText().trim()).contains(minifierType.expectedRules)
   }
 
+  // Asserts that our variant filter properly filters things out. In our fixture project, this is
+  // the externalRelease variant
+  @Test
+  fun variantFilter() {
+    val (projectDir, _) = prepareProject(temporaryFolder, "release")
+
+    val result = runGradle(projectDir, "assembleExternalRelease", "-x", "lintVitalExternalRelease")
+    assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
+    assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
+    assertThat(result.findTask("inferExternalReleaseAndroidTestUsageForKeeper")).isNull()
+  }
+
   // TODO test cases
   //  Transitive androidTest deps using transitive android deps (i.e. like IdlingResource)
   //  multidex (zip64 use in jars)
@@ -159,14 +172,18 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
-        .withArguments("--stacktrace", "-x", "lintVitalRelease", *minifierType.gradleArgs, *args)
+        .withArguments("--stacktrace", *minifierType.gradleArgs, *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()
   }
 
+  private fun BuildResult.findTask(name: String): BuildTask? {
+    return task(name.prefixIfNot(":"))
+  }
+
   private fun BuildResult.resultOf(name: String): TaskOutcome {
-    return task(name.prefixIfNot(":"))?.outcome
+    return findTask(name)?.outcome
         ?: error("Could not find task '$name', which is usually an indication that it didn't run. See GradleRunner's printed task graph for more details.")
   }
 }
@@ -209,7 +226,7 @@ private val TEST_PROGUARD_RULES = """
 """.trimIndent()
 
 @Language("groovy")
-private val BUILD_GRADLE_CONTENT = """
+private fun buildGradleFile(testBuildType: String) = """
   buildscript {
     repositories {
       google()
@@ -245,18 +262,41 @@ private val BUILD_GRADLE_CONTENT = """
       release {
         minifyEnabled = true
         signingConfig = buildTypes.debug.signingConfig
-        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'printconfiguration.pro'
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'testconfiguration.pro'
         testProguardFiles('proguard-test-rules.pro')
+      }
+      staging {
+        initWith release
+        matchingFallbacks = ['release']
+      }
+    }
+    
+    flavorDimensions "environment"
+    productFlavors {
+      internal {
+        dimension "environment"
+        applicationIdSuffix ".internal"
+        versionNameSuffix "-internal"
+      }
+
+      external {
+        dimension "environment"
       }
     }
 
-    testBuildType = "release"
+    testBuildType = "$testBuildType"
   }
 
   repositories {
     google()
     mavenCentral()
     jcenter()
+  }
+  
+  keeper {
+    variantFilter {
+      setIgnore(name == "externalRelease")
+    }
   }
   
   dependencies {
@@ -333,10 +373,10 @@ private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.ma
 
 private data class ProjectData(val dir: File, val proguardConfigOutput: File)
 
-private fun prepareProject(temporaryFolder: TemporaryFolder): ProjectData {
+private fun prepareProject(temporaryFolder: TemporaryFolder, testBuildType: String): ProjectData {
   // Create fixture
   val projectDir = temporaryFolder.newFolder("testProject")
-  projectDir.newFile("build.gradle").apply { writeText(BUILD_GRADLE_CONTENT) }
+  projectDir.newFile("build.gradle").apply { writeText(buildGradleFile(testBuildType)) }
   projectDir.newFile("proguard-test-rules.pro") { writeText(TEST_PROGUARD_RULES) }
   projectDir.newFile("src/main/AndroidManifest.xml") {
     //language=xml
@@ -369,9 +409,10 @@ private fun prepareProject(temporaryFolder: TemporaryFolder): ProjectData {
   // second proguard file that just specifies `-printconfiguration` pointing to an output file
   // that we can read to verify our generated rules were added.
   val proguardConfigOutput = projectDir.newFile("proguardConfigOutput.pro")
-  projectDir.newFile("printconfiguration.pro") {
+  projectDir.newFile("testconfiguration.pro") {
     writeText("""
       -printconfiguration ${proguardConfigOutput.absolutePath}
+      -keep class com.slack.keeper.sample.SampleApplication { *; }
     """.trimIndent())
   }
 

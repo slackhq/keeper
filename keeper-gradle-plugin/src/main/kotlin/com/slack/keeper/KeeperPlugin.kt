@@ -21,6 +21,8 @@ package com.slack.keeper
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
+import com.android.builder.model.BuildType
+import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -128,6 +130,16 @@ class KeeperPlugin : Plugin<Project> {
 
         appExtension.testVariants.configureEach {
           val appVariant = testedVariant
+          val extensionFilter = extension._variantFilter
+          if (extensionFilter != null) {
+            project.logger.debug("$TAG Resolving ignored status for android variant ${appVariant.name}")
+            val filter = VariantFilterImpl(appVariant)
+            extensionFilter.execute(filter)
+            project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+            if (filter._ignored) {
+              return@configureEach
+            }
+          }
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
           val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
@@ -257,4 +269,16 @@ internal fun String.capitalize(locale: Locale): String {
     }
   }
   return this
+}
+
+private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
+  var _ignored: Boolean = true
+
+  override fun setIgnore(ignore: Boolean) {
+    _ignored = ignore
+  }
+
+  override val buildType: BuildType = variant.buildType
+  override val flavors: List<ProductFlavor> = variant.productFlavors
+  override val name: String = variant.name
 }
