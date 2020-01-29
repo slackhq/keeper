@@ -134,7 +134,7 @@ class KeeperPlugin : Plugin<Project> {
                   intermediateAndroidTestJar,
                   intermediateAppJar,
                   androidJarRegularFileProvider,
-                  extension.automaticallyAddR8Repo,
+                  extension.automaticR8RepoManagement,
                   extension.r8JvmArgs,
                   r8Configuration
               )

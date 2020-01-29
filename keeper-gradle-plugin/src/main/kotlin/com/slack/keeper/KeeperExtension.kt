@@ -44,7 +44,7 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * Controls whether or not to automatically add the R8 repository for dependencies. Default is
    * true. Disable if you want to define your own repo for fetching the R8 dependency.
    */
-  val automaticallyAddR8Repo: Property<Boolean> = objects.property<Boolean>().apply {
+  val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().apply {
     convention(true)
   }
 
