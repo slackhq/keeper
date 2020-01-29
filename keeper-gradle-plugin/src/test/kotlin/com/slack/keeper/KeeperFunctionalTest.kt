@@ -40,6 +40,10 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  * Alternatively - run `./gradlew pluginUnderTestMetadata` once from the command line to generate
  * the metadata file and then try again from the IDE.
  *
+ * Doubly alternatively - only run tests from the command line. GradleRunner doesn't have great IDE
+ * integration and it's not worth the trouble for a small test suite like this if it's not
+ * cooperating.
+ *
  * To debug the Gradle plugin's code itself, uncomment the `.withDebug()` line in [runGradle]
  * function. Normal debugging in the test code doesn't require this.
  *
