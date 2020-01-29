@@ -57,4 +57,4 @@ If the contribution doesn't meet the above criteria, you may fail our automated 
 
 ## Maintainers
 
-There are more details about processes and workflow in the [Maintainer's Guide](./maintainers_guide.md).
+There are more details about processes and workflow in the [Maintainer's Guide](https://github.com/slackhq/keeper/blob/master/.maintainers_guide.md).
