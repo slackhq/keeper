@@ -112,14 +112,9 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
    */
   @Test
   fun standard() {
-    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder, "staging")
+    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder, buildGradleFile("staging"))
 
-    val result = runGradle(projectDir, "assembleExternalStagingAndroidTest", "-x", "lintVitalExternalStaging")
-    assertThat(result.resultOf("jarExternalStagingAndroidTestClassesForKeeper")).isEqualTo(
-        TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
-        TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferExternalStagingAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
     val agpVersion = AgpVersionHandler.getInstance()
@@ -151,7 +146,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   // the externalRelease variant
   @Test
   fun variantFilter() {
-    val (projectDir, _) = prepareProject(temporaryFolder, "release")
+    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("release"))
 
     val result = runGradle(projectDir, "assembleExternalRelease", "-x", "lintVitalExternalRelease")
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
@@ -159,13 +154,26 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.findTask("inferExternalReleaseAndroidTestUsageForKeeper")).isNull()
   }
 
+  // Ensures that manual R8 repo management works
+  @Test
+  fun manualR8RepoManagement() {
+    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("staging", false))
+    projectDir.runAsWiredStaging()
+  }
+
   // TODO test cases
   //  Transitive androidTest deps using transitive android deps (i.e. like IdlingResource)
   //  multidex (zip64 use in jars)
-  //  Error cases
-  //    missing variants - but shouldn't be necessary after https://github.com/slackhq/keeper/issues/2
-  //    ordering - missing android jar message
-  //  Custom r8 versions
+
+  private fun File.runAsWiredStaging(): BuildResult {
+    val result = runGradle(this, "assembleExternalStagingAndroidTest", "-x", "lintVitalExternalStaging")
+    assertThat(result.resultOf("jarExternalStagingAndroidTestClassesForKeeper")).isEqualTo(
+        TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
+        TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferExternalStagingAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    return result
+  }
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
     return GradleRunner.create()
@@ -226,7 +234,7 @@ private val TEST_PROGUARD_RULES = """
 """.trimIndent()
 
 @Language("groovy")
-private fun buildGradleFile(testBuildType: String) = """
+private fun buildGradleFile(testBuildType: String, automaticR8RepoManagement: Boolean = true) = """
   buildscript {
     repositories {
       google()
@@ -291,9 +299,18 @@ private fun buildGradleFile(testBuildType: String) = """
     google()
     mavenCentral()
     jcenter()
+    ${if (automaticR8RepoManagement) "" else """
+      |  maven {
+      |    url = uri("https://storage.googleapis.com/r8-releases/raw")
+      |    content {
+      |      includeModule("com.android.tools", "r8")
+      |    }
+      |  }
+    """.trimMargin()}
   }
   
   keeper {
+    ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
     variantFilter {
       setIgnore(name == "externalRelease")
     }
@@ -373,10 +390,10 @@ private val EXPECTED_ANDROID_TEST_CLASSES: Set<String> = ANDROID_TEST_SOURCES.ma
 
 private data class ProjectData(val dir: File, val proguardConfigOutput: File)
 
-private fun prepareProject(temporaryFolder: TemporaryFolder, testBuildType: String): ProjectData {
+private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: String): ProjectData {
   // Create fixture
   val projectDir = temporaryFolder.newFolder("testProject")
-  projectDir.newFile("build.gradle").apply { writeText(buildGradleFile(testBuildType)) }
+  projectDir.newFile("build.gradle").apply { writeText(buildFileText) }
   projectDir.newFile("proguard-test-rules.pro") { writeText(TEST_PROGUARD_RULES) }
   projectDir.newFile("src/main/AndroidManifest.xml") {
     //language=xml

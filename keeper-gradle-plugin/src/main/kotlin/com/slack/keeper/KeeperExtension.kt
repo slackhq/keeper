@@ -21,11 +21,14 @@ import com.android.builder.model.ProductFlavor
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.listProperty
+import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
+  @Suppress("PropertyName")
   internal var _variantFilter: Action<VariantFilter>? = null
 
   /**
@@ -36,6 +39,15 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    */
   fun variantFilter(action: Action<VariantFilter>) {
     this._variantFilter = action
+  }
+
+  /**
+   * Controls whether or not to automatically add the R8 repository for dependencies. Default is
+   * true. Disable if you want to define your own repo for fetching the R8 dependency.
+   */
+  @Suppress("UnstableApiUsage")
+  val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().apply {
+    convention(true)
   }
 
   /**

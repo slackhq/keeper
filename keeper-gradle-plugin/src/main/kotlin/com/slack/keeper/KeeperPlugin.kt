@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.repositories
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -57,6 +56,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
  * ```
  * keeper {
+ *   automaticR8RepoManagement = false
  *   r8JvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"]
  * }
  * ```
@@ -102,19 +102,6 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
 
-        // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is allowed
-        // to be fetched from this.
-        // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't support
-        // this yet.
-        repositories {
-          maven {
-            url = uri("https://storage.googleapis.com/r8-releases/raw")
-            content {
-              includeModule("com.android.tools", "r8")
-            }
-          }
-        }
-
         val appExtension = project.extensions.getByType<AppExtension>()
 
         val androidJarFileProvider = project.provider {
@@ -148,6 +135,7 @@ class KeeperPlugin : Plugin<Project> {
                   intermediateAndroidTestJar,
                   intermediateAppJar,
                   androidJarRegularFileProvider,
+                  extension.automaticR8RepoManagement,
                   extension.r8JvmArgs,
                   r8Configuration
               )
