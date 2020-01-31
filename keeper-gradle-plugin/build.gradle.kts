@@ -48,6 +48,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     }
 }
 
+sourceSets {
+    findByName("test")?.resources?.srcDirs("$buildDir/pluginUnderTestMetadata")
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
