@@ -63,8 +63,18 @@ android {
 }
 
 keeper {
+  automaticR8RepoManagement = false
   variantFilter {
     setIgnore(name == "externalRelease")
+  }
+}
+
+repositories {
+  maven {
+    url = uri("https://storage.googleapis.com/r8-releases/raw")
+    content {
+      includeModule("com.android.tools", "r8")
+    }
   }
 }
 
