@@ -59,7 +59,7 @@ android {
     }
   }
 
-  testBuildType = "release"
+  testBuildType = "staging"
 }
 
 keeper {
