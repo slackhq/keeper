@@ -29,6 +29,7 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -38,6 +39,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.gradle.util.VersionNumber
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -86,9 +88,14 @@ class KeeperPlugin : Plugin<Project> {
     internal const val INTERMEDIATES_DIR = "intermediates/keeper"
     internal const val DEFAULT_R8_VERSION = "1.6.53"
     internal const val CONFIGURATION_NAME = "keeperR8"
+    private val MIN_GRADLE_VERSION = VersionNumber.parse("6.0")
   }
 
   override fun apply(project: Project) {
+    val gradleVersion = VersionNumber.parse(project.gradle.gradleVersion)
+    check(gradleVersion >= MIN_GRADLE_VERSION) {
+      "Keeper requires Gradle 6.0 or later."
+    }
     with(project) {
       pluginManager.withPlugin("com.android.application") {
         val extension = project.extensions.create<KeeperExtension>("keeper")
