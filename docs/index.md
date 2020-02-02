@@ -22,7 +22,7 @@ vars are described [here](https://github.com/slackhq/keeper/blob/master/.github/
 ## Installation
 
 Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application's
-build.gradle.
+build.gradle. Keeper requires Gradle 6.0 or higher.
 
 ```groovy
 buildscript {
