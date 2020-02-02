@@ -29,6 +29,7 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -128,7 +129,11 @@ class KeeperPlugin : Plugin<Project> {
               return@configureEach
             }
           }
-          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+              extension.emitDebugInformation,
+              this,
+              appVariant
+          )
           val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(US)}UsageForKeeper",
@@ -157,6 +162,7 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
+      emitDebugInfo: Property<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
   ): TaskProvider<out Jar> {
@@ -165,6 +171,7 @@ class KeeperPlugin : Plugin<Project> {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
       archiveBaseName.set(NAME_ANDROID_TEST_JAR)
+      this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
         appRuntime.from(runtimeClassPath())

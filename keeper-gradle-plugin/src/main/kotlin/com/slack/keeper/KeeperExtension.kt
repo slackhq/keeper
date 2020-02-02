@@ -57,6 +57,12 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
    */
   val r8JvmArgs: ListProperty<String> = objects.listProperty()
+
+  /** Emit extra debug information, useful for bug reporting. */
+  var emitDebugInformation: Property<Boolean> = objects.property<Boolean>().apply {
+    @Suppress("UnstableApiUsage")
+    convention(false)
+  }
 }
 
 

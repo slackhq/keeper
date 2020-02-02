@@ -16,10 +16,14 @@
 
 package com.slack.keeper
 
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
@@ -45,19 +49,46 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
   }
 
   @get:Classpath
-  val androidTestRuntime = objects.fileCollection()
+  val androidTestRuntime: ConfigurableFileCollection = objects.fileCollection()
 
   @get:Classpath
-  val appRuntime = objects.fileCollection()
+  val appRuntime: ConfigurableFileCollection = objects.fileCollection()
+
+  @get:Input
+  val emitDebugInfo: Property<Boolean> = objects.property()
 
   override fun copy() {
     measureTimeMillis {
       project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-      val appJars = appRuntime.filter { it.extension == "jar" }.mapTo(mutableSetOf()) { it.nameWithoutExtension }
-      val distinctAndroidTestJars = androidTestRuntime.filter {
-        it.extension == "jar" && it.nameWithoutExtension !in appJars
+      val appJars = appRuntime.mapTo(mutableSetOf()) { it }
+      val debug = emitDebugInfo.get()
+      if (debug) {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/appJars2.txt").apply {
+          writeText(appJars.sortedBy { it.path }
+              .joinToString("\n") {
+                it.path
+              })
+        }
       }
-      from(distinctAndroidTestJars.map { project.zipTree(it) })
+      val androidTestClasspath = androidTestRuntime.mapTo(mutableSetOf()) { it }
+      if (debug) {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/androidTestJars2.txt").apply {
+          writeText(androidTestClasspath.sortedBy { it.path }
+              .joinToString("\n") {
+                it.path
+              })
+        }
+      }
+      val distinctAndroidTestClasspath = androidTestRuntime.filterNotTo(mutableSetOf(), appJars::contains)
+      if (debug) {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/distinctJars2.txt").apply {
+          writeText(distinctAndroidTestClasspath.sortedBy { it.path }
+              .joinToString("\n") {
+                it.path
+              })
+        }
+      }
+      from(distinctAndroidTestClasspath.filter { it.extension == "jar" }.map(project::zipTree))
     }.also {
       project.logger.debug("$LOG: Diffing completed in ${it}ms")
     }
