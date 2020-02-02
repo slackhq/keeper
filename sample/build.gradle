@@ -73,6 +73,7 @@ keeper {
   emitDebugInformation = true
 }
 
+// Example demo of how to configure your own R8 repo
 repositories {
   maven {
     url = uri("https://storage.googleapis.com/r8-releases/raw")
