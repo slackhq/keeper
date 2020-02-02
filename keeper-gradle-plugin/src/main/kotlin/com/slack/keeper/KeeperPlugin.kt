@@ -28,6 +28,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -166,20 +167,12 @@ class KeeperPlugin : Plugin<Project> {
       archiveBaseName.set(NAME_ANDROID_TEST_JAR)
 
       with(appVariant) {
-        appRuntime.from(runtimeConfiguration.incoming.artifactView {
-          attributes {
-            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-          }
-        }.files)
+        appRuntime.from(runtimeClassPath())
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestRuntime.from(runtimeConfiguration.incoming.artifactView {
-          attributes {
-            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-          }
-        }.files)
+        androidTestRuntime.from(runtimeClassPath())
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -210,9 +203,7 @@ class KeeperPlugin : Plugin<Project> {
       archiveBaseName.set(NAME_APP_JAR)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        from(javaCompileProvider.map { javaCompileTask ->
-          javaCompileTask.classpath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
-        })
+        from(runtimeClassPath())
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -229,6 +220,14 @@ class KeeperPlugin : Plugin<Project> {
       isZip64 = true
     }
   }
+}
+
+private fun BaseVariant.runtimeClassPath(): FileCollection {
+  return runtimeConfiguration.incoming.artifactView {
+    attributes {
+      attribute(Attribute.of("artifactType", String::class.java), "android-classes")
+    }
+  }.files
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
