@@ -25,6 +25,9 @@ jobs:
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+# TODO enable these when we have emulator support on CI
+#          ./gradlew connectedCheck -Pandroid.enableR8=true --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+#          ./gradlew connectedCheck -Pandroid.enableR8=false --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
       - name: Upload snapshot (master only)
