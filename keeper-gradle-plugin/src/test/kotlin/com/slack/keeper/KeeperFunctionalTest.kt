@@ -334,6 +334,7 @@ private val MAIN_SOURCES = setOf(
       superclass(ClassName.get("android.app", "Application"))
       methodSpec("onCreate") {
         addAnnotation(Override::class.java)
+        addStatement("super.onCreate()")
         addStatement("\$T.applicationCalledMethod()",
             ClassName.get("com.slack.keeper.sample", "ApplicationUsedClass"))
       }
@@ -351,7 +352,7 @@ private val MAIN_SOURCES = setOf(
         addComment("This method is only called from androidTest sources!")
       }
     },
-    // Class that's only accessed from androidTest
+    // Class that's unused
     javaFile("com.slack.keeper.sample", "UnusedClass") {
       methodSpec("unusedMethod") {
         addModifiers(STATIC)
