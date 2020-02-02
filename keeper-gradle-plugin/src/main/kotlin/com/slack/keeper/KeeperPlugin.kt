@@ -210,7 +210,7 @@ class KeeperPlugin : Plugin<Project> {
       archiveBaseName.set(NAME_APP_JAR)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        from(runtimeClassPath())
+        from(runtimeClassPath().filter { it.extension == "jar" }.map(project::zipTree))
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
