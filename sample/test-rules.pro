@@ -15,3 +15,4 @@
 -dontwarn org.objectweb.asm.MethodVisitor
 -dontwarn android.net.http.**
 -dontwarn com.android.internal.http.multipart.MultipartEntity
+-dontwarn java.lang.ClassValue
