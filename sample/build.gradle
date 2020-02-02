@@ -49,6 +49,7 @@ android {
     }
     staging {
       initWith release
+      debuggable true
     }
   }
 
