@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package com.slack.keeper.sample;
+package com.slack.keeper.sample
 
-/** AndroidTest file that uses the TestOnlyClass. */
-public class TestOnlyClassCaller {
-  public static void callTestOnlyMethod() {
-    TestOnlyClass.testOnlyMethod();
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class KeeperSampleTest {
+  @Test
+  fun testFunctionKept() {
+    CClassCaller.callCClass()
+    TestOnlyClassCaller.callTestOnlyMethod()
+    TestOnlyKotlinClassCaller.callTestOnlyMethod()
   }
 }
