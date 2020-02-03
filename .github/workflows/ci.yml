@@ -21,16 +21,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.ci_java_version }}
+      - name: Wipe local gradle
+        run: rm -rf ~/.gradle
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.0.5
       - name: Build plugin
         run: |
-          echo "Try catting again"
-          cat ~/.gradle/init.d/app-center-plugin.gradle
-          echo "log-dependencies-versions.gradle"
-          cat ~/.gradle/init.d/log-dependencies-versions.gradle
-          echo "log-gradle-version-plugin.gradle"
-          cat ~/.gradle/init.d/log-gradle-version-plugin.gradle
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
