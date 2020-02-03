@@ -33,7 +33,7 @@ jobs:
           # Run connectedCheck with both Proguard and R8.
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
           # See https://github.com/malinskiy/action-android#info-about-emulator-start-and-emulator-stop-actions
-          cmd: CI_AGP_VERSION=${{ matrix.ci_agp_version }} .github/workflows/run_instrumentation_tests.sh
+          cmd: .github/workflows/run_instrumentation_tests.sh ${{ matrix.ci_agp_version }}
           api: 25
           tag: default
           abi: x86
