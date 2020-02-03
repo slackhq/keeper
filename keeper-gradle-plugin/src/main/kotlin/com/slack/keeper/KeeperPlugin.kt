@@ -237,6 +237,7 @@ class KeeperPlugin : Plugin<Project> {
 
 private fun BaseVariant.runtimeClassPath(): FileCollection {
   return runtimeConfiguration.incoming.artifactView {
+    lenient(true)
     attributes {
       attribute(Attribute.of("artifactType", String::class.java), "android-classes")
     }
