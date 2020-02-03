@@ -16,13 +16,13 @@
 
 package com.slack.keeper.sample
 
-//import com.slack.keeper.example.c.CClass
+import com.slack.keeper.example.c.CClass
 import okio.ByteString
 import okio.ByteString.Companion.encodeUtf8
 
 object CClassCaller {
   fun callCClass() {
-//    CClass.sampleMethod()
+    CClass.sampleMethod()
     val byteString: ByteString = "Hello C caller!".encodeUtf8()
     println(byteString.hex())
   }
