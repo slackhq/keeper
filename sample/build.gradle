@@ -72,7 +72,7 @@ android {
 keeper {
   automaticR8RepoManagement = false
   variantFilter {
-    setIgnore(name == "externalRelease")
+    setIgnore(name != "externalStaging")
   }
   emitDebugInformation = true
 }
