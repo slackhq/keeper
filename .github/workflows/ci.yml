@@ -27,6 +27,7 @@ jobs:
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
+          ./gradlew :sample:inferExternalStagingAndroidTestUsageForKeeper --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
       - name: Run instrumentation tests
         uses: malinskiy/action-android/emulator-run-cmd@release/0.0.5
         with:
