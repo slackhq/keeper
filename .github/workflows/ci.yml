@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     name: JDK ${{ matrix.ci_java_version }} - AGP ${{ matrix.ci_agp_version }}
-    runs-on: ubuntu-latest
+    # Use macOs-10.14 for emulator hardware acceleration
+    runs-on: macOS-10.14
     strategy:
       matrix:
         ci_java_version: [1.8]
@@ -19,15 +20,23 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.ci_java_version }}
-      - name: Build with Gradle
+      - name: Install Android SDK
+        uses: malinskiy/action-android/install-sdk@release/0.0.5
+      - name: Build plugin
         run: |
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
-          ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
-# TODO enable these when we have emulator support on CI
-#          ./gradlew connectedCheck -Pandroid.enableR8=true --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
-#          ./gradlew connectedCheck -Pandroid.enableR8=false --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+      - name: Run instrumentation tests
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.0.5
+        with:
+          # Run connectedCheck with both Proguard and R8.
+          # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
+          # See https://github.com/malinskiy/action-android#info-about-emulator-start-and-emulator-stop-actions
+          cmd: ./gradlew connectedCheck -Pandroid.enableR8=true --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}; ./gradlew connectedCheck -Pandroid.enableR8=false --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+          api: 25
+          tag: default
+          abi: x86
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
       - name: Upload snapshot (master only)
