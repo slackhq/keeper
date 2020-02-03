@@ -25,9 +25,12 @@ jobs:
         uses: malinskiy/action-android/install-sdk@release/0.0.5
       - name: Build plugin
         run: |
-          cat ~/.gradle/init.gradle || true
-          cat ~/.gradle/init.gradle.kts || true
-          ls ~/.gradle/init.d || true
+          echo "app-center-plugin.gradle"
+          cat ~/.gradle/init.d/app-center-plugin.gradle
+          echo "log-dependencies-versions.gradle"
+          cat ~/.gradle/init.d/log-dependencies-versions.gradle
+          echo "log-gradle-version-plugin.gradle"
+          cat ~/.gradle/init.d/log-gradle-version-plugin.gradle
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
