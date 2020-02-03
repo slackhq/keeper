@@ -27,8 +27,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.artifacts.ArtifactView
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -180,13 +181,14 @@ class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appRuntime.from(runtimeClassPath())
+        appArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        appConfiguration = runtimeConfiguration
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestRuntime.from(runtimeClassPath())
-
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        androidTestConfiguration = runtimeConfiguration
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -216,7 +218,8 @@ class KeeperPlugin : Plugin<Project> {
       archiveBaseName.set(NAME_APP_JAR)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        from(runtimeClassPath().filter { it.extension == "jar" }.map(project::zipTree))
+        artifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        configuration = runtimeConfiguration
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -235,13 +238,12 @@ class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun BaseVariant.runtimeClassPath(): FileCollection {
-  return runtimeConfiguration.incoming.artifactView {
-    lenient(true)
+internal fun Configuration.artifactView(): ArtifactView {
+  return incoming.artifactView {
     attributes {
       attribute(Attribute.of("artifactType", String::class.java), "android-classes")
     }
-  }.files
+  }
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(

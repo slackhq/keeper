@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnstableApiUsage")
 package com.slack.keeper
 
-import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
@@ -32,27 +34,62 @@ import kotlin.system.measureTimeMillis
  * the resulting jar is an input of a task and not just a transient operation of another plugin.
  */
 @CacheableTask
-abstract class VariantClasspathJar : Jar()
+abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) : Jar() {
+  /**
+   * This is the "official" input for wiring task dependencies correctly, but is otherwise
+   * unused. See [configuration].
+   */
+  @get:Classpath
+  val artifactFiles = objects.fileCollection()
+
+  /**
+   * This is what the task actually uses as its input.
+   */
+  @get:Internal
+  lateinit var configuration: Configuration
+
+  override fun copy() {
+    from(configuration.artifactView().files.filter { it.extension == "jar" }.map(project::zipTree))
+    super.copy()
+  }
+}
 
 /**
- * A [VariantClasspathJar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
- * (as compared to the [appRuntime]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
+ * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
+ * (as compared to the [appConfiguration]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
  * at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
-@Suppress("UnstableApiUsage")
 @CacheableTask
-abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: ObjectFactory) : VariantClasspathJar() {
+abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: ObjectFactory) : Jar() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
+  /**
+   * This is the "official" input for wiring task dependencies correctly, but is otherwise
+   * unused. See [appConfiguration].
+   */
   @get:Classpath
-  val androidTestRuntime: ConfigurableFileCollection = objects.fileCollection()
+  val appArtifactFiles = objects.fileCollection()
 
+  /**
+   * This is what the task actually uses as its input.
+   */
+  @get:Internal
+  lateinit var appConfiguration: Configuration
+
+  /**
+   * This is the "official" input for wiring task dependencies correctly, but is otherwise
+   * unused. See [androidTestArtifactFiles].
+   */
   @get:Classpath
-  val appRuntime: ConfigurableFileCollection = objects.fileCollection()
+  val androidTestArtifactFiles = objects.fileCollection()
+
+  /** This is what the task actually uses as its input. */
+  @get:Internal
+  lateinit var androidTestConfiguration: Configuration
 
   @get:Input
   val emitDebugInfo: Property<Boolean> = objects.property()
@@ -60,7 +97,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
   override fun copy() {
     measureTimeMillis {
       project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-      val appJars = appRuntime.mapTo(mutableSetOf()) { it }
+      val appJars = appConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
       val debug = emitDebugInfo.get()
       if (debug) {
         project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/appJars2.txt").apply {
@@ -70,7 +107,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
               })
         }
       }
-      val androidTestClasspath = androidTestRuntime.mapTo(mutableSetOf()) { it }
+      val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
       if (debug) {
         project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/androidTestJars2.txt").apply {
           writeText(androidTestClasspath.sortedBy { it.path }
@@ -79,7 +116,9 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
               })
         }
       }
-      val distinctAndroidTestClasspath = androidTestRuntime.filterNotTo(mutableSetOf(), appJars::contains)
+      val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
+        removeAll(appJars)
+      }
       if (debug) {
         project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/distinctJars2.txt").apply {
           writeText(distinctAndroidTestClasspath.sortedBy { it.path }
