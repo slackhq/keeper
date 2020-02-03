@@ -273,6 +273,7 @@ internal fun String.capitalize(locale: Locale): String {
 }
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
+  @Suppress("PropertyName")
   var _ignored: Boolean = true
 
   override fun setIgnore(ignore: Boolean) {
