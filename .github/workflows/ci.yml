@@ -25,8 +25,8 @@ jobs:
         uses: malinskiy/action-android/install-sdk@release/0.0.5
       - name: Build plugin
         run: |
-          echo "Try removing"
-          rm ~/.gradle/init.d/app-center-plugin.gradle
+          echo "Try catting again"
+          cat ~/.gradle/init.d/app-center-plugin.gradle
           echo "log-dependencies-versions.gradle"
           cat ~/.gradle/init.d/log-dependencies-versions.gradle
           echo "log-gradle-version-plugin.gradle"
