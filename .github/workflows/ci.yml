@@ -7,6 +7,7 @@ jobs:
     name: JDK ${{ matrix.ci_java_version }} - AGP ${{ matrix.ci_agp_version }}
     # Use macOs-10.14 for emulator hardware acceleration
     runs-on: macOS-10.14
+    timeout-minutes: 30
     strategy:
       matrix:
         ci_java_version: [1.8]
