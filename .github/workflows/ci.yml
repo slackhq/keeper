@@ -5,8 +5,8 @@ on: [push, pull_request]
 jobs:
   build:
     name: JDK ${{ matrix.ci_java_version }} - AGP ${{ matrix.ci_agp_version }}
-    # Use macOs for emulator hardware acceleration
-    runs-on: ubuntu-latest
+    # Use macOS for emulator hardware acceleration
+    runs-on: macOS-latest
     timeout-minutes: 30
     strategy:
       matrix:
@@ -25,8 +25,8 @@ jobs:
         uses: malinskiy/action-android/install-sdk@release/0.0.5
       - name: Build plugin
         run: |
-          echo "app-center-plugin.gradle"
-          cat ~/.gradle/init.d/app-center-plugin.gradle
+          echo "Try removing"
+          rm ~/.gradle/init.d/app-center-plugin.gradle
           echo "log-dependencies-versions.gradle"
           cat ~/.gradle/init.d/log-dependencies-versions.gradle
           echo "log-gradle-version-plugin.gradle"
