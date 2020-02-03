@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package com.slack.keeper.sample
+package com.slack.keeper.example.c;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.slack.keeper.example.a.AClass
-import org.junit.Test
-import org.junit.runner.RunWith
+import okio.ByteString;
 
-@RunWith(AndroidJUnit4::class)
-class KeeperSampleTest {
-  @Test
-  fun testFunctionKept() {
-    AClass.sampleMethod()
-    TestOnlyCClassCaller.callCClass()
-    TestOnlyClassCaller.callTestOnlyMethod()
-    TestOnlyKotlinClassCaller.callTestOnlyMethod()
+public class TestOnlyCClass {
+  public static void sampleMethod() {
+    ByteString byteString = ByteString.encodeUtf8("Hello TestOnlyC!");
+    System.out.println(byteString.hex());
   }
 }
