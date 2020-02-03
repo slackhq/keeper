@@ -28,6 +28,9 @@ jobs:
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
+          ./gradlew :sample:assembleDebug --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
+      - name: Reclaim memory (1)
+        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
       - name: Run instrumentation tests
         uses: malinskiy/action-android/emulator-run-cmd@release/0.0.5
         with:
@@ -38,7 +41,7 @@ jobs:
           api: 25
           tag: default
           abi: x86
-      - name: Reclaim memory
+      - name: Reclaim memory (2)
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
       - name: Upload snapshot (master only)
         run: |
