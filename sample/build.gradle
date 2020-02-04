@@ -18,18 +18,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.slack.keeper'
 
-gradle.taskGraph.addTaskExecutionListener(new TaskExecutionListener() {
-  @Override
-  void beforeExecute(Task task) {
-    println "Starting task ${task.name}"
-  }
-
-  @Override
-  void afterExecute(Task task, TaskState state) {
-    println "Finished task ${task.name} with state ${state}"
-  }
-})
-
 android {
   compileSdkVersion 29
 
