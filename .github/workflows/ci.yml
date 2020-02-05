@@ -21,6 +21,7 @@ jobs:
       matrix:
         ci_java_version: [1.8]
         ci_agp_version: [3.5.3, 3.6.0-rc01, 4.0.0-alpha09]
+        job: [instrumentation, plugin]
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -32,15 +33,18 @@ jobs:
           java-version: ${{ matrix.ci_java_version }}
       - name: Wipe local gradle
         run: rm -rf ~/.gradle
-      - name: Build plugin
+      - name: Test plugin
+        if: matrix.job == 'plugin'
         run: |
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
-      - name: Reclaim memory (1)
+      - name: Reclaim memory for emulator
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
+        if: matrix.job == 'instrumentation'
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
+        if: matrix.job == 'instrumentation'
         with:
           # Run connectedCheck with both Proguard and R8.
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
@@ -49,10 +53,11 @@ jobs:
           api-level: 25
           tag: default
           abi: x86
-      - name: Reclaim memory (2)
+      - name: Reclaim memory for snapshot upload
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
+        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
       - name: Upload snapshot (master only)
         run: |
           cd keeper-gradle-plugin
           ./gradlew uploadArchives -Pkeeper.releaseMode=true -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
-        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3'
+        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
