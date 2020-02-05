@@ -24,7 +24,7 @@ jobs:
         job: [instrumentation, plugin]
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
       - name: Install JDK ${{ matrix.ci_java_version }}
