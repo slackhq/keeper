@@ -32,8 +32,6 @@ jobs:
           java-version: ${{ matrix.ci_java_version }}
       - name: Wipe local gradle
         run: rm -rf ~/.gradle
-      - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.0.5
       - name: Build plugin
         run: |
           cd keeper-gradle-plugin
@@ -42,13 +40,13 @@ jobs:
       - name: Reclaim memory (1)
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
       - name: Run instrumentation tests
-        uses: malinskiy/action-android/emulator-run-cmd@release/0.0.5
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           # Run connectedCheck with both Proguard and R8.
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
           # See https://github.com/malinskiy/action-android#info-about-emulator-start-and-emulator-stop-actions
           cmd: .github/workflows/run_instrumentation_tests.sh ${{ matrix.ci_agp_version }}
-          api: 25
+          api-level: 25
           tag: default
           abi: x86
       - name: Reclaim memory (2)
