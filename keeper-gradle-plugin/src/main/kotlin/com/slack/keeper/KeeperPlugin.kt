@@ -143,7 +143,7 @@ class KeeperPlugin : Plugin<Project> {
           )
           val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
-              "infer${name.capitalize(US)}UsageForKeeper",
+              "infer${name.capitalize(US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
                   intermediateAndroidTestJar,
                   intermediateAppJar,
