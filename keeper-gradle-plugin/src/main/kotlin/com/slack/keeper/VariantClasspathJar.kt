@@ -100,7 +100,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
       val appJars = appConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
       val debug = emitDebugInfo.get()
       if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/appJars2.txt").apply {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}AppJars.txt").apply {
           writeText(appJars.sortedBy { it.path }
               .joinToString("\n") {
                 it.path
@@ -109,7 +109,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
       }
       val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
       if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/androidTestJars2.txt").apply {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}Jars.txt").apply {
           writeText(androidTestClasspath.sortedBy { it.path }
               .joinToString("\n") {
                 it.path
@@ -120,7 +120,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
         removeAll(appJars)
       }
       if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/distinctJars2.txt").apply {
+        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2.txt").apply {
           writeText(distinctAndroidTestClasspath.sortedBy { it.path }
               .joinToString("\n") {
                 it.path

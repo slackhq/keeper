@@ -145,12 +145,13 @@ class KeeperPlugin : Plugin<Project> {
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
-                  intermediateAndroidTestJar,
-                  intermediateAppJar,
-                  androidJarRegularFileProvider,
-                  extension.automaticR8RepoManagement,
-                  extension.r8JvmArgs,
-                  r8Configuration
+                  variantName = name,
+                  androidTestJarProvider = intermediateAndroidTestJar,
+                  releaseClassesJarProvider = intermediateAppJar,
+                  androidJar = androidJarRegularFileProvider,
+                  automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+                  extensionJvmArgs = extension.r8JvmArgs,
+                  r8Configuration = r8Configuration
               )
           )
 
@@ -177,7 +178,7 @@ class KeeperPlugin : Plugin<Project> {
         "jar${testVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(NAME_ANDROID_TEST_JAR)
+      archiveBaseName.set(testVariant.name)
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
@@ -215,7 +216,7 @@ class KeeperPlugin : Plugin<Project> {
     return tasks.register<VariantClasspathJar>("jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(NAME_APP_JAR)
+      archiveBaseName.set(appVariant.name)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
         artifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
