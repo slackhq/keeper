@@ -151,7 +151,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = runGradle(projectDir, "assembleExternalRelease", "-x", "lintVitalExternalRelease")
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
-    assertThat(result.findTask("inferExternalReleaseAndroidTestKeepRulesForKeeper")).isNull()
+    assertThat(result.findTask("inferExternalStagingAndroidTestKeepRulesForKeeper")).isNull()
   }
 
   // Ensures that manual R8 repo management works
@@ -171,7 +171,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         TaskOutcome.SUCCESS)
     assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferExternalReleaseAndroidTestKeepRulesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferExternalStagingAndroidTestKeepRulesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
     return result
   }
 
