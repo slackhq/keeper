@@ -70,11 +70,16 @@ android {
 }
 
 keeper {
-  automaticR8RepoManagement = false
+  // Example: Only enable on "externalStaging"
   variantFilter {
     setIgnore(name != "externalStaging")
   }
+
+  // Example: emit extra debug information during Keeper's execution.
   emitDebugInformation = true
+
+  // Example: automatic R8 repo management (more below)
+  automaticR8RepoManagement = false
 }
 
 // Example demo of how to configure your own R8 repo
