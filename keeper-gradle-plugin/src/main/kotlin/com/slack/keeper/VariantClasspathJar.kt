@@ -98,39 +98,40 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
     measureTimeMillis {
       project.logger.debug("$LOG: Diffing androidTest jars and app jars")
       val appJars = appConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
-      val debug = emitDebugInfo.get()
-      if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}AppJars.txt").apply {
-          writeText(appJars.sortedBy { it.path }
-              .joinToString("\n") {
-                it.path
-              })
-        }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
+        appJars.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
       }
       val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
-      if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}Jars.txt").apply {
-          writeText(androidTestClasspath.sortedBy { it.path }
-              .joinToString("\n") {
-                it.path
-              })
-        }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars.txt") {
+        androidTestClasspath.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
       }
       val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
         removeAll(appJars)
       }
-      if (debug) {
-        project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2.txt").apply {
-          writeText(distinctAndroidTestClasspath.sortedBy { it.path }
-              .joinToString("\n") {
-                it.path
-              })
-        }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2.txt") {
+        distinctAndroidTestClasspath.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
       }
       from(distinctAndroidTestClasspath.filter { it.extension == "jar" }.map(project::zipTree))
     }.also {
       project.logger.debug("$LOG: Diffing completed in ${it}ms")
     }
     super.copy()
+  }
+
+  private fun diagnostic(fileName: String, body: () -> String) {
+    if (emitDebugInfo.get()) {
+      project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${fileName}.txt").apply {
+        writeText(body())
+      }
+    }
   }
 }
