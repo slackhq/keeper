@@ -46,9 +46,7 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * true. Disable if you want to define your own repo for fetching the R8 dependency.
    */
   @Suppress("UnstableApiUsage")
-  val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().apply {
-    convention(true)
-  }
+  val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().convention(true)
 
   /**
    * Optional custom jvm arguments to pass into the R8 `PrintUses` execution. Useful if you want
@@ -59,10 +57,8 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
   val r8JvmArgs: ListProperty<String> = objects.listProperty()
 
   /** Emit extra debug information, useful for bug reporting. */
-  var emitDebugInformation: Property<Boolean> = objects.property<Boolean>().apply {
-    @Suppress("UnstableApiUsage")
-    convention(false)
-  }
+  @Suppress("UnstableApiUsage")
+  var emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
 }
 
 
