@@ -122,19 +122,19 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStagingAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
-    val appJar = projectDir.generatedChild("app.jar")
+    val appJar = projectDir.generatedChild("externalStaging.jar")
     val appClasses = ZipFile(appJar).readClasses()
     assertThat(appClasses).containsAtLeastElementsIn(EXPECTED_APP_CLASSES)
     assertThat(appClasses).containsNoneIn(EXPECTED_ANDROID_TEST_CLASSES)
 
     // Assert we correctly packaged androidTest classes
-    val androidTestJar = projectDir.generatedChild("androidTest.jar")
+    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest.jar")
     val androidTestClasses = ZipFile(androidTestJar).readClasses()
     assertThat(androidTestClasses).containsAtLeastElementsIn(EXPECTED_ANDROID_TEST_CLASSES)
     assertThat(androidTestClasses).containsNoneIn(EXPECTED_APP_CLASSES)
 
     // Assert we correctly generated rules
-    val generatedRules = projectDir.generatedChild("inferredUsage.pro")
+    val generatedRules = projectDir.generatedChild("inferredExternalStagingAndroidTestKeepRules.pro")
     assertThat(generatedRules.readText().trim()).isEqualTo(EXPECTED_GENERATED_RULES)
 
     // Finally - verify our rules were included in the final minification execution.
