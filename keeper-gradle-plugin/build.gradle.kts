@@ -49,7 +49,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 sourceSets {
-    findByName("test")?.resources?.srcDirs("$buildDir/pluginUnderTestMetadata")
+    getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata")
 }
 
 java {
