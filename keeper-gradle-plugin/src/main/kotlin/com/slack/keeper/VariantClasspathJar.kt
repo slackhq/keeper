@@ -105,7 +105,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
             }
       }
       val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
-      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars.txt") {
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
         androidTestClasspath.sortedBy { it.path }
             .joinToString("\n") {
               it.path
@@ -114,7 +114,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
       val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
         removeAll(appJars)
       }
-      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2.txt") {
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
         distinctAndroidTestClasspath.sortedBy { it.path }
             .joinToString("\n") {
               it.path
