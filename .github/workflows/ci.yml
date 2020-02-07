@@ -50,8 +50,10 @@ jobs:
           java-version: ${{ matrix.ci_java_version }}
       - name: Wipe local gradle
         run: |
+          cd ~/.gradle
+          pwd
           which java
-          java --version
+          java -version
           echo $JAVA_HOME
           rm -rf ~/.gradle
       - name: Test plugin
