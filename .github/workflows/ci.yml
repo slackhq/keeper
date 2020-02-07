@@ -32,18 +32,10 @@ jobs:
         run: ./checksum.sh checksum.txt
       - uses: actions/cache@v1.1.2
         with:
-          id: cache-gradle
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
-#      - uses: actions/cache@v1.1.2
-#        with:
-#          id: cache-jdk
-#          path: /Users/runner/hostedtoolcache/jdk/8.0.242/x64
-#          key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
-#          restore-keys: |
-#            ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
       - name: Install JDK ${{ matrix.ci_java_version }}
         uses: actions/setup-java@v1.3.0
         with:
