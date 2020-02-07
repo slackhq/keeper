@@ -27,7 +27,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.artifacts.ArtifactView
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -36,6 +39,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.gradle.util.VersionNumber
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -84,9 +88,14 @@ class KeeperPlugin : Plugin<Project> {
     internal const val INTERMEDIATES_DIR = "intermediates/keeper"
     internal const val DEFAULT_R8_VERSION = "1.6.53"
     internal const val CONFIGURATION_NAME = "keeperR8"
+    private val MIN_GRADLE_VERSION = VersionNumber.parse("6.0")
   }
 
   override fun apply(project: Project) {
+    val gradleVersion = VersionNumber.parse(project.gradle.gradleVersion)
+    check(gradleVersion >= MIN_GRADLE_VERSION) {
+      "Keeper requires Gradle 6.0 or later."
+    }
     with(project) {
       pluginManager.withPlugin("com.android.application") {
         val extension = project.extensions.create<KeeperExtension>("keeper")
@@ -127,17 +136,22 @@ class KeeperPlugin : Plugin<Project> {
               return@configureEach
             }
           }
-          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(this, appVariant)
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+              extension.emitDebugInformation,
+              this,
+              appVariant
+          )
           val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
-              "infer${name.capitalize(US)}UsageForKeeper",
+              "infer${name.capitalize(US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
-                  intermediateAndroidTestJar,
-                  intermediateAppJar,
-                  androidJarRegularFileProvider,
-                  extension.automaticR8RepoManagement,
-                  extension.r8JvmArgs,
-                  r8Configuration
+                  variantName = name,
+                  androidTestJarProvider = intermediateAndroidTestJar,
+                  releaseClassesJarProvider = intermediateAppJar,
+                  androidJar = androidJarRegularFileProvider,
+                  automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+                  extensionJvmArgs = extension.r8JvmArgs,
+                  r8Configuration = r8Configuration
               )
           )
 
@@ -156,6 +170,7 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
+      emitDebugInfo: Property<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
   ): TaskProvider<out Jar> {
@@ -163,24 +178,18 @@ class KeeperPlugin : Plugin<Project> {
         "jar${testVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(NAME_ANDROID_TEST_JAR)
+      archiveBaseName.set(testVariant.name)
+      this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appRuntime.from(runtimeConfiguration.incoming.artifactView {
-          attributes {
-            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-          }
-        }.files)
+        appArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        appConfiguration = runtimeConfiguration
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestRuntime.from(runtimeConfiguration.incoming.artifactView {
-          attributes {
-            attribute(Attribute.of("artifactType", String::class.java), "android-classes")
-          }
-        }.files)
-
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        androidTestConfiguration = runtimeConfiguration
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -207,12 +216,11 @@ class KeeperPlugin : Plugin<Project> {
     return tasks.register<VariantClasspathJar>("jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(NAME_APP_JAR)
+      archiveBaseName.set(appVariant.name)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        from(javaCompileProvider.map { javaCompileTask ->
-          javaCompileTask.classpath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
-        })
+        artifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
+        configuration = runtimeConfiguration
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -227,6 +235,14 @@ class KeeperPlugin : Plugin<Project> {
 
       // Because we have more than 65535 classes. Dex method limit's distant cousin.
       isZip64 = true
+    }
+  }
+}
+
+internal fun Configuration.artifactView(): ArtifactView {
+  return incoming.artifactView {
+    attributes {
+      attribute(Attribute.of("artifactType", String::class.java), "android-classes")
     }
   }
 }
@@ -260,6 +276,7 @@ internal fun String.capitalize(locale: Locale): String {
 }
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
+  @Suppress("PropertyName")
   var _ignored: Boolean = true
 
   override fun setIgnore(ignore: Boolean) {

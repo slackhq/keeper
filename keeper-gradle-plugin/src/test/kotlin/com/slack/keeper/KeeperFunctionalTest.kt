@@ -122,19 +122,19 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStagingAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
-    val appJar = projectDir.generatedChild("app.jar")
+    val appJar = projectDir.generatedChild("externalStaging.jar")
     val appClasses = ZipFile(appJar).readClasses()
     assertThat(appClasses).containsAtLeastElementsIn(EXPECTED_APP_CLASSES)
     assertThat(appClasses).containsNoneIn(EXPECTED_ANDROID_TEST_CLASSES)
 
     // Assert we correctly packaged androidTest classes
-    val androidTestJar = projectDir.generatedChild("androidTest.jar")
+    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest.jar")
     val androidTestClasses = ZipFile(androidTestJar).readClasses()
     assertThat(androidTestClasses).containsAtLeastElementsIn(EXPECTED_ANDROID_TEST_CLASSES)
     assertThat(androidTestClasses).containsNoneIn(EXPECTED_APP_CLASSES)
 
     // Assert we correctly generated rules
-    val generatedRules = projectDir.generatedChild("inferredUsage.pro")
+    val generatedRules = projectDir.generatedChild("inferredExternalStagingAndroidTestKeepRules.pro")
     assertThat(generatedRules.readText().trim()).isEqualTo(EXPECTED_GENERATED_RULES)
 
     // Finally - verify our rules were included in the final minification execution.
@@ -151,7 +151,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = runGradle(projectDir, "assembleExternalRelease", "-x", "lintVitalExternalRelease")
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
-    assertThat(result.findTask("inferExternalReleaseAndroidTestUsageForKeeper")).isNull()
+    assertThat(result.findTask("inferExternalStagingAndroidTestKeepRulesForKeeper")).isNull()
   }
 
   // Ensures that manual R8 repo management works
@@ -171,7 +171,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         TaskOutcome.SUCCESS)
     assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferExternalStagingAndroidTestUsageForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferExternalStagingAndroidTestKeepRulesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
     return result
   }
 
@@ -334,6 +334,7 @@ private val MAIN_SOURCES = setOf(
       superclass(ClassName.get("android.app", "Application"))
       methodSpec("onCreate") {
         addAnnotation(Override::class.java)
+        addStatement("super.onCreate()")
         addStatement("\$T.applicationCalledMethod()",
             ClassName.get("com.slack.keeper.sample", "ApplicationUsedClass"))
       }
@@ -351,7 +352,7 @@ private val MAIN_SOURCES = setOf(
         addComment("This method is only called from androidTest sources!")
       }
     },
-    // Class that's only accessed from androidTest
+    // Class that's unused
     javaFile("com.slack.keeper.sample", "UnusedClass") {
       methodSpec("unusedMethod") {
         addModifiers(STATIC)

@@ -1,34 +1,70 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  # Only run push on master
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  # Always run on PRs
+  pull_request:
 
 jobs:
   build:
-    name: JDK ${{ matrix.ci_java_version }} - AGP ${{ matrix.ci_agp_version }}
-    runs-on: ubuntu-latest
+    name: ${{ matrix.job }} / JDK ${{ matrix.ci_java_version }} / AGP ${{ matrix.ci_agp_version }}
+    # Use macOS for emulator hardware acceleration
+    runs-on: macOS-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         ci_java_version: [1.8]
-        ci_agp_version: [3.5.3, 3.6.0-rc01, 4.0.0-alpha09]
+        # 4.0.0-alpha09 has a regression with transitive project dependencies, omitted pending further investigation
+        ci_agp_version: [3.5.3, 3.6.0-rc02]
+        job: [instrumentation, plugin]
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
       - name: Install JDK ${{ matrix.ci_java_version }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v1.3.0
         with:
           java-version: ${{ matrix.ci_java_version }}
-      - name: Build with Gradle
+      - name: Wipe local gradle
+        run: rm -rf ~/.gradle
+      - name: Test plugin
+        if: matrix.job == 'plugin'
         run: |
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
-          ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
-      - name: Reclaim memory
+      - name: Reclaim memory for emulator
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
+        if: matrix.job == 'instrumentation'
+      - name: Run instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        if: matrix.job == 'instrumentation'
+        with:
+          # Run connectedCheck with both Proguard and R8.
+          # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
+          script: .github/workflows/run_instrumentation_tests.sh ${{ matrix.ci_agp_version }}
+          api-level: 29
+      - name: (Fail-only) Bundle the build report
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+      - name: (Fail-only) Upload the build report
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: error-report
+          path: build-reports.zip
+      - name: Reclaim memory for snapshot upload
+        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
+        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
       - name: Upload snapshot (master only)
         run: |
           cd keeper-gradle-plugin
           ./gradlew uploadArchives -Pkeeper.releaseMode=true -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
-        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3'
+        if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'

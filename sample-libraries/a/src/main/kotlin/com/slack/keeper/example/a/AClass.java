@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
+package com.slack.keeper.example.a;
 
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
+import com.slack.keeper.example.b.BClass;
+
+public class AClass {
+  public static void sampleMethod() {
+    BClass.sampleMethod();
   }
 }

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
+package com.slack.keeper.sample
 
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
+import com.slack.keeper.example.c.TestOnlyCClass
+import okio.ByteString
+import okio.ByteString.Companion.encodeUtf8
+
+object TestOnlyCClassCaller {
+  fun callCClass() {
+    TestOnlyCClass.sampleMethod()
+    val byteString: ByteString = "Hello C caller!".encodeUtf8()
+    println(byteString.hex())
   }
 }

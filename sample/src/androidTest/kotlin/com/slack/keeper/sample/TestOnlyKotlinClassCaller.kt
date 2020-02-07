@@ -16,6 +16,9 @@
 
 package com.slack.keeper.sample
 
-// TODO actual sample android app
-class Placeholder {
+/** AndroidTest file that uses the TestOnlyKotlinClass. */
+object TestOnlyKotlinClassCaller {
+  fun callTestOnlyMethod() {
+    TestOnlyKotlinClass.testOnlyMethod()
+  }
 }

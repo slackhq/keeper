@@ -30,6 +30,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.repositories
+import java.util.Locale
 
 /**
  * Generates proguard keep rules from the generated [androidTestJar] and [appJar] tasks,
@@ -91,6 +92,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   companion object {
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(
+        variantName: String,
         androidTestJarProvider: TaskProvider<out Jar>,
         releaseClassesJarProvider: TaskProvider<out Jar>,
         androidJar: Provider<RegularFile>,
@@ -120,7 +122,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       jvmArgsProperty.set(extensionJvmArgs)
       workingDir = project.projectDir
       outputProguardRules.set(
-          project.layout.buildDirectory.file("${KeeperPlugin.INTERMEDIATES_DIR}/inferredUsage.pro"))
+          project.layout.buildDirectory.file("${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
       main = "com.android.tools.r8.PrintUses"
 

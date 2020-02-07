@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
+package com.slack.keeper.sample
 
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
+/** Class that's only accessed from androidTest. */
+object TestOnlyKotlinClass {
+  fun testOnlyMethod() {
+
   }
 }

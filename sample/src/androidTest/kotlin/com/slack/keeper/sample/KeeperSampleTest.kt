@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
+package com.slack.keeper.sample
 
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.slack.keeper.example.a.AClass
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class KeeperSampleTest {
+  @Test
+  fun testFunctionKept() {
+    AClass.sampleMethod()
+    TestOnlyCClassCaller.callCClass()
+    TestOnlyClassCaller.callTestOnlyMethod()
+    TestOnlyKotlinClassCaller.callTestOnlyMethod()
   }
 }
