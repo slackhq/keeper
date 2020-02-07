@@ -5,6 +5,7 @@ CI_AGP_VERSION=$1
 function printthreads {
   echo "Thread dump"
   jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs jstack
+  exit 1
 }
 
 trap printthreads SIGINT
