@@ -54,9 +54,6 @@ jobs:
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
-      - name: Reclaim memory for emulator
-        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: matrix.job == 'instrumentation'
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         if: matrix.job == 'instrumentation'
@@ -74,7 +71,7 @@ jobs:
         with:
           name: error-report
           path: build-reports.zip
-      - name: Reclaim memory for snapshot upload
+      - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
         if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
       - name: Upload snapshot (master only)
