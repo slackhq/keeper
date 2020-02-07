@@ -41,7 +41,10 @@ jobs:
         with:
           java-version: ${{ matrix.ci_java_version }}
       - name: Wipe local gradle
-        run: rm -rf ~/.gradle
+        run: |
+          which java
+          echo $JAVA_HOME
+          rm -rf ~/.gradle
       - name: Test plugin
         if: matrix.job == 'plugin'
         run: |
