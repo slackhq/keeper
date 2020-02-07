@@ -32,10 +32,18 @@ jobs:
         run: ./checksum.sh checksum.txt
       - uses: actions/cache@v1.1.2
         with:
+          id: cache-gradle
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
+#      - uses: actions/cache@v1.1.2
+#        with:
+#          id: cache-jdk
+#          path: /Users/runner/hostedtoolcache/jdk/8.0.242/x64
+#          key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
       - name: Install JDK ${{ matrix.ci_java_version }}
         uses: actions/setup-java@v1.3.0
         with:
@@ -43,6 +51,7 @@ jobs:
       - name: Wipe local gradle
         run: |
           which java
+          java --version
           echo $JAVA_HOME
           rm -rf ~/.gradle
       - name: Test plugin
