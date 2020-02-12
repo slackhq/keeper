@@ -1,9 +1,49 @@
 Changelog
 =========
 
+0.2.0
+-----
+
+_2020-02-12_
+
+### New Variant Filter API [#14](https://github.com/slackhq/keeper/pull/14)
+You can specify a variantFilter on the keeper extension to dynamically configure which variants Keeper 
+operates on (similar to the Android Gradle Plugin's VariantFilter API).
+
+```groovy
+keeper {
+  variantFilter {
+    if (name == "variantThatShouldTotallyBeIgnored") {
+      setIgnore(true)
+    }
+  }
+}
+```
+
+### R8 Repository Management Opt-Out [#17](https://github.com/slackhq/keeper/pull/17)
+If you don't want Keeper to automatically manage adding R8's maven repo, you can set disable it via 
+`automaticR8RepoManagement`. Note that you'll need to manually add your own repo that the `keeperR8` 
+configuration mentioned above can resolve from.
+
+```groovy
+keeper {
+  automaticR8RepoManagement = false
+}
+
+// Example demo of how to configure your own R8 repo
+repositories {
+  maven {
+    url = uri("https://storage.googleapis.com/r8-releases/raw")
+    content {
+      includeModule("com.android.tools", "r8")
+    }
+  }
+}
+```
+
 0.1.0
 -----
 
-_2019-01-29_
+_2020-01-29_
 
 Initial release!
