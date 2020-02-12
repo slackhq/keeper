@@ -154,6 +154,21 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.findTask("inferExternalStagingAndroidTestKeepRulesForKeeper")).isNull()
   }
 
+  // Asserts that if Keeper was configured to create keep rules for a variant that isn't minified,
+  // an error will be emitted, and the tasks won't be created.
+  @Test
+  fun variantFilterWarning() {
+    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("debug", includeVariantFilter = false))
+
+    val result = runGradle(projectDir, "assembleInternalDebug")
+
+    // Keeper doesn't create the tasks.
+    assertThat(result.findTask("jarInternalDebugAndroidTestClassesForKeeper")).isNull()
+    assertThat(result.findTask("jarInternalDebugClassesForKeeper")).isNull()
+    assertThat(result.findTask("inferInternalDebugAndroidTestKeepRulesForKeeper")).isNull()
+    assertThat(result.output).contains("Keeper is configured to generate keep rules for the \"internalDebug\" build variant")
+  }
+
   // Ensures that manual R8 repo management works
   @Test
   fun manualR8RepoManagement() {
@@ -234,7 +249,11 @@ private val TEST_PROGUARD_RULES = """
 """.trimIndent()
 
 @Language("groovy")
-private fun buildGradleFile(testBuildType: String, automaticR8RepoManagement: Boolean = true) = """
+private fun buildGradleFile(
+    testBuildType: String,
+    automaticR8RepoManagement: Boolean = true,
+    includeVariantFilter: Boolean = true
+) = """
   buildscript {
     repositories {
       google()
@@ -311,9 +330,11 @@ private fun buildGradleFile(testBuildType: String, automaticR8RepoManagement: Bo
   
   keeper {
     ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
-    variantFilter {
-      setIgnore(name == "externalRelease")
-    }
+    ${if (!includeVariantFilter) "" else """
+      |  variantFilter {
+      |    setIgnore(name == "externalRelease")
+      |  }
+    """.trimMargin()}
   }
   
   dependencies {
