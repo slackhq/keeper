@@ -66,6 +66,10 @@ kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }
 
+mavenPublish {
+    useLegacyMode = false
+}
+
 val defaultAgpVersion = "3.5.3"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
