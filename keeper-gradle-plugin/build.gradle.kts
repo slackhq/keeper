@@ -19,20 +19,16 @@ plugins {
     `java-gradle-plugin`
     kotlin("jvm") version "1.3.61"
     kotlin("kapt") version "1.3.61"
+    id("com.vanniktech.maven.publish") version "0.9.0"
 }
 
 buildscript {
-    dependencies {
-        classpath("com.vanniktech:gradle-maven-publish-plugin:0.8.0")
-    }
     repositories {
         gradlePluginPortal()
         mavenCentral()
         jcenter()
     }
 }
-
-pluginManager.apply("com.vanniktech.maven.publish")
 
 repositories {
     google()
