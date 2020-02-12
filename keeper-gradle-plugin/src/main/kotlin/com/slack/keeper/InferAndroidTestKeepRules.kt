@@ -112,6 +112,16 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
               includeModule("com.android.tools", "r8")
             }
           }
+//          exclusiveContent {
+//            forRepository {
+//              myRepo {
+//                url = project.uri("https://storage.googleapis.com/r8-releases/raw")
+//              }
+//            }
+//            filter {
+//              includeGroup("com.android.tools")
+//            }
+//          }
         }
       }
 
