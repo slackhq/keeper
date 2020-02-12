@@ -28,6 +28,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
+      - name: Generate cache key
+        run: ./checksum.sh checksum.txt
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
       - name: Install JDK ${{ matrix.ci_java_version }}
         uses: actions/setup-java@v1.3.0
         with:
@@ -40,9 +48,6 @@ jobs:
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
-      - name: Reclaim memory for emulator
-        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: matrix.job == 'instrumentation'
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         if: matrix.job == 'instrumentation'
@@ -60,7 +65,7 @@ jobs:
         with:
           name: error-report
           path: build-reports.zip
-      - name: Reclaim memory for snapshot upload
+      - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
         if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
       - name: Upload snapshot (master only)
