@@ -64,7 +64,9 @@ jobs:
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
         if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
       - name: Upload snapshot (master only)
+        env:
+          ORG_GRADLE_PROJECT_SONATYPE_NEXUS_USERNAME: ${{ secrets.SonatypeUsername }}
+          ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD: ${{ secrets.SonatypePassword }}
         run: |
-          cd keeper-gradle-plugin
-          ./gradlew uploadArchives -Pkeeper.releaseMode=true -PSONATYPE_NEXUS_USERNAME=${{ secrets.SonatypeUsername }} -PSONATYPE_NEXUS_PASSWORD=${{ secrets.SonatypePassword }}
+          ./publish.sh --snapshot
         if: success() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '3.5.3' && matrix.job == 'plugin'
