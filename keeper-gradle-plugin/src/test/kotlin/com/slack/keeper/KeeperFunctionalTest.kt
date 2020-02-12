@@ -320,10 +320,10 @@ private fun buildGradleFile(
     jcenter()
     ${if (automaticR8RepoManagement) "" else """
     maven {
-        url = uri("https://storage.googleapis.com/r8-releases/raw")
-        content {
-            includeModule("com.android.tools", "r8")
-        }
+      url = uri("https://storage.googleapis.com/r8-releases/raw")
+      content {
+        includeModule("com.android.tools", "r8")
+      }
     }
     """}
   }
@@ -332,7 +332,7 @@ private fun buildGradleFile(
     ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
     ${if (!includeVariantFilter) "" else """
     variantFilter {
-        setIgnore(name == "externalRelease")
+      setIgnore(name == "externalRelease")
     }
     """}
   }
