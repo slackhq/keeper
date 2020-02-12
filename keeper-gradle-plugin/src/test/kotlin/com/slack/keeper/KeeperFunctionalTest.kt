@@ -319,22 +319,22 @@ private fun buildGradleFile(
     mavenCentral()
     jcenter()
     ${if (automaticR8RepoManagement) "" else """
-      |  maven {
-      |    url = uri("https://storage.googleapis.com/r8-releases/raw")
-      |    content {
-      |      includeModule("com.android.tools", "r8")
-      |    }
-      |  }
-    """.trimMargin()}
+    maven {
+        url = uri("https://storage.googleapis.com/r8-releases/raw")
+        content {
+            includeModule("com.android.tools", "r8")
+        }
+    }
+    """}
   }
   
   keeper {
     ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
     ${if (!includeVariantFilter) "" else """
-      |  variantFilter {
-      |    setIgnore(name == "externalRelease")
-      |  }
-    """.trimMargin()}
+    variantFilter {
+        setIgnore(name == "externalRelease")
+    }
+    """}
   }
   
   dependencies {
