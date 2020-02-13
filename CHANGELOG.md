@@ -23,7 +23,7 @@ keeper {
 ### R8 Repository Management Opt-Out [#17](https://github.com/slackhq/keeper/pull/17)
 If you don't want Keeper to automatically manage adding R8's maven repo, you can set disable it via 
 `automaticR8RepoManagement`. Note that you'll need to manually add your own repo that the `keeperR8` 
-configuration mentioned above can resolve from.
+configuration can resolve from.
 
 ```groovy
 keeper {
