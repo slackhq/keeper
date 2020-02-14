@@ -29,6 +29,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.repositories
+import org.gradle.util.VersionNumber
 import java.util.Locale
 
 /**
@@ -89,6 +90,8 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   companion object {
+    private val EXCLUSIVE_CONTENT_MIN_VERSION = VersionNumber.parse("6.2")
+
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(
         variantName: String,
@@ -105,22 +108,24 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't
         // support this yet.
         project.repositories {
-          maven {
+          val r8Repo = maven {
             url = project.uri("https://storage.googleapis.com/r8-releases/raw")
             content {
               includeModule("com.android.tools", "r8")
             }
           }
-//          exclusiveContent {
-//            forRepository {
-//              myRepo {
-//                url = project.uri("https://storage.googleapis.com/r8-releases/raw")
-//              }
-//            }
-//            filter {
-//              includeGroup("com.android.tools")
-//            }
-//          }
+          // Limit this repo to only the R8 dependency
+          if (VersionNumber.parse(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
+            @Suppress("UnstableApiUsage")
+            exclusiveContent {
+              forRepository {
+                r8Repo
+              }
+              filter {
+                includeModule("com.android.tools", "r8")
+              }
+            }
+          }
         }
       }
 

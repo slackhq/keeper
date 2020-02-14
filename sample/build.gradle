@@ -84,9 +84,19 @@ keeper {
 
 // Example demo of how to configure your own R8 repo
 repositories {
-  maven {
+  def r8Repo = maven {
     url = uri("https://storage.googleapis.com/r8-releases/raw")
     content {
+      includeModule("com.android.tools", "r8")
+    }
+  }
+  // Limit this repo to only the R8 dependency
+  //noinspection UnstableApiUsage
+  exclusiveContent {
+    forRepository {
+      r8Repo
+    }
+    filter {
       includeModule("com.android.tools", "r8")
     }
   }
