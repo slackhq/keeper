@@ -41,7 +41,7 @@ repositories {
 }
 ```
 
-## Preliminary support for AGP 3.6
+### Preliminary support for AGP 3.6
 
 We've tested up to 3.6-rc03, let us know if you see any issues!
 
