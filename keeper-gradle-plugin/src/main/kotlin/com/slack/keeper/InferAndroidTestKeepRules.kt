@@ -109,21 +109,19 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't
         // support this yet.
         project.repositories {
-          val r8Repo = maven {
+          maven {
             url = project.uri("https://storage.googleapis.com/r8-releases/raw")
             content {
               includeModule("com.android.tools", "r8")
             }
-          }
-          // Limit this repo to only the R8 dependency
-          if (GradleVersion.version(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
-            @Suppress("UnstableApiUsage")
-            exclusiveContent {
-              forRepository {
-                r8Repo
-              }
-              filter {
-                includeModule("com.android.tools", "r8")
+            // Limit this repo to only the R8 dependency
+            if (GradleVersion.version(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
+              @Suppress("UnstableApiUsage")
+              exclusiveContent {
+                forRepository { this@maven }
+                filter {
+                  includeModule("com.android.tools", "r8")
+                }
               }
             }
           }
