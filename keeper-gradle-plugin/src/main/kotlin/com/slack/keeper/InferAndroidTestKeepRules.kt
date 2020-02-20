@@ -29,7 +29,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.repositories
-import org.gradle.util.VersionNumber
+import org.gradle.util.GradleVersion
 import java.util.Locale
 
 /**
@@ -90,7 +90,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   companion object {
-    private val EXCLUSIVE_CONTENT_MIN_VERSION = VersionNumber.parse("6.2")
+    private val EXCLUSIVE_CONTENT_MIN_VERSION = GradleVersion.version("6.2")
 
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(
@@ -115,7 +115,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
             }
           }
           // Limit this repo to only the R8 dependency
-          if (VersionNumber.parse(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
+          if (GradleVersion.version(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
             @Suppress("UnstableApiUsage")
             exclusiveContent {
               forRepository {
