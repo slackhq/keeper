@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// TODO Can't use the newer `com.android.Version` until AGP 3.6.0+
 @file:Suppress("deprecation")
 package com.slack.keeper
 
-import com.android.build.api.transform.Transform
-import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
 import com.google.auto.service.AutoService
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.withType
 import org.gradle.util.VersionNumber
-import java.lang.reflect.Field
 import java.util.Locale
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
 
 /** A handler API for working with different AGP versions. */
 interface AgpVersionHandler {
@@ -47,7 +40,7 @@ interface AgpVersionHandler {
     private fun createHandler(): AgpVersionHandler {
       /** Known patchers, listed in order of preference. */
       // TODO(zsweers) properly use a ServiceLoader for these?
-      val handlers = listOf(Agp35xPatcher(), Agp36xPatcher())
+      val handlers = listOf(Agp36xPatcher())
 
       val agpVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       val baseVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION).baseVersion
@@ -83,52 +76,7 @@ interface AgpVersionHandler {
 }
 
 @AutoService(AgpVersionHandler::class)
-class Agp35xPatcher : AgpVersionHandler {
-  private val proguardConfigurable: Class<out Transform> by lazy {
-    @Suppress("UNCHECKED_CAST")
-    Class.forName(
-        "com.android.build.gradle.internal.transforms.ProguardConfigurable") as Class<out Transform>
-  }
-
-  private val configurationFilesField: Field by lazy {
-    proguardConfigurable.getDeclaredField("configurationFiles").apply {
-      isAccessible = true
-    }
-  }
-
-  override val minVersion: VersionNumber = VersionNumber.parse("3.5.0")
-
-  override fun interpolatedTaskName(minifier: String, variant: String): String {
-    return "transformClassesAndResourcesWith${minifier}For${variant}"
-  }
-
-  override fun applyGeneratedRules(project: Project, appVariant: String,
-      prop: Provider<Directory>) {
-    val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
-    // Have to run the proguard task configuration in afterEvaluate because the transform property isn't set until later
-    project.afterEvaluate {
-      project.tasks.withType<TransformTask>().configureEach {
-        if (name == targetName && proguardConfigurable.isInstance(transform)) {
-          project.logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
-          (configurationFilesField.get(proguardConfigurable.cast(transform)) as ConfigurableFileCollection)
-              .from(prop)
-        }
-      }
-    }
-  }
-}
-
-@AutoService(AgpVersionHandler::class)
 class Agp36xPatcher : AgpVersionHandler {
-  private val proguardConfigurableTask: Class<out Task> by lazy {
-    @Suppress("UNCHECKED_CAST")
-    Class.forName("com.android.build.gradle.internal.tasks.ProguardConfigurableTask") as Class<out Task>
-  }
-
-  private val configurationFilesProperty: KProperty1<in Task, ConfigurableFileCollection> by lazy {
-    @Suppress("UNCHECKED_CAST")
-    proguardConfigurableTask.kotlin.memberProperties.first { it.name == "configurationFiles" } as KProperty1<in Task, ConfigurableFileCollection>
-  }
 
   override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
 
@@ -139,11 +87,11 @@ class Agp36xPatcher : AgpVersionHandler {
   override fun applyGeneratedRules(project: Project, appVariant: String,
       prop: Provider<Directory>) {
     val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
-    project.tasks.withType(proguardConfigurableTask).configureEach {
+    project.tasks.withType<ProguardConfigurableTask>().configureEach {
       // Names are minify{variant}WithProguard
       if (name == targetName) {
         println("$TAG: Patching task '$name' with inferred androidTest proguard rules")
-        (configurationFilesProperty.get(this)).from(prop)
+        configurationFiles.from(prop)
       }
     }
   }
