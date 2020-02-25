@@ -23,7 +23,7 @@ buildscript {
         jcenter()
     }
 
-    String defaultAgpVersion = "3.5.3"
+    String defaultAgpVersion = "3.6.0"
     String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61"

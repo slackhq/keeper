@@ -16,7 +16,7 @@ build type that you test against is controlled by the `testBuildType` flag,  whi
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
 **Note:** Keeper uses private APIs from AGP and could break between releases. It is currently
-tested against AGP versions 3.5.3 and 3.6.0-rc02 (or whatever `ci_agp_version` env
+tested against AGP version 3.6.0 (or whatever `ci_agp_version` env
 vars are described [here](https://github.com/slackhq/keeper/blob/master/.github/workflows/ci.yml).
 
 ## Installation
@@ -37,6 +37,8 @@ apply plugin: "com.slack.keeper"
 ```
 
 Optional configuration options can be found on the [Configuration page](configuration.md).
+
+As of 0.3.0, Keeper requires at least AGP 3.6.0.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snapshots].
 
