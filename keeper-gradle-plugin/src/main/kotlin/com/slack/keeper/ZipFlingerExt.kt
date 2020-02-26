@@ -12,6 +12,7 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
   val prefix = absolutePath
   return walkTopDown()
       .filter { it.extension == "class" }
+      .filterNot { "META-INF" in it.name }
       .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
 }
 
@@ -20,10 +21,12 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
  */
 internal fun ZipArchive.extractClassesFrom(jar: File) {
   val jarSource = ZipSource(jar)
-  jarSource.entries().forEach { (name, entry) ->
-    if (!entry.isDirectory && entry.name.endsWith(".class")) {
-      jarSource.select(name.removePrefix("."), name)
-    }
-  }
+  jarSource.entries()
+      .filterNot { "META-INF" in it.key }
+      .forEach { (name, entry) ->
+        if (!entry.isDirectory && entry.name.endsWith(".class")) {
+          jarSource.select(name.removePrefix("."), name)
+        }
+      }
   add(jarSource)
 }
