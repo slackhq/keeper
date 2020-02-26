@@ -73,7 +73,6 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
 
   @TaskAction
   fun createJar() {
-    from(configuration.artifactView().files.filter { it.extension == "jar" }.map(project::zipTree))
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       configuration.artifactView().files.filter { it.extension == "jar" }.forEach {
