@@ -15,6 +15,7 @@
  */
 
 @file:Suppress("UnstableApiUsage")
+
 package com.slack.keeper
 
 import com.android.zipflinger.BytesSource
@@ -35,7 +36,6 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.property
 import java.util.zip.Deflater
 import javax.inject.Inject
-import kotlin.system.measureTimeMillis
 
 /**
  * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
@@ -79,7 +79,7 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
         archive.extractClassesFrom(it)
       }
 
-      // Take the compiled classpath
+      // Take the compiled classes
       classpath.asSequence()
           .flatMap { it.classesSequence() }
           .forEach { (name, file) ->
@@ -96,7 +96,8 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
-abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: ObjectFactory) : Jar() {
+abstract class AndroidTestVariantClasspathJar @Inject constructor(
+    objects: ObjectFactory) : DefaultTask() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
@@ -129,37 +130,59 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(objects: Objec
   @get:Input
   val emitDebugInfo: Property<Boolean> = objects.property()
 
-  override fun copy() {
-    measureTimeMillis {
-      project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-      val appJars = appConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
-      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
-        appJars.sortedBy { it.path }
-            .joinToString("\n") {
-              it.path
-            }
-      }
-      val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(LinkedHashSet()) { it.extension == "jar" }
-      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
-        androidTestClasspath.sortedBy { it.path }
-            .joinToString("\n") {
-              it.path
-            }
-      }
-      val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
-        removeAll(appJars)
-      }
-      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
-        distinctAndroidTestClasspath.sortedBy { it.path }
-            .joinToString("\n") {
-              it.path
-            }
-      }
-      from(distinctAndroidTestClasspath.filter { it.extension == "jar" }.map(project::zipTree))
-    }.also {
-      project.logger.debug("$LOG: Diffing completed in ${it}ms")
+  @Suppress("UnstableApiUsage")
+  @get:Classpath
+  val classpath: ConfigurableFileCollection = objects.fileCollection()
+
+  @get:OutputFile
+  val archiveFile: RegularFileProperty = objects.fileProperty()
+
+  fun from(vararg paths: Any) {
+    classpath.from(*paths)
+  }
+
+  @TaskAction
+  fun createJar() {
+    project.logger.debug("$LOG: Diffing androidTest jars and app jars")
+    val appJars = appConfiguration.artifactView().files.filterTo(
+        LinkedHashSet()) { it.extension == "jar" }
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
+      appJars.sortedBy { it.path }
+          .joinToString("\n") {
+            it.path
+          }
     }
-    super.copy()
+    val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(
+        LinkedHashSet()) { it.extension == "jar" }
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
+      androidTestClasspath.sortedBy { it.path }
+          .joinToString("\n") {
+            it.path
+          }
+    }
+    val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
+      removeAll(appJars)
+    }
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
+      distinctAndroidTestClasspath.sortedBy { it.path }
+          .joinToString("\n") {
+            it.path
+          }
+    }
+
+    ZipArchive(archiveFile.asFile.get()).use { archive ->
+      // The runtime classpath (i.e. from dependencies)
+      distinctAndroidTestClasspath.filter { it.extension == "jar" }.forEach {
+        archive.extractClassesFrom(it)
+      }
+
+      // Take the compiled classes
+      classpath.asSequence()
+          .flatMap { it.classesSequence() }
+          .forEach { (name, file) ->
+            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+          }
+    }
   }
 
   private fun diagnostic(fileName: String, body: () -> String) {

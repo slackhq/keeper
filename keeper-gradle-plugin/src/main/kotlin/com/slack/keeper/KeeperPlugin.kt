@@ -34,7 +34,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
@@ -126,7 +125,8 @@ class KeeperPlugin : Plugin<Project> {
           val appVariant = testedVariant
           val extensionFilter = extension._variantFilter
           val ignoredVariant = extensionFilter?.let {
-            project.logger.debug("$TAG Resolving ignored status for android variant ${appVariant.name}")
+            project.logger.debug(
+                "$TAG Resolving ignored status for android variant ${appVariant.name}")
             val filter = VariantFilterImpl(appVariant)
             it.execute(filter)
             project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
@@ -187,12 +187,10 @@ class KeeperPlugin : Plugin<Project> {
       emitDebugInfo: Property<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
-  ): TaskProvider<out Jar> {
+  ): TaskProvider<out AndroidTestVariantClasspathJar> {
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jar${testVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
-      val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(testVariant.name)
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
@@ -207,16 +205,13 @@ class KeeperPlugin : Plugin<Project> {
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
-              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
-                include("**/*.class")
-              }
+              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir }))
             }
       }
 
-      destinationDirectory.set(outputDir)
-
-      // Because we may have more than 65535 classes. Dex method limit's distant cousin.
-      isZip64 = true
+      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
+        it.file("${testVariant.name}.jar")
+      })
     }
   }
 
@@ -227,7 +222,8 @@ class KeeperPlugin : Plugin<Project> {
   private fun Project.createIntermediateAppJar(
       appVariant: BaseVariant
   ): TaskProvider<out VariantClasspathJar> {
-    return tasks.register<VariantClasspathJar>("jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
+    return tasks.register<VariantClasspathJar>(
+        "jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
@@ -241,7 +237,9 @@ class KeeperPlugin : Plugin<Project> {
             }
       }
 
-      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map { it.file("${appVariant.name}.jar") })
+      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
+        it.file("${appVariant.name}.jar")
+      })
     }
   }
 }

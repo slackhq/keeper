@@ -28,7 +28,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.repositories
 import java.util.Locale
 
@@ -93,7 +92,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(
         variantName: String,
-        androidTestJarProvider: TaskProvider<out Jar>,
+        androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
         releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
         androidJar: Provider<RegularFile>,
         automaticallyAddR8Repo: Property<Boolean>,
@@ -122,7 +121,9 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       jvmArgsProperty.set(extensionJvmArgs)
       workingDir = project.projectDir
       outputProguardRules.set(
-          project.layout.buildDirectory.file("${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(Locale.US)}KeepRules.pro"))
+          project.layout.buildDirectory.file(
+              "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
+                  Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
       main = "com.android.tools.r8.PrintUses"
 
