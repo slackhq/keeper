@@ -94,7 +94,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
     operator fun invoke(
         variantName: String,
         androidTestJarProvider: TaskProvider<out Jar>,
-        releaseClassesJarProvider: TaskProvider<out Jar>,
+        releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
         androidJar: Provider<RegularFile>,
         automaticallyAddR8Repo: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,

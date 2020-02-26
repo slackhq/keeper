@@ -17,24 +17,36 @@
 @file:Suppress("UnstableApiUsage")
 package com.slack.keeper
 
+import com.android.zipflinger.BytesSource
+import com.android.zipflinger.ZipArchive
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.property
+import java.util.zip.Deflater
 import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
 /**
- * A simple cacheable [Jar] task. Normally these aren't intended to be cacheable, but in our case it's fine since
- * the resulting jar is an input of a task and not just a transient operation of another plugin.
+ * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
+ * intended to be cacheable, but in our case it's fine since the resulting jar is an input of a
+ * task and not just a transient operation of another plugin.
+ *
+ * This uses `ZipFlinger` under the hood to run the copy operation performantly.
  */
+@Suppress("UnstableApiUsage")
 @CacheableTask
-abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) : Jar() {
+abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
   /**
    * This is the "official" input for wiring task dependencies correctly, but is otherwise
    * unused. See [configuration].
@@ -48,9 +60,33 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
   @get:Internal
   lateinit var configuration: Configuration
 
-  override fun copy() {
+  @get:OutputFile
+  val archiveFile: RegularFileProperty = objects.fileProperty()
+
+  @Suppress("UnstableApiUsage")
+  @get:Classpath
+  val classpath: ConfigurableFileCollection = objects.fileCollection()
+
+  fun from(vararg paths: Any) {
+    classpath.from(*paths)
+  }
+
+  @TaskAction
+  fun createJar() {
     from(configuration.artifactView().files.filter { it.extension == "jar" }.map(project::zipTree))
-    super.copy()
+    ZipArchive(archiveFile.asFile.get()).use { archive ->
+      // The runtime classpath (i.e. from dependencies)
+      configuration.artifactView().files.filter { it.extension == "jar" }.forEach {
+        archive.extractClassesFrom(it)
+      }
+
+      // Take the compiled classpath
+      classpath.asSequence()
+          .flatMap { it.classesSequence() }
+          .forEach { (name, file) ->
+            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+          }
+    }
   }
 }
 

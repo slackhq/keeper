@@ -226,11 +226,9 @@ class KeeperPlugin : Plugin<Project> {
    */
   private fun Project.createIntermediateAppJar(
       appVariant: BaseVariant
-  ): TaskProvider<out Jar> {
+  ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>("jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
-      val outputDir = project.layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveBaseName.set(appVariant.name)
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
         artifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
@@ -239,16 +237,11 @@ class KeeperPlugin : Plugin<Project> {
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
-              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir })) {
-                include("**/*.class")
-              }
+              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir }))
             }
       }
 
-      destinationDirectory.set(outputDir)
-
-      // Because we have more than 65535 classes. Dex method limit's distant cousin.
-      isZip64 = true
+      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map { it.file("${appVariant.name}.jar") })
     }
   }
 }
