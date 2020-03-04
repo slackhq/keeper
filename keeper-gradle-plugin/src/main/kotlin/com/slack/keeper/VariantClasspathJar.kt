@@ -52,7 +52,7 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
    * unused. See [configuration].
    */
   @get:Classpath
-  val artifactFiles = objects.fileCollection()
+  val artifactFiles: ConfigurableFileCollection = objects.fileCollection()
 
   /**
    * This is what the task actually uses as its input.
@@ -83,6 +83,7 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
       classpath.asSequence()
           .flatMap { it.classesSequence() }
           .forEach { (name, file) ->
+            archive.delete(name)
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
     }
@@ -108,7 +109,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
    * unused. See [appConfiguration].
    */
   @get:Classpath
-  val appArtifactFiles = objects.fileCollection()
+  val appArtifactFiles: ConfigurableFileCollection = objects.fileCollection()
 
   /**
    * This is what the task actually uses as its input.
@@ -121,7 +122,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
    * unused. See [androidTestArtifactFiles].
    */
   @get:Classpath
-  val androidTestArtifactFiles = objects.fileCollection()
+  val androidTestArtifactFiles: ConfigurableFileCollection = objects.fileCollection()
 
   /** This is what the task actually uses as its input. */
   @get:Internal
@@ -180,6 +181,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
       classpath.asSequence()
           .flatMap { it.classesSequence() }
           .forEach { (name, file) ->
+            archive.delete(name)
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
     }

@@ -25,7 +25,9 @@ internal fun ZipArchive.extractClassesFrom(jar: File) {
       .filterNot { "META-INF" in it.key }
       .forEach { (name, entry) ->
         if (!entry.isDirectory && entry.name.endsWith(".class")) {
-          jarSource.select(name.removePrefix("."), name)
+          val entryName = name.removePrefix(".")
+          delete(entryName)
+          jarSource.select(entryName, name)
         }
       }
   add(jarSource)
