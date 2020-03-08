@@ -39,7 +39,7 @@ repositories {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
-        freeCompilerArgs = listOf("-progressive")
+        freeCompilerArgs = listOf("-progressive", "-Xopt-in=kotlin.RequiresOptIn")
         jvmTarget = "1.8"
     }
 }
@@ -76,6 +76,7 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.70")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.70")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.70")

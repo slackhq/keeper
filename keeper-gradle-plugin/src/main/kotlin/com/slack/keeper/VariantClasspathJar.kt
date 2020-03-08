@@ -20,6 +20,15 @@ package com.slack.keeper
 
 import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.ConfigurableFileCollection
@@ -34,8 +43,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.property
+import java.util.concurrent.locks.ReentrantLock
 import java.util.zip.Deflater
 import javax.inject.Inject
+import kotlin.concurrent.withLock
 
 /**
  * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
@@ -71,21 +82,30 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
     classpath.from(*paths)
   }
 
+  @OptIn(FlowPreview::class)
   @TaskAction
   fun createJar() {
-    ZipArchive(archiveFile.asFile.get()).use { archive ->
-      // The runtime classpath (i.e. from dependencies)
-      configuration.artifactView().files.filter { it.extension == "jar" }.forEach {
-        archive.extractClassesFrom(it)
-      }
+    val lock = ReentrantLock()
+    runBlocking {
+      ZipArchive(archiveFile.asFile.get()).use { archive ->
+        // The runtime classpath (i.e. from dependencies)
+        configuration.artifactView()
+            .files
+            .filter { it.extension == "jar" }
+            .asFlow()
+            .map { async(Dispatchers.Default) { archive.extractClassesFrom(it, lock) } }
+            .collect { it.await() }
 
-      // Take the compiled classes
-      classpath.asSequence()
-          .flatMap { it.classesSequence() }
-          .forEach { (name, file) ->
-            archive.delete(name)
-            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
-          }
+        // Take the compiled classes
+        classpath.asFlow()
+            .flatMapMerge { it.classesSequence().asFlow() }
+            .collect { (name, file) ->
+              lock.withLock {
+                archive.delete(name)
+                archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+              }
+            }
+      }
     }
   }
 }
@@ -142,48 +162,58 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
     classpath.from(*paths)
   }
 
+  @OptIn(FlowPreview::class)
   @TaskAction
   fun createJar() {
-    project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-    val appJars = appConfiguration.artifactView().files.filterTo(
-        LinkedHashSet()) { it.extension == "jar" }
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
-      appJars.sortedBy { it.path }
-          .joinToString("\n") {
-            it.path
-          }
-    }
-    val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(
-        LinkedHashSet()) { it.extension == "jar" }
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
-      androidTestClasspath.sortedBy { it.path }
-          .joinToString("\n") {
-            it.path
-          }
-    }
-    val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
-      removeAll(appJars)
-    }
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
-      distinctAndroidTestClasspath.sortedBy { it.path }
-          .joinToString("\n") {
-            it.path
-          }
-    }
-
-    ZipArchive(archiveFile.asFile.get()).use { archive ->
-      // The runtime classpath (i.e. from dependencies)
-      distinctAndroidTestClasspath.filter { it.extension == "jar" }.forEach {
-        archive.extractClassesFrom(it)
+    runBlocking {
+      project.logger.debug("$LOG: Diffing androidTest jars and app jars")
+      val appJars = appConfiguration.artifactView()
+          .files
+          .filterTo(LinkedHashSet()) { it.extension == "jar" }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
+        appJars.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
+      }
+      val androidTestClasspath = androidTestConfiguration.artifactView()
+          .files
+          .filterTo(LinkedHashSet()) { it.extension == "jar" }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
+        androidTestClasspath.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
+      }
+      val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
+        removeAll(appJars)
+      }
+      diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
+        distinctAndroidTestClasspath.sortedBy { it.path }
+            .joinToString("\n") {
+              it.path
+            }
       }
 
-      // Take the compiled classes
-      classpath.asSequence()
-          .flatMap { it.classesSequence() }
-          .forEach { (name, file) ->
-            archive.delete(name)
-            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
-          }
+      val lock = ReentrantLock()
+      ZipArchive(archiveFile.asFile.get()).use { archive ->
+        // The runtime classpath (i.e. from dependencies)
+        distinctAndroidTestClasspath
+            .asFlow()
+            .filter { it.extension == "jar" }
+            .map { async(Dispatchers.Default) { archive.extractClassesFrom(it, lock) } }
+            .collect { it.await() }
+
+        // Take the compiled classes
+        classpath.asFlow()
+            .flatMapMerge { it.classesSequence().asFlow() }
+            .collect { (name, file) ->
+              lock.withLock {
+                archive.delete(name)
+                archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+              }
+            }
+      }
     }
   }
 
