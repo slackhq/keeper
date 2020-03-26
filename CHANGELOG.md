@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.3.0
+-----
+
+_2020-03-26_
+
+* Keeper now uses Zipflinger for packaging, which should give a nice speed boost in creating
+intermediate jars.
+* Keeper now only supports AGP 3.6 or higher. If you still need AGP 3.5.x support, please continue
+using Keeper 0.2.0 or lower.
+* Update Kotlin to 1.3.71.
+
 0.2.0
 -----
 
