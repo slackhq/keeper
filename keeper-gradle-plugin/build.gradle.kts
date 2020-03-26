@@ -17,9 +17,9 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-    kotlin("jvm") version "1.3.61"
-    kotlin("kapt") version "1.3.61"
-    id("com.vanniktech.maven.publish") version "0.9.0"
+    kotlin("jvm") version "1.3.71"
+    kotlin("kapt") version "1.3.71"
+    id("com.vanniktech.maven.publish") version "0.10.0"
 }
 
 buildscript {
@@ -67,19 +67,19 @@ kotlinDslPluginOptions {
 }
 
 mavenPublish {
-    useLegacyMode = true
+    useLegacyMode = false
 }
 
-val defaultAgpVersion = "3.6.0"
+val defaultAgpVersion = "3.6.1"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.61")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.61")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-    implementation("com.android:zipflinger:3.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.71")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.71")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.71")
+    implementation("com.android:zipflinger:3.6.1")
     if (releaseMode) {
         compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
     } else {

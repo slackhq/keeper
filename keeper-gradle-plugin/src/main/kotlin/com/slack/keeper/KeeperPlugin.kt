@@ -38,7 +38,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
-import org.gradle.util.VersionNumber
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
@@ -85,11 +85,11 @@ class KeeperPlugin : Plugin<Project> {
     internal const val INTERMEDIATES_DIR = "intermediates/keeper"
     internal const val DEFAULT_R8_VERSION = "1.6.53"
     internal const val CONFIGURATION_NAME = "keeperR8"
-    private val MIN_GRADLE_VERSION = VersionNumber.parse("6.0")
+    private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
   }
 
   override fun apply(project: Project) {
-    val gradleVersion = VersionNumber.parse(project.gradle.gradleVersion)
+    val gradleVersion = GradleVersion.version(project.gradle.gradleVersion)
     check(gradleVersion >= MIN_GRADLE_VERSION) {
       "Keeper requires Gradle 6.0 or later."
     }
