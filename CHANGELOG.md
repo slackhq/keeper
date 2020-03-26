@@ -8,6 +8,15 @@ _2020-03-26_
 
 * Keeper now uses Zipflinger for packaging, which should give a nice speed boost in creating
 intermediate jars.
+
+Perf comparisons on the slack app:
+
+| Task | Before | After |
+|-|--------|-------|
+| inferExternalStagingAndroidTestKeepRulesForKeeper | 14.126s | 11.138s |
+| jarExternalStagingClassesForKeeper | 10.364s | 6.347s |
+| jarExternalStagingAndroidTestClassesForKeeper | 4.504s | 2.609s |
+ 
 * Keeper now only supports AGP 3.6 or higher. If you still need AGP 3.5.x support, please continue
 using Keeper 0.2.0 or lower.
 * Update Kotlin to 1.3.71.
