@@ -114,7 +114,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
             exclusiveContent {
               forRepository {
                 maven {
-                  url = project.uri("https://storage.googleapis.com/r8-releases/raw")
+                  setUrl("https://storage.googleapis.com/r8-releases/raw")
                 }
               }
               filter {
@@ -123,7 +123,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
             }
           } else {
             maven {
-              url = project.uri("https://storage.googleapis.com/r8-releases/raw")
+              setUrl("https://storage.googleapis.com/r8-releases/raw")
               content {
                 includeModule("com.android.tools", "r8")
               }
