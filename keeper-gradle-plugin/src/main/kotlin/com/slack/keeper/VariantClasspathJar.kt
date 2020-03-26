@@ -24,7 +24,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -33,9 +32,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.property
 import java.util.zip.Deflater
-import javax.inject.Inject
 
 /**
  * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
@@ -46,13 +43,13 @@ import javax.inject.Inject
  */
 @Suppress("UnstableApiUsage")
 @CacheableTask
-abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+abstract class VariantClasspathJar : DefaultTask() {
   /**
    * This is the "official" input for wiring task dependencies correctly, but is otherwise
    * unused. See [configuration].
    */
   @get:Classpath
-  val artifactFiles: ConfigurableFileCollection = objects.fileCollection()
+  abstract val artifactFiles: ConfigurableFileCollection
 
   /**
    * This is what the task actually uses as its input.
@@ -61,11 +58,11 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
   lateinit var configuration: Configuration
 
   @get:OutputFile
-  val archiveFile: RegularFileProperty = objects.fileProperty()
+  abstract val archiveFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
-  val classpath: ConfigurableFileCollection = objects.fileCollection()
+  abstract val classpath: ConfigurableFileCollection
 
   fun from(vararg paths: Any) {
     classpath.from(*paths)
@@ -97,8 +94,7 @@ abstract class VariantClasspathJar @Inject constructor(objects: ObjectFactory) :
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
-abstract class AndroidTestVariantClasspathJar @Inject constructor(
-    objects: ObjectFactory) : DefaultTask() {
+abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
@@ -109,7 +105,7 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
    * unused. See [appConfiguration].
    */
   @get:Classpath
-  val appArtifactFiles: ConfigurableFileCollection = objects.fileCollection()
+  abstract val appArtifactFiles: ConfigurableFileCollection
 
   /**
    * This is what the task actually uses as its input.
@@ -122,21 +118,21 @@ abstract class AndroidTestVariantClasspathJar @Inject constructor(
    * unused. See [androidTestArtifactFiles].
    */
   @get:Classpath
-  val androidTestArtifactFiles: ConfigurableFileCollection = objects.fileCollection()
+  abstract val androidTestArtifactFiles: ConfigurableFileCollection
 
   /** This is what the task actually uses as its input. */
   @get:Internal
   lateinit var androidTestConfiguration: Configuration
 
   @get:Input
-  val emitDebugInfo: Property<Boolean> = objects.property()
+  abstract val emitDebugInfo: Property<Boolean>
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
-  val classpath: ConfigurableFileCollection = objects.fileCollection()
+  abstract val classpath: ConfigurableFileCollection
 
   @get:OutputFile
-  val archiveFile: RegularFileProperty = objects.fileProperty()
+  abstract val archiveFile: RegularFileProperty
 
   fun from(vararg paths: Any) {
     classpath.from(*paths)
