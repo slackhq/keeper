@@ -90,7 +90,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   companion object {
-    private val EXCLUSIVE_CONTENT_MIN_VERSION = GradleVersion.version("6.2")
+    private val EXCLUSIVE_CONTENT_MIN_VERSION = GradleVersion.version("6.4")
 
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(
