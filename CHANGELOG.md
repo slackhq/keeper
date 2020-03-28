@@ -6,6 +6,9 @@ Changelog
 
 _2020-03-28_
 
+**Edit:** Release failed to upload, we're working on a fix. In the meantime continue to use 0.3.0
+and the regular non-`plugins {}` approach.
+
 Keeper can now be consumed via regular gradle `plugins {}` block.
 
 ```kotlin
