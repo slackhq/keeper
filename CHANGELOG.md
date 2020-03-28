@@ -1,6 +1,31 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+_2020-03-28_
+
+Keeper can now be consumed via regular gradle `plugins {}` block.
+
+```kotlin
+plugins {
+  id("com.slack.keeper") version "0.3.1"
+}
+```
+
+Note that we still publish to Maven Central, so you would need to add it to the repositories list
+in `settings.gradle`.
+
+```gradle
+pluginsManagement {
+  repositories {
+    mavenCentral() // woo-hoo!
+    gradlePluginPortal() // there by default
+  }
+}
+```
+
 0.3.0
 -----
 

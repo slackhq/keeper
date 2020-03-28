@@ -67,7 +67,7 @@ kotlinDslPluginOptions {
 }
 
 mavenPublish {
-    useLegacyMode = true
+    useLegacyMode = false
 }
 
 val defaultAgpVersion = "3.6.1"
