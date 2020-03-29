@@ -24,6 +24,28 @@ vars are described [here](https://github.com/slackhq/keeper/blob/master/.github/
 Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application's
 build.gradle. Keeper requires Gradle 6.0 or higher.
 
+Keeper can be consumed via regular gradle `plugins {}` block.
+
+```kotlin
+plugins {
+  id("com.slack.keeper") version "x.y.z"
+}
+```
+
+Note that we still publish to Maven Central, so you would need to add it to the repositories list
+in `settings.gradle`.
+
+```gradle
+pluginsManagement {
+  repositories {
+    mavenCentral() // woo-hoo!
+    gradlePluginPortal() // there by default
+  }
+}
+```
+
+Alternatively, it can be consumed via manual buildscript dependency + plugin application.
+
 ```groovy
 buildscript {
   dependencies {
@@ -35,6 +57,8 @@ buildscript {
 apply plugin: "com.android.application" // <- Keeper only works with com.android.application!
 apply plugin: "com.slack.keeper"
 ```
+
+Note that Keeper _must_ be applied after the Android gradle plugin.
 
 Optional configuration options can be found on the [Configuration page](configuration.md).
 
