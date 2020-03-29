@@ -68,6 +68,9 @@ kotlinDslPluginOptions {
 
 mavenPublish {
     useLegacyMode = false
+    nexus {
+        groupId = "com.slack"
+    }
 }
 
 val defaultAgpVersion = "3.6.1"
