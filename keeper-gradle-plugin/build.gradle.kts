@@ -19,7 +19,7 @@ plugins {
     `java-gradle-plugin`
     kotlin("jvm") version "1.3.71"
     kotlin("kapt") version "1.3.71"
-    id("com.vanniktech.maven.publish") version "0.10.0"
+    id("com.vanniktech.maven.publish") version "0.11.1"
 }
 
 buildscript {
