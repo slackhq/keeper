@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.3.2
+-----
+
+_2020-05-6_
+
+* Fix support for Gradle 6.4. We assumed that the new `exclusiveContent` API on maven repositories
+would be fixed in this version, but it had another regression.
+
 0.3.1
 -----
 
