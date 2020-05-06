@@ -109,24 +109,10 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         // support this yet.
         project.repositories {
           // Limit this repo to only the R8 dependency
-          if (GradleVersion.version(project.gradle.gradleVersion) >= EXCLUSIVE_CONTENT_MIN_VERSION) {
-            @Suppress("UnstableApiUsage")
-            exclusiveContent {
-              forRepository {
-                maven {
-                  setUrl("https://storage.googleapis.com/r8-releases/raw")
-                }
-              }
-              filter {
-                includeModule("com.android.tools", "r8")
-              }
-            }
-          } else {
-            maven {
-              setUrl("https://storage.googleapis.com/r8-releases/raw")
-              content {
-                includeModule("com.android.tools", "r8")
-              }
+          maven {
+            setUrl("https://storage.googleapis.com/r8-releases/raw")
+            content {
+              includeModule("com.android.tools", "r8")
             }
           }
         }
