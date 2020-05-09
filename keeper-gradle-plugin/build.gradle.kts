@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
 plugins {
     `kotlin-dsl`
@@ -20,6 +21,7 @@ plugins {
     kotlin("jvm") version "1.3.72"
     kotlin("kapt") version "1.3.72"
     id("com.vanniktech.maven.publish") version "0.11.1"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 buildscript {
@@ -78,11 +80,20 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
+val shade: Configuration = configurations.maybeCreate("compileShaded")
+configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
-    implementation("com.android:zipflinger:3.6.3")
+
+    // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
+    // consumers, so we shade it.
+    shade("com.android:zipflinger:4.1.0-alpha09") {
+        // ZipFlinger depends on com.android.tools:common which has breaking changes for AGP.
+        exclude(group = "com.android.tools")
+    }
+
     if (releaseMode) {
         compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
     } else {
@@ -96,4 +107,33 @@ dependencies {
     testImplementation("com.squareup:kotlinpoet:1.5.0")
     testImplementation("com.google.truth:truth:1.0.1")
     testImplementation("junit:junit:4.13")
+}
+
+tasks.jar.configure { enabled = false }
+
+tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
+    target = tasks.shadowJar.get()
+}
+
+val shadowJar = tasks.shadowJar.apply {
+    configure {
+        dependsOn(tasks.getByName("relocateShadowJar"))
+        minimize()
+        archiveClassifier.set("")
+        configurations = listOf(shade)
+        relocate("com.android.zipflinger", "com.slack.keeper.internal.zipflinger")
+        exclude(
+            // Exclude all the stuff that comes from its transitive guava dependency
+            "org/**",
+            "com/google/common/**",
+            "com/google/errorprone/**",
+            "com/google/j2objc/**",
+            "javax/**",
+            "META-INF/maven/**"
+        )
+    }
+}
+artifacts {
+    runtime(shadowJar)
+    archives(shadowJar)
 }
