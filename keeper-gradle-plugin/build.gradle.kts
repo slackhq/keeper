@@ -82,7 +82,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
-    implementation("com.android:zipflinger:3.6.1")
+    implementation("com.android:zipflinger:3.6.3")
     if (releaseMode) {
         compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
     } else {
