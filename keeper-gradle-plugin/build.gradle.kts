@@ -73,7 +73,7 @@ mavenPublish {
     }
 }
 
-val defaultAgpVersion = "3.6.1"
+val defaultAgpVersion = "3.6.3"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
