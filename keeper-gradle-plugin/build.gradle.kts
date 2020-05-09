@@ -17,8 +17,8 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-    kotlin("jvm") version "1.3.71"
-    kotlin("kapt") version "1.3.71"
+    kotlin("jvm") version "1.3.72"
+    kotlin("kapt") version "1.3.72"
     id("com.vanniktech.maven.publish") version "0.11.1"
 }
 
@@ -79,9 +79,9 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.71")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.71")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.71")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
     implementation("com.android:zipflinger:3.6.1")
     if (releaseMode) {
         compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
