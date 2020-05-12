@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.4.0
+-----
+
+_2020-05-12_
+
+* ZipFlinger updated to 4.1.0-alpha09, which allows us to support Zip64. To avoid conflicts with AGP,
+we now shade ZipFlinger in directly.
+* Kotlin 1.3.72
+
 0.3.2
 -----
 
