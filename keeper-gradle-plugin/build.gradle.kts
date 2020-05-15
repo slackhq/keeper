@@ -16,63 +16,63 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
 plugins {
-    `kotlin-dsl`
-    `java-gradle-plugin`
-    kotlin("jvm") version "1.3.72"
-    kotlin("kapt") version "1.3.72"
-    id("com.vanniktech.maven.publish") version "0.11.1"
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+  `kotlin-dsl`
+  `java-gradle-plugin`
+  kotlin("jvm") version "1.3.72"
+  kotlin("kapt") version "1.3.72"
+  id("com.vanniktech.maven.publish") version "0.11.1"
+  id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 buildscript {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-        jcenter()
-    }
-}
-
-repositories {
-    google()
+  repositories {
     gradlePluginPortal()
     mavenCentral()
     jcenter()
+  }
+}
+
+repositories {
+  google()
+  gradlePluginPortal()
+  mavenCentral()
+  jcenter()
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-progressive")
-        jvmTarget = "1.8"
-    }
+  kotlinOptions {
+    freeCompilerArgs = listOf("-progressive")
+    jvmTarget = "1.8"
+  }
 }
 
 sourceSets {
-    getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata")
+  getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 gradlePlugin {
-    plugins {
-        plugins.create("keeper") {
-            id = "com.slack.keeper"
-            implementationClass = "com.slack.keeper.KeeperPlugin"
-        }
+  plugins {
+    plugins.create("keeper") {
+      id = "com.slack.keeper"
+      implementationClass = "com.slack.keeper.KeeperPlugin"
     }
+  }
 }
 
 kotlinDslPluginOptions {
-    experimentalWarning.set(false)
+  experimentalWarning.set(false)
 }
 
 mavenPublish {
-    useLegacyMode = false
-    nexus {
-        groupId = "com.slack"
-    }
+  useLegacyMode = false
+  nexus {
+    groupId = "com.slack"
+  }
 }
 
 val defaultAgpVersion = "3.6.3"
@@ -83,51 +83,64 @@ val releaseMode = hasProperty("keeper.releaseMode")
 val shade: Configuration = configurations.maybeCreate("compileShaded")
 configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
+  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
 
-    // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
-    // consumers, so we shade it.
-    shade("com.android:zipflinger:4.1.0-alpha09") {
-        // ZipFlinger depends on com.android.tools:common and guava, but neither are actually used
-        // com.android.tools:annotations are used, but we can exclude them too since they're just
-        // annotations and not needed at runtime.
-        exclude(group = "com.android.tools")
-        exclude(group = "com.google.guava")
-    }
+  // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
+  // consumers, so we shade it.
+  shade("com.android:zipflinger:4.1.0-alpha09") {
+    // ZipFlinger depends on com.android.tools:common and guava, but neither are actually used
+    // com.android.tools:annotations are used, but we can exclude them too since they're just
+    // annotations and not needed at runtime.
+    exclude(group = "com.android.tools")
+    exclude(group = "com.google.guava")
+  }
 
-    if (releaseMode) {
-        compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
-    } else {
-        implementation("com.android.tools.build:gradle:$agpVersion")
-    }
+  if (releaseMode) {
+    compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
+  } else {
+    implementation("com.android.tools.build:gradle:$agpVersion")
+  }
 
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
-    kapt("com.google.auto.service:auto-service:1.0-rc6")
+  compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
+  kapt("com.google.auto.service:auto-service:1.0-rc7")
 
-    testImplementation("com.squareup:javapoet:1.12.1")
-    testImplementation("com.squareup:kotlinpoet:1.5.0")
-    testImplementation("com.google.truth:truth:1.0.1")
-    testImplementation("junit:junit:4.13")
+  testImplementation("com.squareup:javapoet:1.12.1")
+  testImplementation("com.squareup:kotlinpoet:1.5.0")
+  testImplementation("com.google.truth:truth:1.0.1")
+  testImplementation("junit:junit:4.13")
 }
 
 tasks.jar.configure { enabled = false }
 
 tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
-    target = tasks.shadowJar.get()
+  target = tasks.shadowJar.get()
 }
 
 val shadowJar = tasks.shadowJar.apply {
-    configure {
-        dependsOn(tasks.getByName("relocateShadowJar"))
-        minimize()
-        archiveClassifier.set("")
-        configurations = listOf(shade)
-        relocate("com.android.zipflinger", "com.slack.keeper.internal.zipflinger")
-    }
+  configure {
+    dependsOn(tasks.getByName("relocateShadowJar"))
+    minimize()
+    archiveClassifier.set("")
+    configurations = listOf(shade)
+    relocate("com.android.zipflinger", "com.slack.keeper.internal.zipflinger")
+  }
 }
 artifacts {
-    runtime(shadowJar)
-    archives(shadowJar)
+  runtime(shadowJar)
+  archives(shadowJar)
+}
+
+// Shadow plugin doesn't natively support gradle metadata, so we have to tell the maven plugin where
+// to get a jar now.
+afterEvaluate {
+  configure<PublishingExtension> {
+    publications.withType<MavenPublication>().configureEach {
+      if (name == "pluginMaven") {
+        // Ugly but artifact() doesn't support TaskProviders
+        artifact(shadowJar.get())
+      }
+    }
+  }
 }
