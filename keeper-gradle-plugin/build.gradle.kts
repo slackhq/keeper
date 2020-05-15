@@ -103,8 +103,8 @@ dependencies {
         implementation("com.android.tools.build:gradle:$agpVersion")
     }
 
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc6")
-    kapt("com.google.auto.service:auto-service:1.0-rc6")
+    compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
+    kapt("com.google.auto.service:auto-service:1.0-rc7")
 
     testImplementation("com.squareup:javapoet:1.12.1")
     testImplementation("com.squareup:kotlinpoet:1.5.0")
