@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.4.1
+-----
+
+_2020-05-15_
+
+Same as 0.4.0, but had an issue with publishing 0.4.0.
+
 0.4.0
 -----
 
