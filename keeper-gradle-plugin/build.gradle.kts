@@ -140,6 +140,13 @@ afterEvaluate {
       if (name == "pluginMaven") {
         // Ugly but artifact() doesn't support TaskProviders
         artifact(shadowJar.get())
+        // This is needed to remove the packaging element from the pom, which is necessary for
+        // gradle to resolve this right.
+        // ...Yes, setting it to _something_ results in it being removed. Setting to null leaves it
+        // present as <packaging>pom</packaging>.
+        pom {
+          packaging = "jar"
+        }
       }
     }
   }

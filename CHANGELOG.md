@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.4.2
+-----
+
+_2020-05-17_
+
+Same as 0.4.0 and 0.4.1, again due to packaging issues.
+
 0.4.1
 -----
 
