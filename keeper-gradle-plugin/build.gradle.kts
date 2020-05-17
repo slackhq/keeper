@@ -112,8 +112,6 @@ dependencies {
   testImplementation("junit:junit:4.13")
 }
 
-tasks.jar.configure { enabled = false }
-
 tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
   target = tasks.shadowJar.get()
 }
@@ -138,15 +136,10 @@ afterEvaluate {
   configure<PublishingExtension> {
     publications.withType<MavenPublication>().configureEach {
       if (name == "pluginMaven") {
+        // This is to properly wire the shadow jar's gradle metadata and pom information
+        setArtifacts(artifacts.matching { it.classifier != "" })
         // Ugly but artifact() doesn't support TaskProviders
         artifact(shadowJar.get())
-        // This is needed to remove the packaging element from the pom, which is necessary for
-        // gradle to resolve this right.
-        // ...Yes, setting it to _something_ results in it being removed. Setting to null leaves it
-        // present as <packaging>pom</packaging>.
-        pom {
-          packaging = "jar"
-        }
       }
     }
   }
