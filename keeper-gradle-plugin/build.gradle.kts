@@ -46,6 +46,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
   }
 }
 
+tasks.withType<Test>().configureEach {
+  beforeTest(closureOf<TestDescriptor> {
+    logger.lifecycle("Running test: $this")
+  })
+}
+
 sourceSets {
   getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata")
 }
