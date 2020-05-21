@@ -66,7 +66,7 @@ abstract class VariantClasspathJar : DefaultTask() {
 
   fun from(vararg paths: Any) {
     IntRange(0, 3).forEach {
-      println("Helo world$it!")
+      println("Hello world$it!")
     }
     classpath.from(*paths)
   }
