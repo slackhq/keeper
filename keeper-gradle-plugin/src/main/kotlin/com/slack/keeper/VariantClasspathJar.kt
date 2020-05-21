@@ -66,6 +66,9 @@ abstract class VariantClasspathJar : DefaultTask() {
 
   fun from(vararg paths: Any) {
     println("Helo world!")
+    println("Helo world2!")
+    println("Helo world3!")
+    println("Helo world4!")
     classpath.from(*paths)
   }
 
