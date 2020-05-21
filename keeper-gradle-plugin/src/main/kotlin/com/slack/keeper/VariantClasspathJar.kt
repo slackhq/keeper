@@ -65,10 +65,9 @@ abstract class VariantClasspathJar : DefaultTask() {
   abstract val classpath: ConfigurableFileCollection
 
   fun from(vararg paths: Any) {
-    println("Helo world!")
-    println("Helo world2!")
-    println("Helo world3!")
-    println("Helo world4!")
+    IntRange(0, 3).forEach {
+      println("Helo world$it!")
+    }
     classpath.from(*paths)
   }
 
