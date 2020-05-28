@@ -63,6 +63,13 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   @get:Input
   abstract val jvmArgsProperty: ListProperty<String>
 
+  /**
+   * Enable more descriptive precondition checks in the CLI. If disabled, errors will be emitted to
+   * the generated proguard rules file instead.
+   */
+  @get:Input
+  abstract val enableAssertionsProperty: Property<Boolean>
+
   @get:OutputFile
   abstract val outputProguardRules: RegularFileProperty
 
@@ -79,6 +86,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       }
     }
 
+    enableAssertions = enableAssertionsProperty.get()
     standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
     args = listOf(
         "--keeprules",
@@ -99,6 +107,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
         androidJar: Provider<RegularFile>,
         automaticallyAddR8Repo: Property<Boolean>,
+        enableAssertions: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
@@ -131,8 +140,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       classpath(r8Configuration)
       main = "com.android.tools.r8.PrintUses"
 
-      // Enable more descriptive precondition checks in the CLI
-      enableAssertions = true
+      enableAssertionsProperty.set(enableAssertions)
     }
   }
 }

@@ -167,6 +167,7 @@ class KeeperPlugin : Plugin<Project> {
                   releaseClassesJarProvider = intermediateAppJar,
                   androidJar = androidJarRegularFileProvider,
                   automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+                  enableAssertions = extension.enableAssertions,
                   extensionJvmArgs = extension.r8JvmArgs,
                   r8Configuration = r8Configuration
               )
