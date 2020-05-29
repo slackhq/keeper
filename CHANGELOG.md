@@ -1,6 +1,24 @@
 Changelog
 =========
 
+0.5.0
+-----
+
+_2020-05-28_
+
+* Keeper now supports AGP 4.0.
+* New `enableAssertions` property to control assertions behavior when running R8's `PrintUses` CLI.
+This can be useful when debugging errors, as R8 will print those errors out to the generated proguard
+file instead if you disable this (the default is enabled).
+
+```kotlin
+keeper {
+ enableAssertions.set(false)
+}
+```
+
+**Note: versions 0.4.0-0.4.2 had packaging issues, please skip to 0.4.3.**
+
 0.4.3
 -----
 
