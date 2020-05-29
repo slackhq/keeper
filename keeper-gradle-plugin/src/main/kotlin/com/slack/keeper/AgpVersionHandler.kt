@@ -27,6 +27,7 @@ import org.gradle.util.VersionNumber
 import java.util.Locale
 
 /** A handler API for working with different AGP versions. */
+// TODO(zsweers) could we make this Serializable for a task input?
 interface AgpVersionHandler {
 
   companion object {
@@ -40,7 +41,7 @@ interface AgpVersionHandler {
     private fun createHandler(): AgpVersionHandler {
       /** Known patchers, listed in order of preference. */
       // TODO(zsweers) properly use a ServiceLoader for these?
-      val handlers = listOf(Agp36xPatcher())
+      val handlers = listOf(Agp36xPatcher(), Agp40xPatcher())
 
       val agpVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       val baseVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION).baseVersion
@@ -53,6 +54,9 @@ interface AgpVersionHandler {
 
   /** Minimum AGP version for this patcher. */
   val minVersion: VersionNumber
+
+  /** Attribute value the "artifactType" used for classpath filtering. */
+  val artifactTypeValue: String
 
   /** Returns the expected minifier name (i.e. 'R8' or 'Proguard') for the given [project]. */
   fun expectedMinifier(project: Project): String {
@@ -75,17 +79,16 @@ interface AgpVersionHandler {
   )
 }
 
-@AutoService(AgpVersionHandler::class)
-class Agp36xPatcher : AgpVersionHandler {
-
-  override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
-
+interface CommonMinifyHandling : AgpVersionHandler {
   override fun interpolatedTaskName(minifier: String, variant: String): String {
     return "minify${variant}With${minifier}"
   }
 
-  override fun applyGeneratedRules(project: Project, appVariant: String,
-      prop: Provider<Directory>) {
+  override fun applyGeneratedRules(
+      project: Project,
+      appVariant: String,
+      prop: Provider<Directory>
+  ) {
     val targetName = interpolatedTaskName(expectedMinifier(project), appVariant.capitalize(Locale.US))
     project.tasks.withType<ProguardConfigurableTask>().configureEach {
       // Names are minify{variant}WithProguard
@@ -95,4 +98,16 @@ class Agp36xPatcher : AgpVersionHandler {
       }
     }
   }
+}
+
+@AutoService(AgpVersionHandler::class)
+class Agp40xPatcher : AgpVersionHandler, CommonMinifyHandling {
+  override val minVersion: VersionNumber = VersionNumber.parse("4.0.0")
+  override val artifactTypeValue: String = "android-classes-jar"
+}
+
+@AutoService(AgpVersionHandler::class)
+class Agp36xPatcher : AgpVersionHandler, CommonMinifyHandling {
+  override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
+  override val artifactTypeValue: String = "android-classes"
 }

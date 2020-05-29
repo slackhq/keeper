@@ -55,7 +55,7 @@ abstract class VariantClasspathJar : DefaultTask() {
    * This is what the task actually uses as its input.
    */
   @get:Internal
-  lateinit var configuration: Configuration
+  abstract val configuration: Property<Configuration>
 
   @get:OutputFile
   abstract val archiveFile: RegularFileProperty
@@ -65,11 +65,6 @@ abstract class VariantClasspathJar : DefaultTask() {
   abstract val classpath: ConfigurableFileCollection
 
   fun from(vararg paths: Any) {
-    // This is magic
-    IntRange(0, 4).forEach {
-      if (it == 1) return@forEach
-      println("Hello everyone$it!")
-    }
     classpath.from(*paths)
   }
 
@@ -77,9 +72,12 @@ abstract class VariantClasspathJar : DefaultTask() {
   fun createJar() {
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      configuration.artifactView().files.filter { it.extension == "jar" }.forEach {
-        archive.extractClassesFrom(it)
-      }
+      configuration.get().artifactView(AgpVersionHandler.getInstance())
+          .files
+          .filter { it.exists() && it.extension == "jar" }
+          .forEach {
+            archive.extractClassesFrom(it)
+          }
 
       // Take the compiled classes
       classpath.asSequence()
@@ -116,7 +114,7 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
    * This is what the task actually uses as its input.
    */
   @get:Internal
-  lateinit var appConfiguration: Configuration
+  abstract val appConfiguration: Property<Configuration>
 
   /**
    * This is the "official" input for wiring task dependencies correctly, but is otherwise
@@ -127,7 +125,7 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
   /** This is what the task actually uses as its input. */
   @get:Internal
-  lateinit var androidTestConfiguration: Configuration
+  abstract val androidTestConfiguration: Property<Configuration>
 
   @get:Input
   abstract val emitDebugInfo: Property<Boolean>
@@ -145,17 +143,22 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
   @TaskAction
   fun createJar() {
+    val agpHandler = AgpVersionHandler.getInstance()
     project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-    val appJars = appConfiguration.artifactView().files.filterTo(
-        LinkedHashSet()) { it.extension == "jar" }
+    val appJars = appConfiguration.get()
+        .artifactView(agpHandler)
+        .files
+        .filterToSet { it.exists() && it.extension == "jar" }
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
       appJars.sortedBy { it.path }
           .joinToString("\n") {
             it.path
           }
     }
-    val androidTestClasspath = androidTestConfiguration.artifactView().files.filterTo(
-        LinkedHashSet()) { it.extension == "jar" }
+    val androidTestClasspath = androidTestConfiguration.get()
+        .artifactView(agpHandler)
+        .files
+        .filterToSet { it.exists() && it.extension == "jar" }
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
       androidTestClasspath.sortedBy { it.path }
           .joinToString("\n") {
@@ -174,9 +177,11 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      distinctAndroidTestClasspath.filter { it.extension == "jar" }.forEach {
-        archive.extractClassesFrom(it)
-      }
+      distinctAndroidTestClasspath
+          .filter { it.exists() && it.extension == "jar" }
+          .forEach {
+            archive.extractClassesFrom(it)
+          }
 
       // Take the compiled classes
       classpath.asSequence()
@@ -195,4 +200,8 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
       }
     }
   }
+}
+
+private inline fun <T> Iterable<T>.filterToSet(body: (T) -> Boolean): Set<T> {
+  return filterTo(LinkedHashSet(), body)
 }

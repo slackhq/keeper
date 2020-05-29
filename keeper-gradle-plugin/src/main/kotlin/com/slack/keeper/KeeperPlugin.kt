@@ -21,6 +21,7 @@ package com.slack.keeper
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
+import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
@@ -29,7 +30,6 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -96,6 +96,8 @@ class KeeperPlugin : Plugin<Project> {
     with(project) {
       pluginManager.withPlugin("com.android.application") {
         val extension = project.extensions.create<KeeperExtension>("keeper")
+        val agpHandler = AgpVersionHandler.getInstance()
+            .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
 
         // Set up r8 configuration
         val r8Configuration = configurations.create(CONFIGURATION_NAME) {
@@ -151,11 +153,12 @@ class KeeperPlugin : Plugin<Project> {
           }
 
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+              agpHandler,
               extension.emitDebugInformation,
               this,
               appVariant
           )
-          val intermediateAppJar = createIntermediateAppJar(appVariant)
+          val intermediateAppJar = createIntermediateAppJar(agpHandler, appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
@@ -164,6 +167,7 @@ class KeeperPlugin : Plugin<Project> {
                   releaseClassesJarProvider = intermediateAppJar,
                   androidJar = androidJarRegularFileProvider,
                   automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+                  enableAssertions = extension.enableAssertions,
                   extensionJvmArgs = extension.r8JvmArgs,
                   r8Configuration = r8Configuration
               )
@@ -171,9 +175,7 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          AgpVersionHandler.getInstance()
-              .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
-              .applyGeneratedRules(project, appVariant.name, prop)
+          agpHandler.applyGeneratedRules(project, appVariant.name, prop)
         }
       }
     }
@@ -184,6 +186,7 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
+      agpHandler: AgpVersionHandler,
       emitDebugInfo: Property<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
@@ -194,14 +197,14 @@ class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
-        appConfiguration = runtimeConfiguration
+        appArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        appConfiguration.set(runtimeConfiguration)
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
-        androidTestConfiguration = runtimeConfiguration
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        androidTestConfiguration.set(runtimeConfiguration)
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -220,6 +223,7 @@ class KeeperPlugin : Plugin<Project> {
    * output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
+      agpHandler: AgpVersionHandler,
       appVariant: BaseVariant
   ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>(
@@ -227,8 +231,8 @@ class KeeperPlugin : Plugin<Project> {
       group = KEEPER_TASK_GROUP
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(runtimeConfiguration.artifactView().artifacts.artifactFiles)
-        configuration = runtimeConfiguration
+        artifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        configuration.set(runtimeConfiguration)
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -244,16 +248,17 @@ class KeeperPlugin : Plugin<Project> {
   }
 }
 
-internal fun Configuration.artifactView(): ArtifactView {
+internal fun Configuration.artifactView(agpHandler: AgpVersionHandler): ArtifactView {
   return incoming.artifactView {
     attributes {
-      attribute(Attribute.of("artifactType", String::class.java), "android-classes")
+      attribute(AndroidArtifacts.ARTIFACT_TYPE, agpHandler.artifactTypeValue)
     }
   }
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
-    name: String): TaskProvider<T>? {
+    name: String
+): TaskProvider<T>? {
   return try {
     named<T>(name)
   } catch (e: UnknownTaskException) {
