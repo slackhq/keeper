@@ -29,7 +29,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
       - name: Generate cache key
         run: ./checksum.sh checksum.txt
-      - uses: actions/cache@v1.1.2
+      - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
@@ -60,7 +60,7 @@ jobs:
         run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
       - name: (Fail-only) Upload the build report
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: error-report
           path: build-reports.zip
