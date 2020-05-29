@@ -17,8 +17,6 @@ keeper {
 }
 ```
 
-**Note: versions 0.4.0-0.4.2 had packaging issues, please skip to 0.4.3.**
-
 0.4.3
 -----
 
