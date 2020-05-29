@@ -197,13 +197,13 @@ class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appArtifactFiles.from(compileConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        appArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
         appConfiguration.set(runtimeConfiguration)
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(compileConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
         androidTestConfiguration.set(runtimeConfiguration)
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -231,7 +231,7 @@ class KeeperPlugin : Plugin<Project> {
       group = KEEPER_TASK_GROUP
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(compileConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
+        artifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
         configuration.set(runtimeConfiguration)
 
         tasks.providerWithNameOrNull<KotlinCompile>(
