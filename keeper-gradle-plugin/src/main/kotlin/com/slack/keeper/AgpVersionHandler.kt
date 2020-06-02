@@ -41,7 +41,7 @@ interface AgpVersionHandler {
     private fun createHandler(): AgpVersionHandler {
       /** Known patchers, listed in order of preference. */
       // TODO(zsweers) properly use a ServiceLoader for these?
-      val handlers = listOf(Agp36xPatcher(), Agp40xPatcher())
+      val handlers = listOf(Agp40xPatcher())
 
       val agpVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       val baseVersion = VersionNumber.parse(ANDROID_GRADLE_PLUGIN_VERSION).baseVersion
@@ -104,10 +104,4 @@ interface CommonMinifyHandling : AgpVersionHandler {
 class Agp40xPatcher : AgpVersionHandler, CommonMinifyHandling {
   override val minVersion: VersionNumber = VersionNumber.parse("4.0.0")
   override val artifactTypeValue: String = "android-classes-jar"
-}
-
-@AutoService(AgpVersionHandler::class)
-class Agp36xPatcher : AgpVersionHandler, CommonMinifyHandling {
-  override val minVersion: VersionNumber = VersionNumber.parse("3.6.0")
-  override val artifactTypeValue: String = "android-classes"
 }
