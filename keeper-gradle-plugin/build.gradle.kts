@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   `kotlin-dsl`
@@ -39,7 +40,7 @@ repositories {
   jcenter()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     freeCompilerArgs = listOf("-progressive")
     jvmTarget = "1.8"
