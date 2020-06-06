@@ -116,13 +116,9 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
         // support this yet.
         project.repositories {
           // Limit this repo to only the R8 dependency
-          @Suppress("UnstableApiUsage")
-          exclusiveContent {
-            forRepository {
-              // For R8/D8 releases
-              maven("https://storage.googleapis.com/r8-releases/raw")
-            }
-            filter {
+          maven("https://storage.googleapis.com/r8-releases/raw") {
+            name = "R8 releases repository for use with Keeper"
+            content {
               includeModule("com.android.tools", "r8")
             }
           }
