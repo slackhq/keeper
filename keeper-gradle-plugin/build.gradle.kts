@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   `kotlin-dsl`
@@ -39,7 +40,7 @@ repositories {
   jcenter()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     freeCompilerArgs = listOf("-progressive")
     jvmTarget = "1.8"
@@ -81,7 +82,7 @@ mavenPublish {
   }
 }
 
-val defaultAgpVersion = "3.6.3"
+val defaultAgpVersion = "4.0.0"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
