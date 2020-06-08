@@ -28,8 +28,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -197,14 +197,12 @@ class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        appConfiguration.set(runtimeConfiguration)
+        appArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler))
       }
 
       with(testVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        androidTestConfiguration.set(runtimeConfiguration)
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler))
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -231,8 +229,7 @@ class KeeperPlugin : Plugin<Project> {
       group = KEEPER_TASK_GROUP
       with(appVariant) {
         from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        configuration.set(runtimeConfiguration)
+        artifactFiles.from(runtimeConfiguration.artifactView(agpHandler))
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(US)}Kotlin")
@@ -248,12 +245,16 @@ class KeeperPlugin : Plugin<Project> {
   }
 }
 
-internal fun Configuration.artifactView(agpHandler: AgpVersionHandler): ArtifactView {
-  return incoming.artifactView {
-    attributes {
-      attribute(AndroidArtifacts.ARTIFACT_TYPE, agpHandler.artifactTypeValue)
-    }
-  }
+private fun Configuration.artifactView(agpHandler: AgpVersionHandler): FileCollection {
+  return incoming
+      .artifactView {
+        attributes {
+          attribute(AndroidArtifacts.ARTIFACT_TYPE, agpHandler.artifactTypeValue)
+        }
+      }
+      .artifacts
+      .artifactFiles
+      .filter { it.exists() && it.extension == "jar" }
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(

@@ -21,14 +21,12 @@ package com.slack.keeper
 import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
@@ -44,18 +42,9 @@ import java.util.zip.Deflater
 @Suppress("UnstableApiUsage")
 @CacheableTask
 abstract class VariantClasspathJar : DefaultTask() {
-  /**
-   * This is the "official" input for wiring task dependencies correctly, but is otherwise
-   * unused. See [configuration].
-   */
+
   @get:Classpath
   abstract val artifactFiles: ConfigurableFileCollection
-
-  /**
-   * This is what the task actually uses as its input.
-   */
-  @get:Internal
-  abstract val configuration: Property<Configuration>
 
   @get:OutputFile
   abstract val archiveFile: RegularFileProperty
@@ -72,9 +61,7 @@ abstract class VariantClasspathJar : DefaultTask() {
   fun createJar() {
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      configuration.get().artifactView(AgpVersionHandler.getInstance())
-          .files
-          .filter { it.exists() && it.extension == "jar" }
+      artifactFiles
           .forEach {
             archive.extractClassesFrom(it)
           }
@@ -92,7 +79,7 @@ abstract class VariantClasspathJar : DefaultTask() {
 
 /**
  * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
- * (as compared to the [appConfiguration]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
+ * (as compared to the [appArtifactFiles]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
  * at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
@@ -103,29 +90,11 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
-  /**
-   * This is the "official" input for wiring task dependencies correctly, but is otherwise
-   * unused. See [appConfiguration].
-   */
   @get:Classpath
   abstract val appArtifactFiles: ConfigurableFileCollection
 
-  /**
-   * This is what the task actually uses as its input.
-   */
-  @get:Internal
-  abstract val appConfiguration: Property<Configuration>
-
-  /**
-   * This is the "official" input for wiring task dependencies correctly, but is otherwise
-   * unused. See [androidTestArtifactFiles].
-   */
   @get:Classpath
   abstract val androidTestArtifactFiles: ConfigurableFileCollection
-
-  /** This is what the task actually uses as its input. */
-  @get:Internal
-  abstract val androidTestConfiguration: Property<Configuration>
 
   @get:Input
   abstract val emitDebugInfo: Property<Boolean>
@@ -143,22 +112,15 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
   @TaskAction
   fun createJar() {
-    val agpHandler = AgpVersionHandler.getInstance()
     project.logger.debug("$LOG: Diffing androidTest jars and app jars")
-    val appJars = appConfiguration.get()
-        .artifactView(agpHandler)
-        .files
-        .filterToSet { it.exists() && it.extension == "jar" }
+    val appJars = appArtifactFiles.files
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
       appJars.sortedBy { it.path }
           .joinToString("\n") {
             it.path
           }
     }
-    val androidTestClasspath = androidTestConfiguration.get()
-        .artifactView(agpHandler)
-        .files
-        .filterToSet { it.exists() && it.extension == "jar" }
+    val androidTestClasspath = androidTestArtifactFiles.files
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
       androidTestClasspath.sortedBy { it.path }
           .joinToString("\n") {
@@ -200,8 +162,4 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
       }
     }
   }
-}
-
-private inline fun <T> Iterable<T>.filterToSet(body: (T) -> Boolean): Set<T> {
-  return filterTo(LinkedHashSet(), body)
 }
