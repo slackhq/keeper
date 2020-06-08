@@ -85,7 +85,10 @@ keeper {
 
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.
 // This is _solely_ for CI use with Keeper!
-if (providers.environmentVariable("CI").forUseAtConfigurationTime().get() == true) {
+boolean isCi = providers.environmentVariable("CI").forUseAtConfigurationTime()
+    .orElse("false")
+    .get() == "true"
+if (isCi) {
   tasks.withType(InferAndroidTestKeepRules)
       .configureEach {
         println "Configuring the thing"
