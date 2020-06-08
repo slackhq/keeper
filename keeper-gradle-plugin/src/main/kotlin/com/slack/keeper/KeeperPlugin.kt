@@ -22,15 +22,18 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
+import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
@@ -38,11 +41,11 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Locale
-import java.util.Locale.US
 
 internal const val TAG = "Keeper"
 internal const val KEEPER_TASK_GROUP = "keeper"
@@ -81,11 +84,15 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  */
 class KeeperPlugin : Plugin<Project> {
 
-  companion object {
-    internal const val INTERMEDIATES_DIR = "intermediates/keeper"
-    internal const val DEFAULT_R8_VERSION = "1.6.53"
-    internal const val CONFIGURATION_NAME = "keeperR8"
+  internal companion object {
+    const val INTERMEDIATES_DIR = "intermediates/keeper"
+    const val DEFAULT_R8_VERSION = "1.6.53"
+    const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
+
+    fun interpolateTaskName(appVariant: String, minifierTool: String): String {
+      return "minify${appVariant.capitalize(Locale.US)}With$minifierTool"
+    }
   }
 
   override fun apply(project: Project) {
@@ -96,8 +103,6 @@ class KeeperPlugin : Plugin<Project> {
     with(project) {
       pluginManager.withPlugin("com.android.application") {
         val extension = project.extensions.create<KeeperExtension>("keeper")
-        val agpHandler = AgpVersionHandler.getInstance()
-            .also { logger.debug("$TAG Using ${it.minVersion} patcher") }
 
         // Set up r8 configuration
         val r8Configuration = configurations.create(CONFIGURATION_NAME) {
@@ -153,14 +158,13 @@ class KeeperPlugin : Plugin<Project> {
           }
 
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-              agpHandler,
               extension.emitDebugInformation,
               this,
               appVariant
           )
-          val intermediateAppJar = createIntermediateAppJar(agpHandler, appVariant)
+          val intermediateAppJar = createIntermediateAppJar(appVariant)
           val inferAndroidTestUsageProvider = tasks.register(
-              "infer${name.capitalize(US)}KeepRulesForKeeper",
+              "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
                   variantName = name,
                   androidTestJarProvider = intermediateAndroidTestJar,
@@ -175,10 +179,33 @@ class KeeperPlugin : Plugin<Project> {
 
           val prop = project.layout.dir(
               inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          agpHandler.applyGeneratedRules(project, appVariant.name, prop)
+          project.applyGeneratedRules(appVariant.name, prop)
         }
       }
     }
+  }
+
+  private fun Project.applyGeneratedRules(appVariant: String, prop: Provider<Directory>) {
+    // R8 is the default, so we'll only look to see if it's explicitly disabled
+    val r8Enabled = providers.gradleProperty("android.enableR8")
+        .forUseAtConfigurationTime()
+        .map {
+          @Suppress("PlatformExtensionReceiverOfInline")
+          it.toBoolean()
+        }
+        .getOrElse(true)
+
+    val minifierTool = if (r8Enabled) "R8" else "Proguard"
+
+    val targetName = interpolateTaskName(appVariant, minifierTool)
+
+    tasks.withType<ProguardConfigurableTask>()
+        .matching { it.name == targetName }
+        .configureEach {
+          logger.debug(
+              "$TAG: Patching task '$name' with inferred androidTest proguard rules")
+          configurationFiles.from(prop)
+        }
   }
 
   /**
@@ -186,33 +213,30 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
-      agpHandler: AgpVersionHandler,
       emitDebugInfo: Property<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
     return tasks.register<AndroidTestVariantClasspathJar>(
-        "jar${testVariant.name.capitalize(US)}ClassesForKeeper") {
+        "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
 
       with(appVariant) {
-        appArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        appConfiguration.set(runtimeConfiguration)
+        appArtifactFiles.from(runtimeConfiguration.artifactView())
       }
 
       with(testVariant) {
-        from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        androidTestConfiguration.set(runtimeConfiguration)
+        from(layout.dir(javaCompileProvider.map { it.destinationDir }))
+        androidTestArtifactFiles.from(runtimeConfiguration.artifactView())
         tasks.providerWithNameOrNull<KotlinCompile>(
-            "compile${name.capitalize(US)}Kotlin")
+            "compile${name.capitalize(Locale.US)}Kotlin")
             ?.let { kotlinCompileTask ->
-              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir }))
+              from(layout.dir(kotlinCompileTask.map { it.destinationDir }))
             }
       }
 
-      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
+      archiveFile.set(layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
         it.file("${testVariant.name}.jar")
       })
     }
@@ -223,37 +247,39 @@ class KeeperPlugin : Plugin<Project> {
    * output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
-      agpHandler: AgpVersionHandler,
       appVariant: BaseVariant
   ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>(
-        "jar${appVariant.name.capitalize(US)}ClassesForKeeper") {
+        "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       with(appVariant) {
-        from(project.layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(runtimeConfiguration.artifactView(agpHandler).artifacts.artifactFiles)
-        configuration.set(runtimeConfiguration)
+        from(layout.dir(javaCompileProvider.map { it.destinationDir }))
+        artifactFiles.from(runtimeConfiguration.artifactView())
 
         tasks.providerWithNameOrNull<KotlinCompile>(
-            "compile${name.capitalize(US)}Kotlin")
+            "compile${name.capitalize(Locale.US)}Kotlin")
             ?.let { kotlinCompileTask ->
-              from(project.layout.dir(kotlinCompileTask.map { it.destinationDir }))
+              from(layout.dir(kotlinCompileTask.map { it.destinationDir }))
             }
       }
 
-      archiveFile.set(project.layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
+      archiveFile.set(layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
         it.file("${appVariant.name}.jar")
       })
     }
   }
 }
 
-internal fun Configuration.artifactView(agpHandler: AgpVersionHandler): ArtifactView {
-  return incoming.artifactView {
-    attributes {
-      attribute(AndroidArtifacts.ARTIFACT_TYPE, agpHandler.artifactTypeValue)
-    }
-  }
+private fun Configuration.artifactView(): FileCollection {
+  return incoming
+      .artifactView {
+        attributes {
+          attribute(AndroidArtifacts.ARTIFACT_TYPE, "android-classes-jar")
+        }
+      }
+      .artifacts
+      .artifactFiles
+      .filter { it.exists() && it.extension == "jar" }
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
