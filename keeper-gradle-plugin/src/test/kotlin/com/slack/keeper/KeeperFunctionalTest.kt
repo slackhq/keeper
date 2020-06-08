@@ -117,9 +117,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
-    val agpVersion = AgpVersionHandler.getInstance()
-    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStaging"))).isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(agpVersion.interpolatedTaskName(minifierType.taskName, "ExternalStagingAndroidTest"))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStaging", minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStagingAndroidTest", minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("externalStaging.jar")

@@ -84,11 +84,15 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  */
 class KeeperPlugin : Plugin<Project> {
 
-  companion object {
-    internal const val INTERMEDIATES_DIR = "intermediates/keeper"
-    internal const val DEFAULT_R8_VERSION = "1.6.53"
-    internal const val CONFIGURATION_NAME = "keeperR8"
+  internal companion object {
+    const val INTERMEDIATES_DIR = "intermediates/keeper"
+    const val DEFAULT_R8_VERSION = "1.6.53"
+    const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
+
+    fun interpolateTaskName(appVariant: String, minifierTool: String): String {
+      return "minify${appVariant.capitalize(Locale.US)}With$minifierTool"
+    }
   }
 
   override fun apply(project: Project) {
@@ -193,7 +197,7 @@ class KeeperPlugin : Plugin<Project> {
 
     val minifierTool = if (r8Enabled) "R8" else "Proguard"
 
-    val targetName = "minify${appVariant.capitalize(Locale.US)}With$minifierTool"
+    val targetName = interpolateTaskName(appVariant, minifierTool)
 
     tasks.withType<ProguardConfigurableTask>()
         .matching { it.name == targetName }
