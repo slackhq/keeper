@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.slack.keeper.InferAndroidTestKeepRules
 
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
@@ -80,6 +81,25 @@ keeper {
 
   // Example: automatic R8 repo management (more below)
   automaticR8RepoManagement = false
+}
+
+// To speed up testing, we can also eagerly check that the generated rules match what we expect.
+// This is _solely_ for CI use with Keeper!
+if (providers.environmentVariable("CI").forUseAtConfigurationTime().get() == true) {
+  tasks.withType(InferAndroidTestKeepRules)
+      .configureEach {
+        println "Configuring the thing"
+        doLast {
+          println "Checking expected rules"
+          String outputRules = outputProguardRules.getAsFile().get().text
+          String expectedRules = file("expectedRules.pro").text
+          if (outputRules != expectedRules) {
+            throw IllegalStateException("Rules don't match expected!")
+          } else {
+            println "Rules matched 👍"
+          }
+        }
+      }
 }
 
 // Example demo of how to configure your own R8 repo
