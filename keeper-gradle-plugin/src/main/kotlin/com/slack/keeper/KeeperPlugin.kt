@@ -73,8 +73,8 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * - Register a [`infer${androidTestVariant}UsageForKeeper`][InferAndroidTestKeepRules] task that
  *   plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred proguard
  *   rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private task APIs (wired with [AgpVersionHandler])
- *   and setting their `configurationFiles` to include our generated one.
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting
+ *   their `configurationFiles` to include our generated one.
  *
  * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
  * of the target app variant's full minified APK.
@@ -217,10 +217,12 @@ class KeeperPlugin : Plugin<Project> {
       testVariant: TestVariant,
       appVariant: BaseVariant
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
+    val diagnosticOutputDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
+      this.diagnosticsOutputDir.set(diagnosticOutputDir)
 
       with(appVariant) {
         appArtifactFiles.from(runtimeConfiguration.artifactView())
