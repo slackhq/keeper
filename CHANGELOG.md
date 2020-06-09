@@ -4,7 +4,7 @@ Changelog
 0.6.0
 -----
 
-_2020-06-09
+_2020-06-09_
 
 * Keeper now supports Gradle [Configuration Caching](https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html)
   * Note: At the time of writing, Gradle's `JavaExec` task (which Keeper uses) does not support it yet. This is expected to be resolved in Gradle 6.6.
