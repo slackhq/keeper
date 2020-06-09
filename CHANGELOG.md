@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.6.0
+-----
+
+_2020-06-09
+
+* Keeper now supports Gradle [Configuration Caching](https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html)
+  * Note: At the time of writing, Gradle's `JavaExec` task (which Keeper uses) does not support it yet. This is expected to be resolved in Gradle 6.6.
+* Diagnostics improvements
+  * Enabling extra debug information now also triggers printing of text files with a list of all seen classes in respective jars, for easy checking.
+  * Diagnostics are now under build/intermediates/keeper/diagnostics.
+  * Note that "app jars" are not under the new diagnostics directory, but rather in the main keeper directory. These are now used as a task input internally.
+* Some minor under the hood enhancements to avoid processing app classpath twice.
+
 0.5.0
 -----
 
