@@ -406,7 +406,7 @@ build type that you test against is controlled by the <code>testBuildType</code>
 <code>debug</code> by default.</p>
 <p>This is a workaround until AGP supports this: <a href="https://issuetracker.google.com/issues/126429384">https://issuetracker.google.com/issues/126429384</a>.</p>
 <p><strong>Note:</strong> Keeper uses private APIs from AGP and could break between releases. It is currently
-tested against AGP version 3.6.1 (or whatever <code>ci_agp_version</code> env
+tested against AGP version 4.0.0 and 4.1.0-alpha09 (or whatever <code>ci_agp_version</code> env
 vars are described <a href="https://github.com/slackhq/keeper/blob/master/.github/workflows/ci.yml">here</a>.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p>Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application&rsquo;s
@@ -441,7 +441,7 @@ in <code>settings.gradle</code>.</p>
 
 <p>Note that Keeper <em>must</em> be applied after the Android gradle plugin.</p>
 <p>Optional configuration options can be found on the <a href="configuration/">Configuration page</a>.</p>
-<p>As of 0.3.0, Keeper requires at least AGP 3.6.1.</p>
+<p>As of 0.6.0, Keeper requires at least AGP 4.0.0.</p>
 <p>Snapshots of the development version are available in <a href="https://oss.sonatype.org/content/repositories/snapshots/">Sonatype&rsquo;s <code>snapshots</code> repository</a>.</p>
 <h2 id="under-the-hood">Under the hood<a class="headerlink" href="#under-the-hood" title="Permanent link">&para;</a></h2>
 <p>The general logic flow:</p>
