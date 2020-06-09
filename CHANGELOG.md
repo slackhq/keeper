@@ -8,6 +8,7 @@ _2020-06-09_
 
 * Keeper now supports Gradle [Configuration Caching](https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html)
   * Note: At the time of writing, Gradle's `JavaExec` task (which Keeper uses) does not support it yet. This is expected to be resolved in Gradle 6.6.
+* Keeper requires AGP 4.0.0 (minimum) now.
 * Diagnostics improvements
   * Enabling extra debug information now also triggers printing of text files with a list of all seen classes in respective jars, for easy checking.
   * Diagnostics are now under build/intermediates/keeper/diagnostics.
