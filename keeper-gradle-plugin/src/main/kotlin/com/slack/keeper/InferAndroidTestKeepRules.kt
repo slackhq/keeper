@@ -130,7 +130,6 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       appJar.set(releaseClassesJarProvider.map { it.archiveFile.get() })
       classpathJar.set(androidJar)
       jvmArgsProperty.set(extensionJvmArgs)
-      workingDir = project.projectDir
       outputProguardRules.set(
           project.layout.buildDirectory.file(
               "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
