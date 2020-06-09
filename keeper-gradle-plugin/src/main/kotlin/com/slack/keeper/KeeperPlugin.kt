@@ -32,7 +32,6 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -127,6 +126,7 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
+        val diagnosticOutputDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
 
         appExtension.testVariants.configureEach {
           val appVariant = testedVariant
@@ -158,11 +158,16 @@ class KeeperPlugin : Plugin<Project> {
           }
 
           val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-              extension.emitDebugInformation,
-              this,
-              appVariant
+              diagnosticOutputDir = diagnosticOutputDir,
+              emitDebugInfo = extension.emitDebugInformation,
+              testVariant = this,
+              appVariant = appVariant
           )
-          val intermediateAppJar = createIntermediateAppJar(appVariant)
+          val intermediateAppJar = createIntermediateAppJar(
+              appVariant = appVariant,
+              diagnosticOutputDir = diagnosticOutputDir,
+              emitDebugInfo = extension.emitDebugInformation
+          )
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
@@ -213,11 +218,11 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
-      emitDebugInfo: Property<Boolean>,
+      diagnosticOutputDir: Provider<Directory>,
+      emitDebugInfo: Provider<Boolean>,
       testVariant: TestVariant,
       appVariant: BaseVariant
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
-    val diagnosticOutputDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
@@ -249,11 +254,15 @@ class KeeperPlugin : Plugin<Project> {
    * output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
-      appVariant: BaseVariant
+      appVariant: BaseVariant,
+      diagnosticOutputDir: Provider<Directory>,
+      emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>(
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
+      this.diagnosticsOutputDir.set(diagnosticOutputDir)
+      this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
         artifactFiles.from(runtimeConfiguration.artifactView())

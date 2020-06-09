@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -33,6 +34,23 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
 import java.util.zip.Deflater
+
+abstract class BaseKeeperJarTask : DefaultTask() {
+
+  @get:Input
+  abstract val emitDebugInfo: Property<Boolean>
+
+  @get:OutputDirectory
+  abstract val diagnosticsOutputDir: DirectoryProperty
+
+  protected fun diagnostic(fileName: String, body: () -> String) {
+    if (emitDebugInfo.get()) {
+      diagnosticsOutputDir.get().file("${fileName}.txt").asFile.apply {
+        writeText(body())
+      }
+    }
+  }
+}
 
 /**
  * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
@@ -43,7 +61,7 @@ import java.util.zip.Deflater
  */
 @Suppress("UnstableApiUsage")
 @CacheableTask
-abstract class VariantClasspathJar : DefaultTask() {
+abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
   @get:Classpath
   abstract val artifactFiles: ConfigurableFileCollection
@@ -61,10 +79,12 @@ abstract class VariantClasspathJar : DefaultTask() {
 
   @TaskAction
   fun createJar() {
+    val appJars = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       artifactFiles
           .forEach {
+            appJars.add(it.canonicalPath)
             archive.extractClassesFrom(it)
           }
 
@@ -76,6 +96,9 @@ abstract class VariantClasspathJar : DefaultTask() {
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
     }
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
+      appJars.sorted().joinToString("\n")
+    }
   }
 }
 
@@ -86,7 +109,7 @@ abstract class VariantClasspathJar : DefaultTask() {
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
-abstract class AndroidTestVariantClasspathJar : DefaultTask() {
+abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
@@ -98,18 +121,12 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
   @get:Classpath
   abstract val androidTestArtifactFiles: ConfigurableFileCollection
 
-  @get:Input
-  abstract val emitDebugInfo: Property<Boolean>
-
   @Suppress("UnstableApiUsage")
   @get:Classpath
   abstract val classpath: ConfigurableFileCollection
 
   @get:OutputFile
   abstract val archiveFile: RegularFileProperty
-
-  @get:OutputDirectory
-  abstract val diagnosticsOutputDir: DirectoryProperty
 
   fun from(vararg paths: Any) {
     classpath.from(*paths)
@@ -119,26 +136,23 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
   fun createJar() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appArtifactFiles.files
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
-      appJars.sortedBy { it.path }
-          .joinToString("\n") {
-            it.path
-          }
-    }
+
     val androidTestClasspath = androidTestArtifactFiles.files
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
-      androidTestClasspath.sortedBy { it.path }
+      androidTestClasspath.sortedBy { it.canonicalPath }
           .joinToString("\n") {
-            it.path
+            it.canonicalPath
           }
     }
+
     val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
       removeAll(appJars)
     }
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars2") {
-      distinctAndroidTestClasspath.sortedBy { it.path }
+
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars") {
+      distinctAndroidTestClasspath.sortedBy { it.canonicalPath }
           .joinToString("\n") {
-            it.path
+            it.canonicalPath
           }
     }
 
@@ -157,14 +171,6 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
             archive.delete(name)
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
-    }
-  }
-
-  private fun diagnostic(fileName: String, body: () -> String) {
-    if (emitDebugInfo.get()) {
-      diagnosticsOutputDir.get().file("${fileName}.txt").asFile.apply {
-        writeText(body())
-      }
     }
   }
 }
