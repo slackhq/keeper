@@ -22,7 +22,7 @@ import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -109,7 +109,7 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
   abstract val archiveFile: RegularFileProperty
 
   @get:OutputDirectory
-  abstract val diagnosticsOutputDir: Property<Directory>
+  abstract val diagnosticsOutputDir: DirectoryProperty
 
   fun from(vararg paths: Any) {
     classpath.from(*paths)
