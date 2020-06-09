@@ -98,7 +98,7 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   companion object {
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
     operator fun invoke(
         variantName: String,
         androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
@@ -126,8 +126,8 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
       }
 
       group = KEEPER_TASK_GROUP
-      androidTestJar.set(androidTestJarProvider.map { it.archiveFile.get() })
-      appJar.set(releaseClassesJarProvider.map { it.archiveFile.get() })
+      androidTestJar.set(androidTestJarProvider.flatMap { it.archiveFile })
+      appJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
       classpathJar.set(androidJar)
       jvmArgsProperty.set(extensionJvmArgs)
       outputProguardRules.set(
