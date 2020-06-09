@@ -279,6 +279,34 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#060" class="md-nav__link">
+    0.6.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050" class="md-nav__link">
+    0.5.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#043" class="md-nav__link">
+    0.4.3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#032" class="md-nav__link">
+    0.3.2
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#031" class="md-nav__link">
     0.3.1
   </a>
@@ -389,6 +417,34 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#060" class="md-nav__link">
+    0.6.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#050" class="md-nav__link">
+    0.5.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#043" class="md-nav__link">
+    0.4.3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#032" class="md-nav__link">
+    0.3.2
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#031" class="md-nav__link">
     0.3.1
   </a>
@@ -463,6 +519,44 @@
                 
                 
                 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="060">0.6.0<a class="headerlink" href="#060" title="Permanent link">&para;</a></h2>
+<p><em>2020-06-09</em></p>
+<ul>
+<li>Keeper now supports Gradle <a href="https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html">Configuration Caching</a></li>
+<li>Note: At the time of writing, Gradle&rsquo;s <code>JavaExec</code> task (which Keeper uses) does not support it yet. This is expected to be resolved in Gradle 6.6.</li>
+<li>Diagnostics improvements</li>
+<li>Enabling extra debug information now also triggers printing of text files with a list of all seen classes in respective jars, for easy checking.</li>
+<li>Diagnostics are now under build/intermediates/keeper/diagnostics.</li>
+<li>Note that &ldquo;app jars&rdquo; are not under the new diagnostics directory, but rather in the main keeper directory. These are now used as a task input internally.</li>
+<li>Some minor under the hood enhancements to avoid processing app classpath twice.</li>
+</ul>
+<h2 id="050">0.5.0<a class="headerlink" href="#050" title="Permanent link">&para;</a></h2>
+<p><em>2020-05-28</em></p>
+<ul>
+<li>Keeper now supports AGP 4.0 and 4.1!</li>
+<li>New <code>enableAssertions</code> property to control assertions behavior when running R8&rsquo;s <code>PrintUses</code> CLI.
+This can be useful when debugging errors, as R8 will print those errors out to the generated proguard
+file instead if you disable this (the default is enabled).</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">keeper</span> <span class="p">{</span>
+ <span class="n">enableAssertions</span><span class="p">.</span><span class="k">set</span><span class="p">(</span><span class="k">false</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2 id="043">0.4.3<a class="headerlink" href="#043" title="Permanent link">&para;</a></h2>
+<p><em>2020-05-17</em></p>
+<ul>
+<li>ZipFlinger updated to 4.1.0-alpha09, which allows us to support Zip64. To avoid conflicts with AGP,
+we now shade ZipFlinger in directly.</li>
+<li>Kotlin 1.3.72</li>
+</ul>
+<p><strong>Note: versions 0.4.0-0.4.2 had packaging issues, please skip to 0.4.3.</strong></p>
+<h2 id="032">0.3.2<a class="headerlink" href="#032" title="Permanent link">&para;</a></h2>
+<p><em>2020-05-6</em></p>
+<ul>
+<li>Fix support for Gradle 6.4. We assumed that the new <code>exclusiveContent</code> API on maven repositories
+would be fixed in this version, but it had another regression.</li>
+</ul>
 <h2 id="031">0.3.1<a class="headerlink" href="#031" title="Permanent link">&para;</a></h2>
 <p><em>2020-03-28</em></p>
 <p><strong>Edit:</strong> Release failed to upload, we&rsquo;re working on a fix. In the meantime continue to use 0.3.0
