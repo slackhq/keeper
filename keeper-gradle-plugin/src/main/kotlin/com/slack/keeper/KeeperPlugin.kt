@@ -32,7 +32,7 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Property
+import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -127,6 +127,7 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
+        val diagnosticOutputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
 
         appExtension.testVariants.configureEach {
           val appVariant = testedVariant
@@ -157,12 +158,17 @@ class KeeperPlugin : Plugin<Project> {
             return@configureEach
           }
 
-          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-              extension.emitDebugInformation,
-              this,
-              appVariant
+          val intermediateAppJar = createIntermediateAppJar(
+              appVariant = appVariant,
+              diagnosticOutputDir = diagnosticOutputDir,
+              emitDebugInfo = extension.emitDebugInformation
           )
-          val intermediateAppJar = createIntermediateAppJar(appVariant)
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+              diagnosticOutputDir = diagnosticOutputDir,
+              emitDebugInfo = extension.emitDebugInformation,
+              testVariant = this,
+              appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
+          )
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
               InferAndroidTestKeepRules(
@@ -213,20 +219,17 @@ class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
-      emitDebugInfo: Property<Boolean>,
+      diagnosticOutputDir: Provider<Directory>,
+      emitDebugInfo: Provider<Boolean>,
       testVariant: TestVariant,
-      appVariant: BaseVariant
+      appJarsProvider: Provider<RegularFile>
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
-    val diagnosticOutputDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
       this.diagnosticsOutputDir.set(diagnosticOutputDir)
-
-      with(appVariant) {
-        appArtifactFiles.from(runtimeConfiguration.artifactView())
-      }
+      this.appJarsFile.set(appJarsProvider)
 
       with(testVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
@@ -249,11 +252,15 @@ class KeeperPlugin : Plugin<Project> {
    * output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
-      appVariant: BaseVariant
+      appVariant: BaseVariant,
+      diagnosticOutputDir: Provider<Directory>,
+      emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>(
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
+      this.diagnosticsOutputDir.set(diagnosticOutputDir)
+      this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
         artifactFiles.from(runtimeConfiguration.artifactView())
@@ -265,9 +272,9 @@ class KeeperPlugin : Plugin<Project> {
             }
       }
 
-      archiveFile.set(layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
-        it.file("${appVariant.name}.jar")
-      })
+      val intermediatesDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
+      archiveFile.set(intermediatesDir.map { it.file("${appVariant.name}.jar") })
+      appJarsFile.set(intermediatesDir.map { it.file("${appVariant.name}Jars.txt") })
     }
   }
 }
