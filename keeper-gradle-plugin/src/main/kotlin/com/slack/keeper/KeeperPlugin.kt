@@ -32,6 +32,7 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -157,16 +158,16 @@ class KeeperPlugin : Plugin<Project> {
             return@configureEach
           }
 
-          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-              diagnosticOutputDir = diagnosticOutputDir,
-              emitDebugInfo = extension.emitDebugInformation,
-              testVariant = this,
-              appVariant = appVariant
-          )
           val intermediateAppJar = createIntermediateAppJar(
               appVariant = appVariant,
               diagnosticOutputDir = diagnosticOutputDir,
               emitDebugInfo = extension.emitDebugInformation
+          )
+          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+              diagnosticOutputDir = diagnosticOutputDir,
+              emitDebugInfo = extension.emitDebugInformation,
+              testVariant = this,
+              appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
           )
           val inferAndroidTestUsageProvider = tasks.register(
               "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
@@ -221,17 +222,14 @@ class KeeperPlugin : Plugin<Project> {
       diagnosticOutputDir: Provider<Directory>,
       emitDebugInfo: Provider<Boolean>,
       testVariant: TestVariant,
-      appVariant: BaseVariant
+      appJarsProvider: Provider<RegularFile>
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
     return tasks.register<AndroidTestVariantClasspathJar>(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
       this.diagnosticsOutputDir.set(diagnosticOutputDir)
-
-      with(appVariant) {
-        appArtifactFiles.from(runtimeConfiguration.artifactView())
-      }
+      this.appJarsFile.set(appJarsProvider)
 
       with(testVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
@@ -274,9 +272,9 @@ class KeeperPlugin : Plugin<Project> {
             }
       }
 
-      archiveFile.set(layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
-        it.file("${appVariant.name}.jar")
-      })
+      val intermediatesDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
+      archiveFile.set(intermediatesDir.map { it.file("${appVariant.name}.jar") })
+      appJarsFile.set(intermediatesDir.map { it.file("${appVariant.name}Jars.txt") })
     }
   }
 }

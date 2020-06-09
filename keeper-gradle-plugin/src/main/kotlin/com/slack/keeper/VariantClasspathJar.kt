@@ -25,12 +25,14 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
 import java.util.zip.Deflater
@@ -73,6 +75,9 @@ abstract class VariantClasspathJar : BaseKeeperJarTask() {
   @get:Classpath
   abstract val classpath: ConfigurableFileCollection
 
+  @get:OutputFile
+  abstract val appJarsFile: RegularFileProperty
+
   fun from(vararg paths: Any) {
     classpath.from(*paths)
   }
@@ -96,15 +101,14 @@ abstract class VariantClasspathJar : BaseKeeperJarTask() {
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
     }
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
-      appJars.sorted().joinToString("\n")
-    }
+
+    appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
   }
 }
 
 /**
  * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
- * (as compared to the [appArtifactFiles]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
+ * (as compared to the [appJarsFile]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
  * at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
@@ -116,10 +120,11 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
   }
 
   @get:Classpath
-  abstract val appArtifactFiles: ConfigurableFileCollection
-
-  @get:Classpath
   abstract val androidTestArtifactFiles: ConfigurableFileCollection
+
+  @get:PathSensitive(NONE) // Only care about the contents
+  @get:InputFile
+  abstract val appJarsFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
@@ -135,7 +140,7 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
   @TaskAction
   fun createJar() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
-    val appJars = appArtifactFiles.files
+    val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
     val androidTestClasspath = androidTestArtifactFiles.files
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
@@ -146,7 +151,7 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     }
 
     val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
-      removeAll(appJars)
+      removeAll { it.canonicalPath in appJars }
     }
 
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars") {
