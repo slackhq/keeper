@@ -522,13 +522,17 @@
 <h2 id="060">0.6.0<a class="headerlink" href="#060" title="Permanent link">&para;</a></h2>
 <p><em>2020-06-09</em></p>
 <ul>
-<li>Keeper now supports Gradle <a href="https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html">Configuration Caching</a></li>
+<li>Keeper now supports Gradle <a href="https://docs.gradle.org/6.5-rc-1/userguide/configuration_cache.html">Configuration Caching</a><ul>
 <li>Note: At the time of writing, Gradle&rsquo;s <code>JavaExec</code> task (which Keeper uses) does not support it yet. This is expected to be resolved in Gradle 6.6.</li>
+</ul>
+</li>
 <li>Keeper requires AGP 4.0.0 (minimum) now.</li>
-<li>Diagnostics improvements</li>
+<li>Diagnostics improvements<ul>
 <li>Enabling extra debug information now also triggers printing of text files with a list of all seen classes in respective jars, for easy checking.</li>
 <li>Diagnostics are now under build/intermediates/keeper/diagnostics.</li>
 <li>Note that &ldquo;app jars&rdquo; are not under the new diagnostics directory, but rather in the main keeper directory. These are now used as a task input internally.</li>
+</ul>
+</li>
 <li>Some minor under the hood enhancements to avoid processing app classpath twice.</li>
 </ul>
 <h2 id="050">0.5.0<a class="headerlink" href="#050" title="Permanent link">&para;</a></h2>
