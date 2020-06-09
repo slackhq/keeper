@@ -22,11 +22,13 @@ import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
@@ -106,13 +108,16 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
   @get:OutputFile
   abstract val archiveFile: RegularFileProperty
 
+  @get:OutputDirectory
+  abstract val diagnosticsOutputDir: DirectoryProperty
+
   fun from(vararg paths: Any) {
     classpath.from(*paths)
   }
 
   @TaskAction
   fun createJar() {
-    project.logger.debug("$LOG: Diffing androidTest jars and app jars")
+    logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appArtifactFiles.files
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}AppJars") {
       appJars.sortedBy { it.path }
@@ -157,7 +162,7 @@ abstract class AndroidTestVariantClasspathJar : DefaultTask() {
 
   private fun diagnostic(fileName: String, body: () -> String) {
     if (emitDebugInfo.get()) {
-      project.file("${project.buildDir}/${KeeperPlugin.INTERMEDIATES_DIR}/${fileName}.txt").apply {
+      diagnosticsOutputDir.get().file("${fileName}.txt").asFile.apply {
         writeText(body())
       }
     }
