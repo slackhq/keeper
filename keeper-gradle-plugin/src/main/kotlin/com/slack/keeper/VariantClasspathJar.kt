@@ -85,24 +85,33 @@ abstract class VariantClasspathJar : BaseKeeperJarTask() {
   @TaskAction
   fun createJar() {
     val appJars = mutableSetOf<String>()
+    val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       artifactFiles
-          .forEach {
-            appJars.add(it.canonicalPath)
-            archive.extractClassesFrom(it)
+          .forEach { jar ->
+            appJars.add(jar.canonicalPath)
+            archive.extractClassesFrom(jar) {
+              appClasses += it
+            }
           }
 
       // Take the compiled classes
       classpath.asSequence()
           .flatMap { it.classesSequence() }
           .forEach { (name, file) ->
+            appClasses.add(name)
             archive.delete(name)
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
     }
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
+
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Classes") {
+      appClasses.sorted()
+          .joinToString("\n")
+    }
   }
 }
 
@@ -161,21 +170,29 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
           }
     }
 
+    val androidTestClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       distinctAndroidTestClasspath
           .filter { it.exists() && it.extension == "jar" }
-          .forEach {
-            archive.extractClassesFrom(it)
+          .forEach { jar ->
+            archive.extractClassesFrom(jar) {
+              androidTestClasses += it
+            }
           }
 
       // Take the compiled classes
       classpath.asSequence()
           .flatMap { it.classesSequence() }
           .forEach { (name, file) ->
+            androidTestClasses += name
             archive.delete(name)
             archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
           }
+    }
+
+    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Classes") {
+      androidTestClasses.sorted().joinToString("\n")
     }
   }
 }

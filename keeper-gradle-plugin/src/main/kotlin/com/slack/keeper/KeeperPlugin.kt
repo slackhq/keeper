@@ -127,7 +127,7 @@ class KeeperPlugin : Plugin<Project> {
           }
         }
         val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
-        val diagnosticOutputDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
+        val diagnosticOutputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
 
         appExtension.testVariants.configureEach {
           val appVariant = testedVariant

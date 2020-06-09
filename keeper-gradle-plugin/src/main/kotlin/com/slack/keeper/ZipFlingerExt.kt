@@ -19,13 +19,14 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
 /**
  * Extracts classes from the target [jar] into this archive.
  */
-internal fun ZipArchive.extractClassesFrom(jar: File) {
+internal fun ZipArchive.extractClassesFrom(jar: File, callback: (String) -> Unit) {
   val jarSource = ZipSource(jar)
   jarSource.entries()
       .filterNot { "META-INF" in it.key }
       .forEach { (name, entry) ->
         if (!entry.isDirectory && entry.name.endsWith(".class")) {
           val entryName = name.removePrefix(".")
+          callback(entryName)
           delete(entryName)
           jarSource.select(entryName, name)
         }
