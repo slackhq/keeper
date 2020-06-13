@@ -17,7 +17,7 @@ This is a workaround until AGP supports this: https://issuetracker.google.com/is
 
 **Note:** Keeper uses private APIs from AGP and could break between releases. It is currently
 tested against AGP version 4.0.0 and 4.1.0-alpha09 (or whatever `ci_agp_version` env
-vars are described [here](https://github.com/slackhq/keeper/blob/master/.github/workflows/ci.yml).
+vars are described [here](https://github.com/slackhq/keeper/blob/main/.github/workflows/ci.yml).
 
 ## Installation
 
@@ -74,7 +74,7 @@ The general logic flow:
 * Register two jar tasks per `androidTest` variant. One for all the classes in its target `testedVariant`
   and one for all the classes in the androidTest variant itself. This will use their variant-provided
   `JavaCompile` tasks and `KotlinCompile` tasks if available.
-* Register a [`infer${androidTestVariant}UsageForKeeper`](https://github.com/slackhq/keeper/blob/master/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt)
+* Register a [`infer${androidTestVariant}UsageForKeeper`](https://github.com/slackhq/keeper/blob/main/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt)
   task that plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred
   proguard rules into a new intermediate `.pro` file.
 * Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their

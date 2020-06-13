@@ -52,9 +52,9 @@ If the contribution doesn't meet the above criteria, you may fail our automated 
 3.  🌿 Create a new branch and check it out.
 4.  🔮 Make your changes and commit them locally. Magic happens here!
 5.  ⤴️ Push your new branch to your fork. (e.g. `git push username fix-issue-16`).
-6.  📥 Open a Pull Request on github.com from your new branch on your fork to `master` in this
+6.  📥 Open a Pull Request on github.com from your new branch on your fork to `main` in this
     repository.
 
 ## Maintainers
 
-There are more details about processes and workflow in the [Maintainer's Guide](https://github.com/slackhq/keeper/blob/master/.maintainers_guide.md).
+There are more details about processes and workflow in the [Maintainer's Guide](https://github.com/slackhq/keeper/blob/main/.maintainers_guide.md).
