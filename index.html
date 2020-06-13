@@ -407,7 +407,7 @@ build type that you test against is controlled by the <code>testBuildType</code>
 <p>This is a workaround until AGP supports this: <a href="https://issuetracker.google.com/issues/126429384">https://issuetracker.google.com/issues/126429384</a>.</p>
 <p><strong>Note:</strong> Keeper uses private APIs from AGP and could break between releases. It is currently
 tested against AGP version 4.0.0 and 4.1.0-alpha09 (or whatever <code>ci_agp_version</code> env
-vars are described <a href="https://github.com/slackhq/keeper/blob/master/.github/workflows/ci.yml">here</a>.</p>
+vars are described <a href="https://github.com/slackhq/keeper/blob/main/.github/workflows/ci.yml">here</a>.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p>Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application&rsquo;s
 build.gradle. Keeper requires Gradle 6.0 or higher.</p>
@@ -450,7 +450,7 @@ in <code>settings.gradle</code>.</p>
 <li>Register two jar tasks per <code>androidTest</code> variant. One for all the classes in its target <code>testedVariant</code>
   and one for all the classes in the androidTest variant itself. This will use their variant-provided
   <code>JavaCompile</code> tasks and <code>KotlinCompile</code> tasks if available.</li>
-<li>Register a <a href="https://github.com/slackhq/keeper/blob/master/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt"><code>infer${androidTestVariant}UsageForKeeper</code></a>
+<li>Register a <a href="https://github.com/slackhq/keeper/blob/main/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt"><code>infer${androidTestVariant}UsageForKeeper</code></a>
   task that plugs the two aforementioned jars into R8&rsquo;s <code>PrintUses</code> CLI and outputs the inferred
   proguard rules into a new intermediate <code>.pro</code> file.</li>
 <li>Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
