@@ -35,7 +35,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
+import java.io.File
 import java.util.zip.Deflater
+import java.util.zip.ZipFile
 
 abstract class BaseKeeperJarTask : DefaultTask() {
 
@@ -45,11 +47,13 @@ abstract class BaseKeeperJarTask : DefaultTask() {
   @get:OutputDirectory
   abstract val diagnosticsOutputDir: DirectoryProperty
 
-  protected fun diagnostic(fileName: String, body: () -> String) {
-    if (emitDebugInfo.get()) {
+  protected fun diagnostic(fileName: String, body: () -> String): File? {
+    return if (emitDebugInfo.get()) {
       diagnosticsOutputDir.get().file("${fileName}.txt").asFile.apply {
         writeText(body())
       }
+    } else {
+      null
     }
   }
 }
@@ -193,6 +197,28 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
     diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Classes") {
       androidTestClasses.sorted().joinToString("\n")
+    }
+
+    // See https://issuetracker.google.com/issues/157583077 for why we do this
+    if (emitDebugInfo.get()) {
+      val duplicateClasses: Set<String> = appJars.asSequence()
+          .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
+          .map { it.name }
+          .distinct()
+          .filterTo(LinkedHashSet()) { it in androidTestClasses }
+
+      if (duplicateClasses.isNotEmpty()) {
+        val output = diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DuplicateClasses") {
+          duplicateClasses.sorted().joinToString("\n")
+        }
+        throw IllegalStateException("Duplicate classes found in androidTest APK and app APK! This" +
+            " is usually a bug and can cause obscure runtime errors during tests due to the app" +
+            " classes being optimized while the androidTest copies of them that are actually used" +
+            " at runtime are not. This usually happens when two different dependencies " +
+            "contribute the same classes and the app configuration only depends on one of them " +
+            "while the androidTest configuration depends on only on the other. " +
+            "The list of all duplicate classes can be found at file://$output")
+      }
     }
   }
 }
