@@ -17,10 +17,13 @@
 package com.slack.keeper.sample;
 
 import android.app.Application;
+import com.gabrielittner.threetenbp.LazyThreeTen;
 
 public class SampleApplication extends Application {
   @Override public void onCreate() {
     super.onCreate();
+    LazyThreeTen.init(this);
+    LazyThreeTen.cacheZones();
     ApplicationUsedClass.applicationCalledMethod();
   }
 }
