@@ -211,8 +211,8 @@ abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
         val output = diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DuplicateClasses") {
           duplicateClasses.sorted().joinToString("\n")
         }
-        throw IllegalStateException("Duplicate classes found in androidTest APK and app APK! This" +
-            " is usually a bug and can cause obscure runtime errors during tests due to the app" +
+        logger.warn("Duplicate classes found in androidTest APK and app APK! This" +
+            " can cause obscure runtime errors during tests due to the app" +
             " classes being optimized while the androidTest copies of them that are actually used" +
             " at runtime are not. This usually happens when two different dependencies " +
             "contribute the same classes and the app configuration only depends on one of them " +
