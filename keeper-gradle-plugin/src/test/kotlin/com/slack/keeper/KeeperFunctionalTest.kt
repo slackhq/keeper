@@ -175,12 +175,37 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     projectDir.runAsWiredStaging()
   }
 
+  @Test
+  fun duplicateClassesWarning() {
+    val buildFile = buildGradleFile(
+        testBuildType = "staging",
+        emitDebugInformation = true,
+        extraDependencies = mapOf(
+            "implementation" to "\"org.threeten:threetenbp:1.4.0:no-tzdb\"",
+            "androidTestImplementation" to "\"org.threeten:threetenbp:1.4.0\""
+        )
+    )
+    val (projectDir, _) = prepareProject(temporaryFolder, buildFile)
+    projectDir.runSingleTask("jarExternalStagingAndroidTestClassesForKeeper")
+
+    // Check that we emitted a duplicate classes file
+    val duplicateClasses = projectDir.generatedChild("diagnostics/externalStagingAndroidTestDuplicateClasses.txt")
+    assertThat(duplicateClasses.readText().trim()).isNotEmpty()
+  }
+
   // TODO test cases
   //  Transitive androidTest deps using transitive android deps (i.e. like IdlingResource)
   //  multidex (zip64 use in jars)
 
+  private fun File.runSingleTask(name: String): BuildResult {
+    val result = runGradle(this, name, "-x", "lintVitalExternalStaging")
+    assertThat(result.resultOf(name)).isEqualTo(
+        TaskOutcome.SUCCESS)
+    return result
+  }
+
   private fun File.runAsWiredStaging(): BuildResult {
-    val result = runGradle(this, "assembleExternalStagingAndroidTest", "-x", "lintVitalExternalStaging")
+    val result = runSingleTask("assembleExternalStagingAndroidTest")
     assertThat(result.resultOf("jarExternalStagingAndroidTestClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
     assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
@@ -253,7 +278,9 @@ private val TEST_PROGUARD_RULES = """
 private fun buildGradleFile(
     testBuildType: String,
     automaticR8RepoManagement: Boolean = true,
-    includeVariantFilter: Boolean = true
+    includeVariantFilter: Boolean = true,
+    emitDebugInformation: Boolean = false,
+    extraDependencies: Map<String, String> = emptyMap()
 ) = """
   buildscript {
     repositories {
@@ -332,6 +359,7 @@ private fun buildGradleFile(
   keeper {
     ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
     ${if (!includeVariantFilter) "" else """
+    emitDebugInformation.set($emitDebugInformation)
     variantFilter {
       setIgnore(name == "externalRelease")
     }
@@ -341,6 +369,7 @@ private fun buildGradleFile(
   dependencies {
     //noinspection DifferentStdlibGradleVersion
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.3.72"
+    ${extraDependencies.entries.joinToString("\n") { "    ${it.key} ${it.value}" }}
   }
 """.trimIndent()
 

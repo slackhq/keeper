@@ -49,7 +49,7 @@ internal fun File.newDir(path: String): File {
   return File(this, path).apply { mkdirs() }
 }
 
-internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", path)
+internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", *path.split("/").toTypedArray())
 internal fun File.child(vararg path: String) = File(this,
     path.toList().joinToString(File.separator))
 
