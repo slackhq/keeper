@@ -113,7 +113,7 @@ dependencies {
   compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
   kapt("com.google.auto.service:auto-service:1.0-rc7")
 
-  testImplementation("com.squareup:javapoet:1.12.1")
+  testImplementation("com.squareup:javapoet:1.13.0")
   testImplementation("com.squareup:kotlinpoet:1.6.0")
   testImplementation("com.google.truth:truth:1.0.1")
   testImplementation("junit:junit:4.13")
