@@ -58,11 +58,11 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
 
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")
-  var emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
+  val emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
 
   /** Controls whether or not to enable assertions in the JavaExec run of R8. Default is true. */
   @Suppress("UnstableApiUsage")
-  var enableAssertions: Property<Boolean> = objects.property<Boolean>().convention(true)
+  val enableAssertions: Property<Boolean> = objects.property<Boolean>().convention(true)
 }
 
 
