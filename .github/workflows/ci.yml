@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         ci_java_version: [1.8]
-        ci_agp_version: [4.0.0, 4.1.0-alpha09]
+        ci_agp_version: [4.0.0, 4.1.0-beta05, 4.2.0-alpha05]
         job: [instrumentation, plugin]
     steps:
       - name: Checkout
