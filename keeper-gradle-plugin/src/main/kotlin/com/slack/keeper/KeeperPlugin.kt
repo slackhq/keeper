@@ -106,7 +106,7 @@ class KeeperPlugin : Plugin<Project> {
       val appExtension = project.extensions.getByType<AppExtension>()
       val extension = project.extensions.create<KeeperExtension>("keeper")
       project.configureKeepRulesGeneration(appExtension, extension)
-      project.configureL8Rules(appExtension, extension)
+//      project.configureL8Rules(appExtension, extension)
     }
   }
 
