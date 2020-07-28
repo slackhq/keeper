@@ -17,10 +17,14 @@
 package com.slack.keeper.sample;
 
 import android.app.Application;
+import java.time.Instant;
 
 public class SampleApplication extends Application {
   @Override public void onCreate() {
     super.onCreate();
     ApplicationUsedClass.applicationCalledMethod();
+
+    // This tests that j$ classes produced by L8 are properly kept in the androidTest APK
+    System.out.println("Time is " + Instant.now());
   }
 }
