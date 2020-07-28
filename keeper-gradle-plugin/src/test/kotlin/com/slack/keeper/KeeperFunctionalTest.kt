@@ -112,13 +112,17 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
    */
   @Test
   fun standard() {
-    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder, buildGradleFile("staging"))
+    val (projectDir, proguardConfigOutput) = prepareProject(temporaryFolder,
+        buildGradleFile("staging"))
 
     val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
-    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStaging", minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStagingAndroidTest", minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(
+        KeeperPlugin.interpolateTaskName("ExternalStaging", minifierType.taskName))).isEqualTo(
+        TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStagingAndroidTest",
+        minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("externalStaging.jar")
@@ -133,7 +137,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(androidTestClasses).containsNoneIn(EXPECTED_APP_CLASSES)
 
     // Assert we correctly generated rules
-    val generatedRules = projectDir.generatedChild("inferredExternalStagingAndroidTestKeepRules.pro")
+    val generatedRules = projectDir.generatedChild(
+        "inferredExternalStagingAndroidTestKeepRules.pro")
     assertThat(generatedRules.readText().trim()).isEqualTo(EXPECTED_GENERATED_RULES)
 
     // Finally - verify our rules were included in the final minification execution.
@@ -157,7 +162,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   // an error will be emitted, and the tasks won't be created.
   @Test
   fun variantFilterWarning() {
-    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("debug", includeVariantFilter = false))
+    val (projectDir, _) = prepareProject(temporaryFolder,
+        buildGradleFile("debug", includeVariantFilter = false))
 
     val result = runGradle(projectDir, "assembleInternalDebug")
 
@@ -165,7 +171,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.findTask("jarInternalDebugAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarInternalDebugClassesForKeeper")).isNull()
     assertThat(result.findTask("inferInternalDebugAndroidTestKeepRulesForKeeper")).isNull()
-    assertThat(result.output).contains("Keeper is configured to generate keep rules for the \"internalDebug\" build variant")
+    assertThat(result.output).contains(
+        "Keeper is configured to generate keep rules for the \"internalDebug\" build variant")
   }
 
   // Ensures that manual R8 repo management works
@@ -189,7 +196,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     projectDir.runSingleTask("jarExternalStagingAndroidTestClassesForKeeper")
 
     // Check that we emitted a duplicate classes file
-    val duplicateClasses = projectDir.generatedChild("diagnostics/externalStagingAndroidTestDuplicateClasses.txt")
+    val duplicateClasses = projectDir.generatedChild(
+        "diagnostics/externalStagingAndroidTestDuplicateClasses.txt")
     assertThat(duplicateClasses.readText().trim()).isNotEmpty()
   }
 
@@ -210,7 +218,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         TaskOutcome.SUCCESS)
     assertThat(result.resultOf("jarExternalStagingClassesForKeeper")).isEqualTo(
         TaskOutcome.SUCCESS)
-    assertThat(result.resultOf("inferExternalStagingAndroidTestKeepRulesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferExternalStagingAndroidTestKeepRulesForKeeper")).isEqualTo(
+        TaskOutcome.SUCCESS)
     return result
   }
 
@@ -233,7 +242,8 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
   private fun BuildResult.resultOf(name: String): TaskOutcome {
     return findTask(name)?.outcome
-        ?: error("Could not find task '$name', which is usually an indication that it didn't run. See GradleRunner's printed task graph for more details.")
+        ?: error(
+            "Could not find task '$name', which is usually an indication that it didn't run. See GradleRunner's printed task graph for more details.")
   }
 }
 
@@ -274,14 +284,16 @@ private val TEST_PROGUARD_RULES = """
   -dontnote **
 """.trimIndent()
 
-@Language("groovy")
 private fun buildGradleFile(
     testBuildType: String,
     automaticR8RepoManagement: Boolean = true,
     includeVariantFilter: Boolean = true,
     emitDebugInformation: Boolean = false,
     extraDependencies: Map<String, String> = emptyMap()
-) = """
+): String {
+  @Suppress("UnnecessaryVariable")
+  @Language("groovy")
+  val buildScript = """
   buildscript {
     repositories {
       google()
@@ -292,6 +304,7 @@ private fun buildGradleFile(
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
       classpath "com.android.tools.build:gradle:4.0.0"
+      //noinspection DifferentKotlinGradleVersion
       classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72"
     }
   }
@@ -346,24 +359,28 @@ private fun buildGradleFile(
     google()
     mavenCentral()
     jcenter()
-    ${if (automaticR8RepoManagement) "" else """
+    ${
+    if (automaticR8RepoManagement) "" else """
     maven {
       url = uri("https://storage.googleapis.com/r8-releases/raw")
       content {
         includeModule("com.android.tools", "r8")
       }
     }
-    """}
+    """
+  }
   }
   
   keeper {
-    ${if (automaticR8RepoManagement) "" else "automaticR8RepoManagement = false"}
-    ${if (!includeVariantFilter) "" else """
     emitDebugInformation.set($emitDebugInformation)
+    automaticR8RepoManagement.set($automaticR8RepoManagement)
+    ${
+    if (!includeVariantFilter) "" else """
     variantFilter {
       setIgnore(name == "externalRelease")
     }
-    """}
+    """
+  }
   }
   
   dependencies {
@@ -372,6 +389,8 @@ private fun buildGradleFile(
     ${extraDependencies.entries.joinToString("\n") { "    ${it.key} ${it.value}" }}
   }
 """.trimIndent()
+  return buildScript
+}
 
 private val MAIN_SOURCES = setOf(
     // Class that's accessed from the application but not test sources
@@ -448,7 +467,6 @@ private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: Stri
   projectDir.newFile("build.gradle").apply { writeText(buildFileText) }
   projectDir.newFile("proguard-test-rules.pro") { writeText(TEST_PROGUARD_RULES) }
   projectDir.newFile("src/main/AndroidManifest.xml") {
-    //language=xml
     writeText("""
       <?xml version="1.0" encoding="utf-8"?>
       <manifest package="com.slack.keeper.sample">
@@ -457,7 +475,6 @@ private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: Stri
     """.trimIndent())
   }
   projectDir.newFile("src/androidTest/AndroidManifest.xml") {
-    //language=xml
     writeText("""
       <?xml version="1.0" encoding="utf-8"?>
       <manifest package="com.slack.keeper.sample" />
