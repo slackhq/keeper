@@ -117,7 +117,7 @@ class KeeperPlugin : Plugin<Project> {
     project.afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
         val r8Enabled = !project.hasProperty("android.enableR8") ||
-            project.property("android.enableR8")?.toString()?.toBoolean() != null
+            project.property("android.enableR8")?.toString()?.toBoolean() != false
         if (r8Enabled) {
           appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
             val inputFiles = tasks.withType<R8Task>()
