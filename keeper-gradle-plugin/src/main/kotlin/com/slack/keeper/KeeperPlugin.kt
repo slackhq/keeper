@@ -106,7 +106,7 @@ class KeeperPlugin : Plugin<Project> {
       val appExtension = project.extensions.getByType<AppExtension>()
       val extension = project.extensions.create<KeeperExtension>("keeper")
       project.configureKeepRulesGeneration(appExtension, extension)
-//      project.configureL8Rules(appExtension, extension)
+      project.configureL8Rules(appExtension, extension)
     }
   }
 
@@ -177,9 +177,9 @@ class KeeperPlugin : Plugin<Project> {
           appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
       )
       val inferAndroidTestUsageProvider = tasks.register(
-          "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
+          "infer${appVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
           InferAndroidTestKeepRules(
-              variantName = name,
+              variantName = appVariant.name,
               androidTestJarProvider = intermediateAndroidTestJar,
               releaseClassesJarProvider = intermediateAppJar,
               androidJar = androidJarRegularFileProvider,
