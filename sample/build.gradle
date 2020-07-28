@@ -137,7 +137,7 @@ dependencies {
   coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.0.9"
 
   androidTestImplementation project(":sample-libraries:c")
-  androidTestImplementation "com.squareup.okio:okio:2.6.0"
+  androidTestImplementation "com.squareup.okio:okio:2.7.0"
   androidTestImplementation "androidx.annotation:annotation:1.1.0"
   androidTestImplementation "androidx.test:rules:1.3.0-rc01"
   androidTestImplementation "androidx.test:runner:1.3.0-rc01"
