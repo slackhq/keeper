@@ -139,7 +139,7 @@ class KeeperPlugin : Plugin<Project> {
             it.execute(filter)
             project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
             filter._ignored
-          } ?: false
+          } ?: !appVariant.buildType.isMinifyEnabled
           if (ignoredVariant) {
             return@configureEach
           }

@@ -71,9 +71,11 @@ if (!hasProperty("productionBuild")) {
 
 ### Variant filter
 
-You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
-Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except that there
-is no `defaultConfig` property.
+By default, Keeper will run on any app variant that sets minifyEnabled = true.
+
+Alternatively, you can specify a `variantFilter` on the `keeper` extension and dynamically configure
+which variants Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except
+that there is no `defaultConfig` property.
 
 **Note:** Variants with different `enabled` values will have to be compiled separately. This is common
 in most multi-variant projects anyway, but something to be aware of.
