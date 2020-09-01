@@ -1,6 +1,6 @@
-Keeper's default behavior with no configuration will enable it for _all_
-androidTest variants. This may not be what you want for your actual production builds that you plan
-to distribute.
+Keeper's default behavior with no configuration will enable it for only buildTypes which use
+minifyEnabled = true. This may not be what you want for your actual production builds that you
+plan to distribute.
 
 Normally, your app variant's minification task doesn't depend on compilation of its corresponding
 `androidTest` variant. This means you can call `assembleRelease` and `assembleAndroidTestRelease`
