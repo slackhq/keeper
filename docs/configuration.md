@@ -71,7 +71,7 @@ if (!hasProperty("productionBuild")) {
 
 ### Variant filter
 
-By default, Keeper will run on any app variant that sets minifyEnabled = true.
+By default, Keeper will run on any app variant that sets `minifyEnabled` to true.
 
 Alternatively, you can specify a `variantFilter` on the `keeper` extension and dynamically configure
 which variants Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except
