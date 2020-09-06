@@ -139,7 +139,7 @@ class KeeperPlugin : Plugin<Project> {
             it.execute(filter)
             project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
             filter._ignored
-          } ?: false
+          } ?: !appVariant.buildType.isMinifyEnabled
           if (ignoredVariant) {
             return@configureEach
           }
@@ -322,7 +322,7 @@ internal fun String.capitalize(locale: Locale): String {
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
   @Suppress("PropertyName")
-  var _ignored: Boolean = true
+  var _ignored: Boolean = false
 
   override fun setIgnore(ignore: Boolean) {
     _ignored = ignore

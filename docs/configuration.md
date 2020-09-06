@@ -1,6 +1,6 @@
-Keeper's default behavior with no configuration will enable it for _all_
-androidTest variants. This may not be what you want for your actual production builds that you plan
-to distribute.
+Keeper's default behavior with no configuration will enable it for only buildTypes that set
+`minifyEnabled` to true. This may not be what you want for your actual production builds that you
+plan to distribute.
 
 Normally, your app variant's minification task doesn't depend on compilation of its corresponding
 `androidTest` variant. This means you can call `assembleRelease` and `assembleAndroidTestRelease`
@@ -71,9 +71,11 @@ if (!hasProperty("productionBuild")) {
 
 ### Variant filter
 
-You can specify a `variantFilter` on the `keeper` extension and dynamically configure which variants
-Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except that there
-is no `defaultConfig` property.
+By default, Keeper will run on any app variant that sets `minifyEnabled` to true.
+
+Alternatively, you can specify a `variantFilter` on the `keeper` extension and dynamically configure
+which variants Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except
+that there is no `defaultConfig` property.
 
 **Note:** Variants with different `enabled` values will have to be compiled separately. This is common
 in most multi-variant projects anyway, but something to be aware of.

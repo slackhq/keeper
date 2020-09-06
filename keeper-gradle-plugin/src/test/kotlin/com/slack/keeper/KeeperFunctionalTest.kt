@@ -165,7 +165,6 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(result.findTask("jarInternalDebugAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarInternalDebugClassesForKeeper")).isNull()
     assertThat(result.findTask("inferInternalDebugAndroidTestKeepRulesForKeeper")).isNull()
-    assertThat(result.output).contains("Keeper is configured to generate keep rules for the \"internalDebug\" build variant")
   }
 
   // Ensures that manual R8 repo management works
