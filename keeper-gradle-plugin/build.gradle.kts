@@ -19,8 +19,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.3.72"
-  kotlin("kapt") version "1.3.72"
+  kotlin("jvm") version "1.4.0"
+  kotlin("kapt") version "1.4.0"
   id("com.vanniktech.maven.publish") version "0.12.0"
   id("com.github.johnrengelman.shadow") version "5.2.0"
 }
@@ -89,9 +89,9 @@ val releaseMode = hasProperty("keeper.releaseMode")
 val shade: Configuration = configurations.maybeCreate("compileShaded")
 configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
+  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.0")
 
   // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
   // consumers, so we shade it.

@@ -332,7 +332,7 @@ private fun buildGradleFile(
       // Note: this version doesn't really matter, the plugin's version will override it in the test
       classpath "com.android.tools.build:gradle:4.0.0"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.0"
     }
   }
 
@@ -407,7 +407,7 @@ private fun buildGradleFile(
   
   dependencies {
     //noinspection DifferentStdlibGradleVersion
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.3.72"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.0"
     ${extraDependencies.entries.joinToString("\n") { "    ${it.key} ${it.value}" }}
   }
 """.trimIndent()
