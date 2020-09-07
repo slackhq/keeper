@@ -164,6 +164,36 @@ class KeeperPlugin : Plugin<Project> {
     val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
     val diagnosticOutputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
 
+    appExtension.testVariants.configureEach {
+      val appVariant = testedVariant
+      val extensionFilter = extension._variantFilter
+      val ignoredVariant = extensionFilter?.let {
+        project.logger.debug(
+          "$TAG Resolving ignored status for android variant ${appVariant.name}")
+        val filter = VariantFilterImpl(appVariant)
+        it.execute(filter)
+        project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+        filter._ignored
+      } ?: !appVariant.buildType.isMinifyEnabled
+      if (ignoredVariant) {
+        return@configureEach
+      }
+      if (!appVariant.buildType.isMinifyEnabled) {
+        logger.error("""
+            Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
+            have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
+            the Keeper plugin when android.testBuildType = ${appVariant.buildType.name}, or use the variant filter feature 
+            of the DSL to exclude "${appVariant.name}" from keeper:
+              keeper {
+                variantFilter {
+                  setIgnore(name != <the variant to test>)
+                }
+              }
+            """.trimIndent())
+        return@configureEach
+      }
+    }
+
     appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
       val intermediateAppJar = createIntermediateAppJar(
           appVariant = appVariant,
@@ -366,7 +396,7 @@ internal fun String.capitalize(locale: Locale): String {
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
   @Suppress("PropertyName")
-  var _ignored: Boolean = true
+  var _ignored: Boolean = false
 
   override fun setIgnore(ignore: Boolean) {
     _ignored = ignore

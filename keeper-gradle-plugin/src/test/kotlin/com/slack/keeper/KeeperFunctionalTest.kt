@@ -101,7 +101,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
   @Rule
   @JvmField
-  val temporaryFolder = TemporaryFolder()
+  val temporaryFolder: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
 
   /**
    * Basic smoke test. This covers the standard flow and touches on the following:
@@ -146,24 +146,32 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     assertThat(proguardConfigOutput.readText().trim()).contains(minifierType.expectedRules)
   }
 
-  // Asserts that our variant filter properly filters things out. In our fixture project, this is
-  // the externalRelease variant
+  // Asserts that our variant filter properly filters things out. In our fixture project, the
+  // "externalRelease" build variant will be ignored, while tasks will be generated for the
+  // "internalRelease" variant.
   @Test
   fun variantFilter() {
-    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("release"))
+    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("release",
+        sampleVariantFilter = SampleVariantFilter.ONLY_INTERNAL_RELEASE))
 
-    val result = runGradle(projectDir, "assembleExternalRelease", "-x", "lintVitalExternalRelease")
+    val result = runGradle(projectDir, "assembleExternalRelease", "assembleInternalRelease", "-x",
+        "lintVitalExternalRelease", "-x", "lintVitalInternalRelease")
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
-    assertThat(result.findTask("inferExternalStagingAndroidTestKeepRulesForKeeper")).isNull()
+    assertThat(result.findTask("inferExternalReleaseAndroidTestKeepRulesForKeeper")).isNull()
+
+    assertThat(result.resultOf("jarInternalReleaseAndroidTestClassesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("jarInternalReleaseClassesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf("inferInternalReleaseAndroidTestKeepRulesForKeeper")).isEqualTo(TaskOutcome.SUCCESS)
   }
 
   // Asserts that if Keeper was configured to create keep rules for a variant that isn't minified,
   // an error will be emitted, and the tasks won't be created.
   @Test
   fun variantFilterWarning() {
-    val (projectDir, _) = prepareProject(temporaryFolder,
-        buildGradleFile("debug", includeVariantFilter = false))
+    // internalDebug variant isn't minified, but the variantFilter includes it.
+    val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("debug",
+        sampleVariantFilter = SampleVariantFilter.ONLY_INTERNAL_DEBUG))
 
     val result = runGradle(projectDir, "assembleInternalDebug")
 
@@ -284,10 +292,29 @@ private val TEST_PROGUARD_RULES = """
   -dontnote **
 """.trimIndent()
 
+enum class SampleVariantFilter(val groovy: String) {
+  NONE(""),
+  ONLY_INTERNAL_RELEASE(
+      """
+      variantFilter {
+        setIgnore(name != "internalRelease")
+      }
+      """.trimIndent()
+  ),
+  ONLY_INTERNAL_DEBUG(
+      """
+      variantFilter {
+        setIgnore(name != "internalDebug")
+      }
+      """.trimIndent()
+  );
+}
+
+@Language("groovy")
 private fun buildGradleFile(
     testBuildType: String,
     automaticR8RepoManagement: Boolean = true,
-    includeVariantFilter: Boolean = true,
+    sampleVariantFilter: SampleVariantFilter = SampleVariantFilter.NONE,
     emitDebugInformation: Boolean = false,
     extraDependencies: Map<String, String> = emptyMap()
 ): String {
@@ -374,13 +401,8 @@ private fun buildGradleFile(
   keeper {
     emitDebugInformation.set($emitDebugInformation)
     automaticR8RepoManagement.set($automaticR8RepoManagement)
-    ${
-    if (!includeVariantFilter) "" else """
-    variantFilter {
-      setIgnore(name == "externalRelease")
-    }
-    """
-  }
+    emitDebugInformation.set($emitDebugInformation)
+    ${sampleVariantFilter.groovy}
   }
   
   dependencies {
