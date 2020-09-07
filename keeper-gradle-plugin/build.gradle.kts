@@ -95,7 +95,7 @@ dependencies {
 
   // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
   // consumers, so we shade it.
-  shade("com.android:zipflinger:4.1.0-alpha09") {
+  shade("com.android:zipflinger:4.1.0-rc02") {
     // ZipFlinger depends on com.android.tools:common and guava, but neither are actually used
     // com.android.tools:annotations are used, but we can exclude them too since they're just
     // annotations and not needed at runtime.
