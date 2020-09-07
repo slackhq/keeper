@@ -22,7 +22,7 @@ plugins {
   kotlin("jvm") version "1.4.0"
   kotlin("kapt") version "1.4.0"
   id("com.vanniktech.maven.publish") version "0.12.0"
-  id("com.github.johnrengelman.shadow") version "5.2.0"
+  id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 buildscript {
@@ -144,8 +144,7 @@ afterEvaluate {
       if (name == "pluginMaven") {
         // This is to properly wire the shadow jar's gradle metadata and pom information
         setArtifacts(artifacts.matching { it.classifier != "" })
-        // Ugly but artifact() doesn't support TaskProviders
-        artifact(shadowJar.get())
+        artifact(shadowJar)
       }
     }
   }
