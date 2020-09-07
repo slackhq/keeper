@@ -521,6 +521,8 @@ private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: Stri
     writeText("""
       -printconfiguration ${proguardConfigOutput.absolutePath}
       -keep class com.slack.keeper.sample.SampleApplication { *; }
+      # Proguard complains about module-info classes in META-INF
+      -ignorewarnings
     """.trimIndent())
   }
 

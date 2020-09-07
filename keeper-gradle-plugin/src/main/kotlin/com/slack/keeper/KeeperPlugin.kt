@@ -207,9 +207,9 @@ class KeeperPlugin : Plugin<Project> {
           appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
       )
       val inferAndroidTestUsageProvider = tasks.register(
-          "infer${appVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
+          "infer${testVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
           InferAndroidTestKeepRules(
-              variantName = appVariant.name,
+              variantName = testVariant.name,
               androidTestJarProvider = intermediateAndroidTestJar,
               releaseClassesJarProvider = intermediateAppJar,
               androidJar = androidJarRegularFileProvider,
