@@ -105,14 +105,16 @@ class KeeperPlugin : Plugin<Project> {
     project.pluginManager.withPlugin("com.android.application") {
       val appExtension = project.extensions.getByType<AppExtension>()
       val extension = project.extensions.create<KeeperExtension>("keeper")
-      project.configureKeepRulesGeneration(appExtension, extension)
-      project.configureL8Rules(appExtension, extension)
+      val diagnosticOutputDir = project.layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
+      project.configureKeepRulesGeneration(appExtension, extension, diagnosticOutputDir)
+      project.configureL8Rules(appExtension, extension, diagnosticOutputDir)
     }
   }
 
   private fun Project.configureL8Rules(
       appExtension: AppExtension,
-      extension: KeeperExtension
+      extension: KeeperExtension,
+      diagnosticOutputDir: Provider<Directory>
   ) {
     project.afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
@@ -128,6 +130,21 @@ class KeeperPlugin : Plugin<Project> {
                 .configure {
                   keepRulesFiles.from(inputFiles)
                   keepRulesConfigurations.set(listOf("-dontobfuscate"))
+
+                  if (extension.emitDebugInformation.getOrElse(false)) {
+                    doFirst {
+                      val mergedFilesContent = keepRulesFiles.files.asSequence()
+                          .flatMap { it.walkTopDown() }
+                          .filterNot { it.isDirectory }
+                          .joinToString("\n") {
+                            "# Source: ${it.absolutePath}\n${it.readText()}"
+                          }
+                      val configurations = keepRulesConfigurations.orNull.orEmpty().joinToString("\n", prefix = "# Source: extra configurations\n")
+                      diagnosticOutputDir.get().file("${testVariant.name}MergedL8Rules.pro")
+                          .asFile
+                          .writeText("$mergedFilesContent\n$configurations")
+                    }
+                  }
                 }
           }
         } else {
@@ -139,7 +156,8 @@ class KeeperPlugin : Plugin<Project> {
 
   private fun Project.configureKeepRulesGeneration(
       appExtension: AppExtension,
-      extension: KeeperExtension
+      extension: KeeperExtension,
+      diagnosticOutputDir: Provider<Directory>
   ) {
     // Set up r8 configuration
     val r8Configuration = configurations.create(CONFIGURATION_NAME) {
@@ -162,7 +180,6 @@ class KeeperPlugin : Plugin<Project> {
       }
     }
     val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
-    val diagnosticOutputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
