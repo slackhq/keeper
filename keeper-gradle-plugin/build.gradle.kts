@@ -89,7 +89,6 @@ val releaseMode = hasProperty("keeper.releaseMode")
 val shade: Configuration = configurations.maybeCreate("compileShaded")
 configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.10")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.10")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.10")
 
