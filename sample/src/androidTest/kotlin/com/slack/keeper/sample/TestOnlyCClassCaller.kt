@@ -19,11 +19,14 @@ package com.slack.keeper.sample
 import com.slack.keeper.example.c.TestOnlyCClass
 import okio.ByteString
 import okio.ByteString.Companion.encodeUtf8
+import java.time.Duration
 
 object TestOnlyCClassCaller {
   fun callCClass() {
+    // Duration usage to trigger L8, different than the L8 usage in the app.
+    val days = Duration.ofDays(1)
     TestOnlyCClass.sampleMethod()
-    val byteString: ByteString = "Hello C caller!".encodeUtf8()
+    val byteString: ByteString = "Hello C caller! See you in $days day.".encodeUtf8()
     println(byteString.hex())
   }
 }

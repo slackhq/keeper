@@ -20,12 +20,12 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.slack.keeper'
 
 android {
-  compileSdkVersion 29
+  compileSdkVersion 30
 
   defaultConfig {
     applicationId "com.slack.keeper.example"
     minSdkVersion 21
-    targetSdkVersion 29
+    targetSdkVersion 30
     versionCode 1
     versionName "1"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -87,6 +87,9 @@ keeper {
 
   // Example: automatic R8 repo management (more below)
   automaticR8RepoManagement = false
+
+  // Example: share proguard rules for L8 (library desugaring).
+  enableL8RuleSharing = true
 }
 
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.
