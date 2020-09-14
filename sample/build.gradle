@@ -107,7 +107,7 @@ if (isCi) {
           String outputRules = outputProguardRules.getAsFile().get().text
           String expectedRules = file("expectedRules.pro").text
           if (outputRules != expectedRules) {
-            throw IllegalStateException("Rules don't match expected!")
+            throw new IllegalStateException("Rules don't match expected!")
           }
         }
       }
@@ -120,9 +120,9 @@ if (isCi) {
           String diagnosticFilePath = "build/intermediates/keeper/diagnostics/externalStagingAndroidTestMergedL8Rules.pro"
           String diagnostics = file(diagnosticFilePath).text
           if (!diagnostics.contains("-dontobfuscate")) {
-            throw IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
+            throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
           } else if (!diagnostics.contains("-keep class j\$.time.Instant")) {
-            throw IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
+            throw new IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
           }
         }
       }
