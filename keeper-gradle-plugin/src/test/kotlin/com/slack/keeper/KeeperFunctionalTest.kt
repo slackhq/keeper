@@ -406,8 +406,6 @@ private fun buildGradleFile(
   }
   
   dependencies {
-    //noinspection DifferentStdlibGradleVersion
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.0"
     ${extraDependencies.entries.joinToString("\n") { "    ${it.key} ${it.value}" }}
   }
 """.trimIndent()
