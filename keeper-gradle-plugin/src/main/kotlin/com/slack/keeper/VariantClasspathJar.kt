@@ -18,8 +18,8 @@
 
 package com.slack.keeper
 
-import com.android.zipflinger.BytesSource
-import com.android.zipflinger.ZipArchive
+import com.slack.keeper.internal.zipflinger.BytesSource
+import com.slack.keeper.internal.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
