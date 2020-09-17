@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -22,7 +21,6 @@ plugins {
   kotlin("jvm") version "1.4.10"
   kotlin("kapt") version "1.4.10"
   id("com.vanniktech.maven.publish") version "0.12.0"
-  id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 buildscript {
@@ -86,21 +84,9 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
-val shade: Configuration = configurations.maybeCreate("compileShaded")
-configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.10")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.10")
-
-  // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
-  // consumers, so we shade it.
-  shade("com.android:zipflinger:4.1.0-alpha09") {
-    // ZipFlinger depends on com.android.tools:common and guava, but neither are actually used
-    // com.android.tools:annotations are used, but we can exclude them too since they're just
-    // annotations and not needed at runtime.
-    exclude(group = "com.android.tools")
-    exclude(group = "com.google.guava")
-  }
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
@@ -115,36 +101,4 @@ dependencies {
   testImplementation("com.squareup:kotlinpoet:1.6.0")
   testImplementation("com.google.truth:truth:1.0.1")
   testImplementation("junit:junit:4.13")
-}
-
-tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
-  target = tasks.shadowJar.get()
-}
-
-val shadowJar = tasks.shadowJar.apply {
-  configure {
-    dependsOn(tasks.getByName("relocateShadowJar"))
-    minimize()
-    archiveClassifier.set("")
-    configurations = listOf(shade)
-    relocate("com.android.zipflinger", "com.slack.keeper.internal.zipflinger")
-  }
-}
-artifacts {
-  runtime(shadowJar)
-  archives(shadowJar)
-}
-
-// Shadow plugin doesn't natively support gradle metadata, so we have to tell the maven plugin where
-// to get a jar now.
-afterEvaluate {
-  configure<PublishingExtension> {
-    publications.withType<MavenPublication>().configureEach {
-      if (name == "pluginMaven") {
-        // This is to properly wire the shadow jar's gradle metadata and pom information
-        setArtifacts(artifacts.matching { it.classifier != "" })
-        artifact(shadowJar)
-      }
-    }
-  }
 }
