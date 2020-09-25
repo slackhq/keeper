@@ -166,7 +166,7 @@ public class KeeperPlugin : Plugin<Project> {
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        add(dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+        add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
       }
     }
 
