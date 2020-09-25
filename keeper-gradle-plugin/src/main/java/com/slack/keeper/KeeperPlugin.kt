@@ -122,11 +122,11 @@ public class KeeperPlugin : Plugin<Project> {
             project.property("android.enableR8")?.toString()?.toBoolean() != false
         if (r8Enabled) {
           appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
-            val inputFiles = tasks.withType<R8Task>()
-                .named("minify${appVariant.name.capitalize(Locale.US)}WithR8")
+            val inputFiles = tasks
+                .named<R8Task>("minify${appVariant.name.capitalize(Locale.US)}WithR8")
                 .flatMap { it.projectOutputKeepRules }
-            tasks.withType<L8DexDesugarLibTask>()
-                .named("l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}")
+            tasks
+                .named<L8DexDesugarLibTask>("l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}")
                 .configure {
                   keepRulesFiles.from(inputFiles)
                   keepRulesConfigurations.set(listOf("-dontobfuscate"))
