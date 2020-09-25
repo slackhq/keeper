@@ -116,10 +116,10 @@ public class KeeperPlugin : Plugin<Project> {
       extension: KeeperExtension,
       diagnosticOutputDir: Provider<Directory>
   ) {
-    project.afterEvaluate {
+    afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
-        val r8Enabled = !project.hasProperty("android.enableR8") ||
-            project.property("android.enableR8")?.toString()?.toBoolean() != false
+        val r8Enabled = !hasProperty("android.enableR8") ||
+            property("android.enableR8")?.toString()?.toBoolean() != false
         if (r8Enabled) {
           appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
             val inputFiles = tasks
@@ -166,11 +166,11 @@ public class KeeperPlugin : Plugin<Project> {
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+        add(dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
       }
     }
 
-    val androidJarFileProvider = project.provider {
+    val androidJarFileProvider = provider {
       val compileSdkVersion = appExtension.compileSdkVersion
           ?: error("No compileSdkVersion found")
       File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
@@ -179,17 +179,17 @@ public class KeeperPlugin : Plugin<Project> {
         }
       }
     }
-    val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
+    val androidJarRegularFileProvider = layout.file(androidJarFileProvider)
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
       val extensionFilter = extension._variantFilter
       val ignoredVariant = extensionFilter?.let {
-        project.logger.debug(
+        logger.debug(
           "$TAG Resolving ignored status for android variant ${appVariant.name}")
         val filter = VariantFilterImpl(appVariant)
         it.execute(filter)
-        project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+        logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
         filter._ignored
       } ?: !appVariant.buildType.isMinifyEnabled
       if (ignoredVariant) {
@@ -237,9 +237,9 @@ public class KeeperPlugin : Plugin<Project> {
           )
       )
 
-      val prop = project.layout.dir(
+      val prop = layout.dir(
           inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-      project.applyGeneratedRules(appVariant.name, prop)
+      applyGeneratedRules(appVariant.name, prop)
     }
   }
 
