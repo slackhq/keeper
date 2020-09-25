@@ -18,8 +18,8 @@
 
 package com.slack.keeper
 
-import com.android.zipflinger.BytesSource
-import com.android.zipflinger.ZipArchive
+import com.slack.keeper.internal.zipflinger.BytesSource
+import com.slack.keeper.internal.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -39,13 +39,13 @@ import java.io.File
 import java.util.zip.Deflater
 import java.util.zip.ZipFile
 
-abstract class BaseKeeperJarTask : DefaultTask() {
+public abstract class BaseKeeperJarTask : DefaultTask() {
 
   @get:Input
-  abstract val emitDebugInfo: Property<Boolean>
+  public abstract val emitDebugInfo: Property<Boolean>
 
   @get:OutputDirectory
-  abstract val diagnosticsOutputDir: DirectoryProperty
+  public abstract val diagnosticsOutputDir: DirectoryProperty
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
@@ -67,27 +67,27 @@ abstract class BaseKeeperJarTask : DefaultTask() {
  */
 @Suppress("UnstableApiUsage")
 @CacheableTask
-abstract class VariantClasspathJar : BaseKeeperJarTask() {
+public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
   @get:Classpath
-  abstract val artifactFiles: ConfigurableFileCollection
+  public abstract val artifactFiles: ConfigurableFileCollection
 
   @get:OutputFile
-  abstract val archiveFile: RegularFileProperty
+  public abstract val archiveFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
-  abstract val classpath: ConfigurableFileCollection
+  public abstract val classpath: ConfigurableFileCollection
 
   @get:OutputFile
-  abstract val appJarsFile: RegularFileProperty
+  public abstract val appJarsFile: RegularFileProperty
 
-  fun from(vararg paths: Any) {
+  public fun from(vararg paths: Any) {
     classpath.from(*paths)
   }
 
   @TaskAction
-  fun createJar() {
+  public fun createJar() {
     val appJars = mutableSetOf<String>()
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get()).use { archive ->
@@ -126,32 +126,32 @@ abstract class VariantClasspathJar : BaseKeeperJarTask() {
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
-abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
+public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
   @get:Classpath
-  abstract val androidTestArtifactFiles: ConfigurableFileCollection
+  public abstract val androidTestArtifactFiles: ConfigurableFileCollection
 
   @get:PathSensitive(NONE) // Only care about the contents
   @get:InputFile
-  abstract val appJarsFile: RegularFileProperty
+  public abstract val appJarsFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
-  abstract val classpath: ConfigurableFileCollection
+  public abstract val classpath: ConfigurableFileCollection
 
   @get:OutputFile
-  abstract val archiveFile: RegularFileProperty
+  public abstract val archiveFile: RegularFileProperty
 
-  fun from(vararg paths: Any) {
+  public fun from(vararg paths: Any) {
     classpath.from(*paths)
   }
 
   @TaskAction
-  fun createJar() {
+  public fun createJar() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 

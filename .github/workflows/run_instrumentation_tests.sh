@@ -13,7 +13,9 @@ trap printthreads SIGINT
 echo "Install coreutils" # For gtimeout
 brew install coreutils
 
-echo "Running with Proguard!"
-gtimeout --signal=SIGINT 5m ./gradlew connectedExternalStagingAndroidTest -Pandroid.enableR8=false --stacktrace -PkeeperTest.agpVersion="${CI_AGP_VERSION}"
-echo "Running with R8!"
-gtimeout --signal=SIGINT 5m ./gradlew connectedExternalStagingAndroidTest -Pandroid.enableR8=true --stacktrace -PkeeperTest.agpVersion="${CI_AGP_VERSION}"
+# We only run the sample with R8 as proguard infinite loops if we have java 8 libraries on the classpath 🙃
+./gradlew :sample:minifyExternalStagingWithR8 --stacktrace -PkeeperTest.agpVersion="${CI_AGP_VERSION}"
+# Reclaim memory because Actions OOMs sometimes with having both an emulator and heavy gradle builds going on
+./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
+# Now proceed, with much of the build being cached up to this point
+gtimeout --signal=SIGINT 10m ./gradlew connectedExternalStagingAndroidTest --stacktrace -PkeeperTest.agpVersion="${CI_AGP_VERSION}"

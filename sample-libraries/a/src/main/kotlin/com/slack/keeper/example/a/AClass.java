@@ -17,9 +17,12 @@
 package com.slack.keeper.example.a;
 
 import com.slack.keeper.example.b.BClass;
+import java.time.Instant;
 
 public class AClass {
   public static void sampleMethod() {
+    // java.time usage to trigger L8
+    System.out.println("Time is " + Instant.now());
     BClass.sampleMethod();
   }
 }

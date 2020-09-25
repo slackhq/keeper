@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URL
 
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.3.72"
-  kotlin("kapt") version "1.3.72"
-  id("com.vanniktech.maven.publish") version "0.11.1"
-  id("com.github.johnrengelman.shadow") version "5.2.0"
+  kotlin("jvm") version "1.4.10"
+  kotlin("kapt") version "1.4.10"
+  id("org.jetbrains.dokka") version "1.4.10"
+  id("com.vanniktech.maven.publish") version "0.13.0"
 }
 
 buildscript {
@@ -34,16 +35,22 @@ buildscript {
 }
 
 repositories {
+  mavenCentral()
   google()
   gradlePluginPortal()
-  mavenCentral()
-  jcenter()
+  jcenter().mavenContent {
+    // Required for Dokka
+    includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
+    includeGroup("org.jetbrains.dokka")
+    includeModule("org.jetbrains", "markdown")
+  }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
-    freeCompilerArgs = listOf("-progressive")
     jvmTarget = "1.8"
+    @Suppress("SuspiciousCollectionReassignment")
+    freeCompilerArgs += listOf("-progressive")
   }
 }
 
@@ -75,10 +82,25 @@ kotlinDslPluginOptions {
   experimentalWarning.set(false)
 }
 
-mavenPublish {
-  useLegacyMode = false
-  nexus {
-    groupId = "com.slack"
+kotlin {
+  explicitApi()
+}
+
+tasks.named<DokkaTask>("dokkaHtml") {
+  outputDirectory.set(rootDir.resolve("../docs/0.x"))
+  dokkaSourceSets.configureEach {
+    skipDeprecated.set(true)
+    externalDocumentationLink {
+      url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
+    }
+    // AGP docs are not standard javadoc and can't be parsed by dokka
+    // https://developer.android.com/reference/tools/gradle-api/classes
+
+    // Suppress Zipflinger copy
+    perPackageOption {
+      prefix.set("com.slack.keeper.internal.zipflinger")
+      suppress.set(true)
+    }
   }
 }
 
@@ -87,22 +109,9 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
-val shade: Configuration = configurations.maybeCreate("compileShaded")
-configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.72")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.3.72")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
-
-  // We want a newer version of ZipFlinger for Zip64 support but don't want to incur that cost on
-  // consumers, so we shade it.
-  shade("com.android:zipflinger:4.1.0-alpha09") {
-    // ZipFlinger depends on com.android.tools:common and guava, but neither are actually used
-    // com.android.tools:annotations are used, but we can exclude them too since they're just
-    // annotations and not needed at runtime.
-    exclude(group = "com.android.tools")
-    exclude(group = "com.google.guava")
-  }
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.10")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.10")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
@@ -117,37 +126,4 @@ dependencies {
   testImplementation("com.squareup:kotlinpoet:1.6.0")
   testImplementation("com.google.truth:truth:1.0.1")
   testImplementation("junit:junit:4.13")
-}
-
-tasks.register<ConfigureShadowRelocation>("relocateShadowJar") {
-  target = tasks.shadowJar.get()
-}
-
-val shadowJar = tasks.shadowJar.apply {
-  configure {
-    dependsOn(tasks.getByName("relocateShadowJar"))
-    minimize()
-    archiveClassifier.set("")
-    configurations = listOf(shade)
-    relocate("com.android.zipflinger", "com.slack.keeper.internal.zipflinger")
-  }
-}
-artifacts {
-  runtime(shadowJar)
-  archives(shadowJar)
-}
-
-// Shadow plugin doesn't natively support gradle metadata, so we have to tell the maven plugin where
-// to get a jar now.
-afterEvaluate {
-  configure<PublishingExtension> {
-    publications.withType<MavenPublication>().configureEach {
-      if (name == "pluginMaven") {
-        // This is to properly wire the shadow jar's gradle metadata and pom information
-        setArtifacts(artifacts.matching { it.classifier != "" })
-        // Ugly but artifact() doesn't support TaskProviders
-        artifact(shadowJar.get())
-      }
-    }
-  }
 }

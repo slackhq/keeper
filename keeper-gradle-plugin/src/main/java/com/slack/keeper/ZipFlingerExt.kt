@@ -1,7 +1,7 @@
 package com.slack.keeper
 
-import com.android.zipflinger.ZipArchive
-import com.android.zipflinger.ZipSource
+import com.slack.keeper.internal.zipflinger.ZipArchive
+import com.slack.keeper.internal.zipflinger.ZipSource
 import java.io.File
 
 /**

@@ -44,16 +44,16 @@ import java.util.Locale
  */
 // TODO(zsweers) Run this in the background once Gradle supports it: https://github.com/gradle/gradle/issues/1367
 @CacheableTask
-abstract class InferAndroidTestKeepRules : JavaExec() {
+public abstract class InferAndroidTestKeepRules : JavaExec() {
 
   @get:Classpath
-  abstract val androidTestJar: RegularFileProperty
+  public abstract val androidTestJar: RegularFileProperty
 
   @get:Classpath
-  abstract val appJar: RegularFileProperty
+  public abstract val appJar: RegularFileProperty
 
   @get:Classpath
-  abstract val classpathJar: RegularFileProperty
+  public abstract val classpathJar: RegularFileProperty
 
   /**
    * Optional custom jvm arguments to pass into the exec. Useful if you want to enable debugging in R8.
@@ -61,17 +61,17 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
    */
   @get:Input
-  abstract val jvmArgsProperty: ListProperty<String>
+  public abstract val jvmArgsProperty: ListProperty<String>
 
   /**
    * Enable more descriptive precondition checks in the CLI. If disabled, errors will be emitted to
    * the generated proguard rules file instead.
    */
   @get:Input
-  abstract val enableAssertionsProperty: Property<Boolean>
+  public abstract val enableAssertionsProperty: Property<Boolean>
 
   @get:OutputFile
-  abstract val outputProguardRules: RegularFileProperty
+  public abstract val outputProguardRules: RegularFileProperty
 
   override fun exec() {
     // If you want to debug this, uncomment the below line and attach a remote debugger from a cloned R8 repo project.
@@ -97,9 +97,9 @@ abstract class InferAndroidTestKeepRules : JavaExec() {
     super.exec()
   }
 
-  companion object {
+  public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
-    operator fun invoke(
+    public operator fun invoke(
         variantName: String,
         androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
         releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,

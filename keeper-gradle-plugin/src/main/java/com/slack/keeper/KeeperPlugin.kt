@@ -22,7 +22,9 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
+import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
+import com.android.build.gradle.internal.tasks.R8Task
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Plugin
@@ -82,7 +84,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * The tasks themselves take roughly ~20 seconds total extra work in the Slack android app, with the infer and app jar
  * tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.
  */
-class KeeperPlugin : Plugin<Project> {
+public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
@@ -100,94 +102,183 @@ class KeeperPlugin : Plugin<Project> {
     check(gradleVersion >= MIN_GRADLE_VERSION) {
       "Keeper requires Gradle 6.0 or later."
     }
-    with(project) {
-      pluginManager.withPlugin("com.android.application") {
-        val extension = project.extensions.create<KeeperExtension>("keeper")
+    project.pluginManager.withPlugin("com.android.application") {
+      val appExtension = project.extensions.getByType<AppExtension>()
+      val extension = project.extensions.create<KeeperExtension>("keeper")
+      val diagnosticOutputDir = project.layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
+      project.configureKeepRulesGeneration(appExtension, extension, diagnosticOutputDir)
+      project.configureL8Rules(appExtension, extension, diagnosticOutputDir)
+    }
+  }
 
-        // Set up r8 configuration
-        val r8Configuration = configurations.create(CONFIGURATION_NAME) {
-          description = "R8 dependencies for Keeper. This is used solely for the PrintUses CLI"
-          isVisible = false
-          isCanBeConsumed = false
-          isCanBeResolved = true
-          defaultDependencies {
-            add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
-          }
-        }
+  private fun Project.configureL8Rules(
+      appExtension: AppExtension,
+      extension: KeeperExtension,
+      diagnosticOutputDir: Provider<Directory>
+  ) {
+    afterEvaluate {
+      if (extension.enableL8RuleSharing.getOrElse(false)) {
+        val r8Enabled = !hasProperty("android.enableR8") ||
+            property("android.enableR8")?.toString()?.toBoolean() != false
+        if (r8Enabled) {
+          appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+            val inputFiles = tasks
+                .named<R8Task>("minify${appVariant.name.capitalize(Locale.US)}WithR8")
+                .flatMap { it.projectOutputKeepRules }
+            tasks
+                .named<L8DexDesugarLibTask>("l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}")
+                .configure {
+                  keepRulesFiles.from(inputFiles)
+                  keepRulesConfigurations.set(listOf("-dontobfuscate"))
 
-        val appExtension = project.extensions.getByType<AppExtension>()
-
-        val androidJarFileProvider = project.provider {
-          val compileSdkVersion = appExtension.compileSdkVersion
-              ?: error("No compileSdkVersion found")
-          File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
-            check(it.exists()) {
-              "No android.jar found! Expected to find it at: $it"
-            }
-          }
-        }
-        val androidJarRegularFileProvider = project.layout.file(androidJarFileProvider)
-        val diagnosticOutputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
-
-        appExtension.testVariants.configureEach {
-          val appVariant = testedVariant
-          val extensionFilter = extension._variantFilter
-          val ignoredVariant = extensionFilter?.let {
-            project.logger.debug(
-                "$TAG Resolving ignored status for android variant ${appVariant.name}")
-            val filter = VariantFilterImpl(appVariant)
-            it.execute(filter)
-            project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
-            filter._ignored
-          } ?: !appVariant.buildType.isMinifyEnabled
-          if (ignoredVariant) {
-            return@configureEach
-          }
-          if (!appVariant.buildType.isMinifyEnabled) {
-            logger.error("""
-                Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
-                have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
-                the Keeper plugin when android.testBuildType = ${appVariant.buildType.name}, or use the variant filter feature 
-                of the DSL to exclude "${appVariant.name}" from keeper:
-                  keeper {
-                    variantFilter {
-                      setIgnore(name != <the variant to test>)
+                  if (extension.emitDebugInformation.getOrElse(false)) {
+                    doFirst {
+                      val mergedFilesContent = keepRulesFiles.files.asSequence()
+                          .flatMap { it.walkTopDown() }
+                          .filterNot { it.isDirectory }
+                          .joinToString("\n") {
+                            "# Source: ${it.absolutePath}\n${it.readText()}"
+                          }
+                      val configurations = keepRulesConfigurations.orNull.orEmpty().joinToString("\n", prefix = "# Source: extra configurations\n")
+                      diagnosticOutputDir.get().file("${testVariant.name}MergedL8Rules.pro")
+                          .asFile
+                          .writeText("$mergedFilesContent\n$configurations")
                     }
                   }
-                """.trimIndent())
-            return@configureEach
+                }
           }
-
-          val intermediateAppJar = createIntermediateAppJar(
-              appVariant = appVariant,
-              diagnosticOutputDir = diagnosticOutputDir,
-              emitDebugInfo = extension.emitDebugInformation
-          )
-          val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-              diagnosticOutputDir = diagnosticOutputDir,
-              emitDebugInfo = extension.emitDebugInformation,
-              testVariant = this,
-              appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
-          )
-          val inferAndroidTestUsageProvider = tasks.register(
-              "infer${name.capitalize(Locale.US)}KeepRulesForKeeper",
-              InferAndroidTestKeepRules(
-                  variantName = name,
-                  androidTestJarProvider = intermediateAndroidTestJar,
-                  releaseClassesJarProvider = intermediateAppJar,
-                  androidJar = androidJarRegularFileProvider,
-                  automaticallyAddR8Repo = extension.automaticR8RepoManagement,
-                  enableAssertions = extension.enableAssertions,
-                  extensionJvmArgs = extension.r8JvmArgs,
-                  r8Configuration = r8Configuration
-              )
-          )
-
-          val prop = project.layout.dir(
-              inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-          project.applyGeneratedRules(appVariant.name, prop)
+        } else {
+          error("enableL8RuleSharing only works if R8 is enabled!")
         }
       }
+    }
+  }
+
+  private fun Project.configureKeepRulesGeneration(
+      appExtension: AppExtension,
+      extension: KeeperExtension,
+      diagnosticOutputDir: Provider<Directory>
+  ) {
+    // Set up r8 configuration
+    val r8Configuration = configurations.create(CONFIGURATION_NAME) {
+      description = "R8 dependencies for Keeper. This is used solely for the PrintUses CLI"
+      isVisible = false
+      isCanBeConsumed = false
+      isCanBeResolved = true
+      defaultDependencies {
+        add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+      }
+    }
+
+    val androidJarFileProvider = provider {
+      val compileSdkVersion = appExtension.compileSdkVersion
+          ?: error("No compileSdkVersion found")
+      File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
+        check(it.exists()) {
+          "No android.jar found! Expected to find it at: $it"
+        }
+      }
+    }
+    val androidJarRegularFileProvider = layout.file(androidJarFileProvider)
+
+    appExtension.testVariants.configureEach {
+      val appVariant = testedVariant
+      val extensionFilter = extension._variantFilter
+      val ignoredVariant = extensionFilter?.let {
+        logger.debug(
+          "$TAG Resolving ignored status for android variant ${appVariant.name}")
+        val filter = VariantFilterImpl(appVariant)
+        it.execute(filter)
+        logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+        filter._ignored
+      } ?: !appVariant.buildType.isMinifyEnabled
+      if (ignoredVariant) {
+        return@configureEach
+      }
+      if (!appVariant.buildType.isMinifyEnabled) {
+        logger.error("""
+            Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
+            have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
+            the Keeper plugin when android.testBuildType = ${appVariant.buildType.name}, or use the variant filter feature 
+            of the DSL to exclude "${appVariant.name}" from keeper:
+              keeper {
+                variantFilter {
+                  setIgnore(name != <the variant to test>)
+                }
+              }
+            """.trimIndent())
+        return@configureEach
+      }
+    }
+
+    appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+      val intermediateAppJar = createIntermediateAppJar(
+          appVariant = appVariant,
+          diagnosticOutputDir = diagnosticOutputDir,
+          emitDebugInfo = extension.emitDebugInformation
+      )
+      val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
+          diagnosticOutputDir = diagnosticOutputDir,
+          emitDebugInfo = extension.emitDebugInformation,
+          testVariant = testVariant,
+          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
+      )
+      val inferAndroidTestUsageProvider = tasks.register(
+          "infer${testVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
+          InferAndroidTestKeepRules(
+              variantName = testVariant.name,
+              androidTestJarProvider = intermediateAndroidTestJar,
+              releaseClassesJarProvider = intermediateAppJar,
+              androidJar = androidJarRegularFileProvider,
+              automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+              enableAssertions = extension.enableAssertions,
+              extensionJvmArgs = extension.r8JvmArgs,
+              r8Configuration = r8Configuration
+          )
+      )
+
+      val prop = layout.dir(
+          inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+      applyGeneratedRules(appVariant.name, prop)
+    }
+  }
+
+  private fun AppExtension.onApplicableVariants(
+      project: Project,
+      extension: KeeperExtension,
+      body: (TestVariant, BaseVariant) -> Unit
+  ) {
+    testVariants.configureEach {
+      val testVariant = this
+      val appVariant = testedVariant
+      val extensionFilter = extension._variantFilter
+      val ignoredVariant = extensionFilter?.let {
+        project.logger.debug(
+            "$TAG Resolving ignored status for android variant ${appVariant.name}")
+        val filter = VariantFilterImpl(appVariant)
+        it.execute(filter)
+        project.logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
+        filter._ignored
+      } ?: false
+      if (ignoredVariant) {
+        return@configureEach
+      }
+      if (!appVariant.buildType.isMinifyEnabled) {
+        project.logger.error("""
+              Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
+              have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
+              the Keeper plugin when android.testBuildType = ${appVariant.buildType.name}, or use the variant filter feature 
+              of the DSL to exclude "${appVariant.name}" from keeper:
+                keeper {
+                  variantFilter {
+                    setIgnore(name != <the variant to test>)
+                  }
+                }
+              """.trimIndent())
+        return@configureEach
+      }
+
+      body(testVariant, appVariant)
     }
   }
 
