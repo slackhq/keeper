@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URL
 
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
   kotlin("jvm") version "1.4.10"
   kotlin("kapt") version "1.4.10"
-  id("com.vanniktech.maven.publish") version "0.12.0"
+  id("org.jetbrains.dokka") version "1.4.10"
+  id("com.vanniktech.maven.publish") version "0.13.0"
 }
 
 buildscript {
@@ -32,16 +35,22 @@ buildscript {
 }
 
 repositories {
+  mavenCentral()
   google()
   gradlePluginPortal()
-  mavenCentral()
-  jcenter()
+  jcenter().mavenContent {
+    // Required for Dokka
+    includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
+    includeGroup("org.jetbrains.dokka")
+    includeModule("org.jetbrains", "markdown")
+  }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
-    freeCompilerArgs = listOf("-progressive")
     jvmTarget = "1.8"
+    @Suppress("SuspiciousCollectionReassignment")
+    freeCompilerArgs += listOf("-progressive")
   }
 }
 
@@ -73,9 +82,25 @@ kotlinDslPluginOptions {
   experimentalWarning.set(false)
 }
 
-mavenPublish {
-  nexus {
-    stagingProfile = "com.slack"
+kotlin {
+  explicitApi()
+}
+
+tasks.named<DokkaTask>("dokkaHtml") {
+  outputDirectory.set(rootDir.resolve("../docs/0.x"))
+  dokkaSourceSets.configureEach {
+    skipDeprecated.set(true)
+    externalDocumentationLink {
+      url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
+    }
+    // AGP docs are not standard javadoc and can't be parsed by dokka
+    // https://developer.android.com/reference/tools/gradle-api/classes
+
+    // Suppress Zipflinger copy
+    perPackageOption {
+      prefix.set("com.slack.keeper.internal.zipflinger")
+      suppress.set(true)
+    }
   }
 }
 

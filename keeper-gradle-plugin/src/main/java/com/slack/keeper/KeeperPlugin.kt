@@ -84,7 +84,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * The tasks themselves take roughly ~20 seconds total extra work in the Slack android app, with the infer and app jar
  * tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.
  */
-class KeeperPlugin : Plugin<Project> {
+public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"

@@ -27,7 +27,7 @@ import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
-open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
+public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
   @Suppress("PropertyName")
   internal var _variantFilter: Action<VariantFilter>? = null
 
@@ -37,7 +37,7 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    *
    * @param action the configure action for the [VariantFilter]
    */
-  fun variantFilter(action: Action<VariantFilter>) {
+  public fun variantFilter(action: Action<VariantFilter>) {
     this._variantFilter = action
   }
 
@@ -46,7 +46,7 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * true. Disable if you want to define your own repo for fetching the R8 dependency.
    */
   @Suppress("UnstableApiUsage")
-  val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().convention(true)
+  public val automaticR8RepoManagement: Property<Boolean> = objects.property<Boolean>().convention(true)
 
   /**
    * Optional custom jvm arguments to pass into the R8 `PrintUses` execution. Useful if you want
@@ -54,15 +54,15 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    *
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
    */
-  val r8JvmArgs: ListProperty<String> = objects.listProperty()
+  public val r8JvmArgs: ListProperty<String> = objects.listProperty()
 
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")
-  val emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
+  public val emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
 
   /** Controls whether or not to enable assertions in the JavaExec run of R8. Default is true. */
   @Suppress("UnstableApiUsage")
-  val enableAssertions: Property<Boolean> = objects.property<Boolean>().convention(true)
+  public val enableAssertions: Property<Boolean> = objects.property<Boolean>().convention(true)
 
   /**
    * Enables L8 rule sharing. By default, L8 will generate separate rules for test app and
@@ -81,28 +81,28 @@ open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    *
    * More details can be found here: https://issuetracker.google.com/issues/158018485
    */
-  val enableL8RuleSharing: Property<Boolean> = objects.property<Boolean>().convention(false)
+  public val enableL8RuleSharing: Property<Boolean> = objects.property<Boolean>().convention(false)
 }
 
 
-interface VariantFilter {
+public interface VariantFilter {
   /**
    * Indicate whether or not to ignore this particular variant. Default is false.
    */
-  fun setIgnore(ignore: Boolean)
+  public fun setIgnore(ignore: Boolean)
 
   /**
    * Returns the Build Type.
    */
-  val buildType: BuildType
+  public val buildType: BuildType
 
   /**
    * Returns the list of flavors, or an empty list.
    */
-  val flavors: List<ProductFlavor>
+  public val flavors: List<ProductFlavor>
 
   /**
    * Returns the unique variant name.
    */
-  val name: String
+  public val name: String
 }

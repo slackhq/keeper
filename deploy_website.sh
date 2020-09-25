@@ -8,28 +8,27 @@
 
 if [[ "$1" = "--local" ]]; then local=true; fi
 
-# TODO disabled until we configure dokka to generate markdown docs
-#if ! [[ ${local} ]]; then
-#  set -ex
-#
-#  REPO="git@github.com:slackhq/keeper.git"
-#  DIR=temp-clone
-#
-#  # Delete any existing temporary website clone
-#  rm -rf ${DIR}
-#
-#  # Clone the current repo into temp folder
-#  git clone ${REPO} ${DIR}
-#
-#  # Move working directory into temp folder
-#  cd ${DIR}
-#
-#  # Generate the API docs
-#  cd keeper-gradle-plugin
-#  ./gradlew dokka
-#  cd ../
-#
-#fi
+if ! [[ ${local} ]]; then
+  set -ex
+
+  REPO="git@github.com:slackhq/keeper.git"
+  DIR=temp-clone
+
+  # Delete any existing temporary website clone
+  rm -rf ${DIR}
+
+  # Clone the current repo into temp folder
+  git clone ${REPO} ${DIR}
+
+  # Move working directory into temp folder
+  cd ${DIR}
+
+  # Generate the API docs
+  cd keeper-gradle-plugin
+  ./gradlew dokkaHtml
+  cd ../
+
+fi
 
 # Copy in special files that GitHub wants in the project root.
 cp CHANGELOG.md docs/changelog.md
