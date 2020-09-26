@@ -37,8 +37,10 @@ markdown_extensions:
   - pymdownx.magiclink
   - pymdownx.smartsymbols
   - pymdownx.superfences
+  - pymdownx.emoji
   - tables
   - mdx_truly_sane_lists
+  - admonition
 
 nav:
   - 'Overview': index.md
