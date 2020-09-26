@@ -1,6 +1,20 @@
 Changelog
 =========
 
+0.7.0
+-----
+
+_2020-09-25_
+
+* **New:** New `enableL8RuleSharing` feature for sharing generated proguard rules between androidtest and main APK assembly. See configuration doc for more details.
+* Make the default behavior to ignore minifyEnabled = false variants ([#61](https://github.com/slackhq/keeper/pull/61))
+* Built against Kotlin 1.4, using its new `explicitApi()` mode
+* ZipFlinger is now manually copied in due to shadow jar packaging issues. This version is current with AGP 4.1.0-rc03
+
+Special thanks to [@colintheshots](https://github.com/colintheshots) for contributing to this release.
+
+_Heads up! We're considering dropping support for Proguard. Please let us know if you need this._
+
 0.6.0
 -----
 
