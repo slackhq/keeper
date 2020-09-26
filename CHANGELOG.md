@@ -13,7 +13,7 @@ _2020-09-25_
 
 Special thanks to [@colintheshots](https://github.com/colintheshots) for contributing to this release.
 
-_Heads up! We're considering dropping support for Proguard. Please let us know if you need this._
+!!! warning Heads up! We're considering dropping support for Proguard. Please let us know if you need this.
 
 0.6.0
 -----
