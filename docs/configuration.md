@@ -133,7 +133,7 @@ keeper {
 }
 ```
 
-### L8 rule sharing
+## L8 rule sharing
 
 Library Desugaring (L8) was introduced in Android Gradle Plugin 4.0. To make this work, the R8 task
 will generate proguard rules indicating which `j$` types are used in source, which the `L8DexDesugarLibTask`
