@@ -6,7 +6,7 @@ Changelog
 
 _2020-09-25_
 
-* **New:** New `enableL8RuleSharing` feature for sharing generated proguard rules between androidtest and main APK assembly. See configuration doc for more details.
+* **New:** `enableL8RuleSharing` feature for sharing generated proguard rules between androidtest and main APK assembly. See [configuration instructions](https://slackhq.github.io/keeper/configuration/#l8-rule-sharing) for more details.
 * Make the default behavior to ignore minifyEnabled = false variants ([#61](https://github.com/slackhq/keeper/pull/61))
 * Built against Kotlin 1.4, using its new `explicitApi()` mode
 * ZipFlinger is now manually copied in due to shadow jar packaging issues. This version is current with AGP 4.1.0-rc03
