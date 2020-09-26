@@ -45,5 +45,5 @@ fi
 # Delete our temp folder
 if ! [[ ${local} ]]; then
   cd ..
-#  rm -rf ${DIR}
+  rm -rf ${DIR}
 fi
