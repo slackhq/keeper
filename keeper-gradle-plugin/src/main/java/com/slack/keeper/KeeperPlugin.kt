@@ -88,7 +88,7 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val DEFAULT_R8_VERSION = "1.6.53"
+    const val DEFAULT_R8_VERSION = "3.0.5-dev"
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
@@ -170,16 +170,19 @@ public class KeeperPlugin : Plugin<Project> {
       }
     }
 
-    val androidJarFileProvider = provider {
-      val compileSdkVersion = appExtension.compileSdkVersion
-          ?: error("No compileSdkVersion found")
-      File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
-        check(it.exists()) {
-          "No android.jar found! Expected to find it at: $it"
-        }
-      }
+    val androidEmbeddedJarRegularFileProvider: (String) -> Provider<RegularFile> = { path: String ->
+        layout.file(provider {
+            val compileSdkVersion = appExtension.compileSdkVersion
+                ?: error("No compileSdkVersion found")
+            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}").also {
+                check(it.exists()) {
+                    "No $path found! Expected to find it at: $it"
+                }
+            }
+        })
     }
-    val androidJarRegularFileProvider = layout.file(androidJarFileProvider)
+    val androidJarRegularFileProvider = androidEmbeddedJarRegularFileProvider("android.jar")
+    val androidTestJarRegularFileProvider = androidEmbeddedJarRegularFileProvider("optional/android.test.base.jar")
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
@@ -230,9 +233,11 @@ public class KeeperPlugin : Plugin<Project> {
               androidTestJarProvider = intermediateAndroidTestJar,
               releaseClassesJarProvider = intermediateAppJar,
               androidJar = androidJarRegularFileProvider,
+              androidTestJar = androidTestJarRegularFileProvider,
               automaticallyAddR8Repo = extension.automaticR8RepoManagement,
               enableAssertions = extension.enableAssertions,
               extensionJvmArgs = extension.r8JvmArgs,
+              keepRulesArgs = extension.keepRulesArgs,
               r8Configuration = r8Configuration
           )
       )

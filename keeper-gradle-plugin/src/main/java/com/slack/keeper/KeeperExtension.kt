@@ -56,6 +56,13 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    */
   public val r8JvmArgs: ListProperty<String> = objects.listProperty()
 
+  /**
+   * Optional arguments for the keep-rules invocation.
+   *
+   * Example: `"--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" ")`
+   */
+  public val keepRulesArgs: ListProperty<String> = objects.listProperty()
+
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")
   public val emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)

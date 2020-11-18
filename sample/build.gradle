@@ -92,6 +92,11 @@ keeper {
 
   // Example: share proguard rules for L8 (library desugaring).
   enableL8RuleSharing = true
+
+  // Uncomment this line to debug the R8 from a remote instance.
+  //r8JvmArgs.addAll(Arrays.asList("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"))
+
+  keepRulesArgs.addAll("--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" "))
 }
 
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.

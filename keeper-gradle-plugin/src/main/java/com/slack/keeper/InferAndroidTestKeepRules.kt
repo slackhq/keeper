@@ -33,9 +33,9 @@ import org.gradle.kotlin.dsl.repositories
 import java.util.Locale
 
 /**
- * Generates proguard keep rules from the generated [androidTestJar] and [appJar] tasks,
- * where the generates rules are based on what classes from [appJar] are used by
- * [androidTestJar].
+ * Generates proguard keep rules from the generated [androidTestSourceJar] and [appTargetJar] tasks,
+ * where the generates rules are based on what classes from [appTargetJar] are used by
+ * [androidTestSourceJar].
  *
  * This uses R8's [PrintUses](https://r8.googlesource.com/r8/+/master/src/main/java/com/android/tools/r8/PrintUses.java)
  * CLI to perform the analysis.
@@ -47,13 +47,16 @@ import java.util.Locale
 public abstract class InferAndroidTestKeepRules : JavaExec() {
 
   @get:Classpath
-  public abstract val androidTestJar: RegularFileProperty
+  public abstract val androidTestSourceJar: RegularFileProperty
 
   @get:Classpath
-  public abstract val appJar: RegularFileProperty
+  public abstract val appTargetJar: RegularFileProperty
 
   @get:Classpath
-  public abstract val classpathJar: RegularFileProperty
+  public abstract val androidLib: RegularFileProperty
+
+  @get:Classpath
+  public abstract val androidTestLib: RegularFileProperty
 
   /**
    * Optional custom jvm arguments to pass into the exec. Useful if you want to enable debugging in R8.
@@ -62,6 +65,14 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
    */
   @get:Input
   public abstract val jvmArgsProperty: ListProperty<String>
+
+  /**
+   * Optional arguments for the keep-rules invocation.
+   *
+   * Example: `"--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" ")`
+   */
+  @get:Input
+  public abstract val keepRulesArgs: ListProperty<String>
 
   /**
    * Enable more descriptive precondition checks in the CLI. If disabled, errors will be emitted to
@@ -87,13 +98,16 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     }
 
     enableAssertions = enableAssertionsProperty.get()
-    standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
     args = listOf(
-        "--keeprules",
-        classpathJar.get().asFile.absolutePath,
-        appJar.get().asFile.absolutePath,
-        androidTestJar.get().asFile.absolutePath
-    )
+        "--keep-rules",
+        "--lib", androidLib.get().asFile.absolutePath,
+        "--lib", androidTestLib.get().asFile.absolutePath,
+        "--target", appTargetJar.get().asFile.absolutePath,
+        "--source", androidTestSourceJar.get().asFile.absolutePath,
+        "--output", outputProguardRules.get().asFile.absolutePath
+    ) + keepRulesArgs.getOrElse(listOf())
+
+    println(args)
     super.exec()
   }
 
@@ -104,9 +118,11 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
         releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
         androidJar: Provider<RegularFile>,
+        androidTestJar: Provider<RegularFile>,
         automaticallyAddR8Repo: Property<Boolean>,
         enableAssertions: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,
+        keepRulesArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
       if (automaticallyAddR8Repo.get()) {
@@ -126,16 +142,18 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       }
 
       group = KEEPER_TASK_GROUP
-      androidTestJar.set(androidTestJarProvider.flatMap { it.archiveFile })
-      appJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
-      classpathJar.set(androidJar)
+      androidTestSourceJar.set(androidTestJarProvider.flatMap { it.archiveFile })
+      appTargetJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
+      androidLib.set(androidJar)
+      androidTestLib.set(androidTestJar)
       jvmArgsProperty.set(extensionJvmArgs)
+      this.keepRulesArgs.set(keepRulesArgs)
       outputProguardRules.set(
           project.layout.buildDirectory.file(
               "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
                   Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
-      main = "com.android.tools.r8.PrintUses"
+      main = "com.android.tools.r8.tracereferences.TraceReferences"
 
       enableAssertionsProperty.set(enableAssertions)
     }
