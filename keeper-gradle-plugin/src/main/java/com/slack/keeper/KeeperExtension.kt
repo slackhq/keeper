@@ -61,7 +61,8 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    *
    * Example: `"--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" ")`
    */
-  public val keepRulesArgs: ListProperty<String> = objects.listProperty()
+  public val keepRulesArgs: ListProperty<String> = objects.listProperty<String>()
+    .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
 
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")
