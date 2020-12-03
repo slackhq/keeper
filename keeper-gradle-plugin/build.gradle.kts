@@ -125,7 +125,7 @@ dependencies {
   kapt("com.google.auto.service:auto-service:1.0-rc7")
 
   testImplementation("com.squareup:javapoet:1.13.0")
-  testImplementation("com.squareup:kotlinpoet:1.6.0")
-  testImplementation("com.google.truth:truth:1.0.1")
-  testImplementation("junit:junit:4.13")
+  testImplementation("com.squareup:kotlinpoet:1.7.2")
+  testImplementation("com.google.truth:truth:1.1")
+  testImplementation("junit:junit:4.13.1")
 }
