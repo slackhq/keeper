@@ -93,8 +93,10 @@ tasks.named<DokkaTask>("dokkaHtml") {
     externalDocumentationLink {
       url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
     }
-    // AGP docs are not standard javadoc and can't be parsed by dokka
-    // https://developer.android.com/reference/tools/gradle-api/classes
+    externalDocumentationLink {
+      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/package-list"))
+      url.set(URL("https://developer.android.com/reference/tools/gradle-api/"))
+    }
 
     // Suppress Zipflinger copy
     perPackageOption {
