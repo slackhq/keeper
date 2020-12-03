@@ -26,26 +26,32 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
+
       - name: Generate cache key
         run: ./checksum.sh checksum.txt
+
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
+
       - name: Install JDK ${{ matrix.ci_java_version }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v1.4.3
         with:
           java-version: ${{ matrix.ci_java_version }}
+
       - name: Test plugin
         if: matrix.job == 'plugin'
         run: |
           cd keeper-gradle-plugin
           ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
           cd ..
+
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         if: matrix.job == 'instrumentation'
@@ -54,18 +60,22 @@ jobs:
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
           script: .github/workflows/run_instrumentation_tests.sh ${{ matrix.ci_agp_version }}
           api-level: 29
+
       - name: (Fail-only) Bundle the build report
         if: failure()
         run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+
       - name: (Fail-only) Upload the build report
         if: failure()
         uses: actions/upload-artifact@v2
         with:
           name: error-report
           path: build-reports.zip
+
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
         if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '4.0.0' && matrix.job == 'plugin'
+
       - name: Upload snapshot (main only)
         env:
           ORG_GRADLE_PROJECT_SONATYPE_NEXUS_USERNAME: ${{ secrets.SonatypeUsername }}
