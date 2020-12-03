@@ -9,7 +9,7 @@ on:
       - 'docs/**'
       - '*.md'
   # Always run on PRs
-  pull_request_target:
+  pull_request:
 
 jobs:
   build:
