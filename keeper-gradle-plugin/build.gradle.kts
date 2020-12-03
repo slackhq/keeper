@@ -100,7 +100,8 @@ tasks.named<DokkaTask>("dokkaHtml") {
 
     // Suppress Zipflinger copy
     perPackageOption {
-      prefix.set("com.slack.keeper.internal.zipflinger")
+      // TODO re-enable this with a proper regex
+//      matchingRegex.set("com.slack.keeper.internal.zipflinger")
       suppress.set(true)
     }
   }
