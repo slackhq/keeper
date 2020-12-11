@@ -66,11 +66,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   @get:Input
   public abstract val jvmArgsProperty: ListProperty<String>
 
-  /**
-   * Optional arguments for the keep-rules invocation.
-   *
-   * Example: `"--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" ")`
-   */
+  /** @see KeeperExtension.keepRulesArgs */
   @get:Input
   public abstract val keepRulesArgs: ListProperty<String>
 
@@ -80,6 +76,10 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
    */
   @get:Input
   public abstract val enableAssertionsProperty: Property<Boolean>
+
+  /** @see KeeperExtension.enableTraceReferences */
+  @get:Input
+  public abstract val enableTraceReferences: Property<Boolean>
 
   @get:OutputFile
   public abstract val outputProguardRules: RegularFileProperty
@@ -98,15 +98,26 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     }
 
     enableAssertions = enableAssertionsProperty.get()
-    args = listOf<Pair<String, String?>>(
-        "--keep-rules" to "",
-        "--lib" to androidLib.get().asFile.absolutePath,
-        "--lib" to androidTestLib.orNull?.asFile?.absolutePath,
-        "--target" to appTargetJar.get().asFile.absolutePath,
-        "--source" to androidTestSourceJar.get().asFile.absolutePath,
-        "--output" to outputProguardRules.get().asFile.absolutePath
-    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
-        .reduce { acc, any -> acc + any } + keepRulesArgs.getOrElse(listOf())
+    args = when (enableTraceReferences.get()) {
+      false -> listOf(
+          "--keeprules",
+          androidLib.get().asFile.absolutePath,
+          appTargetJar.get().asFile.absolutePath,
+          androidTestSourceJar.get().asFile.absolutePath
+      ).also {
+        // print-uses is using its output to print rules
+        standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
+      }
+      true -> listOf<Pair<String, String?>>(
+          "--keep-rules" to "",
+          "--lib" to androidLib.get().asFile.absolutePath,
+          "--lib" to androidTestLib.orNull?.asFile?.absolutePath,
+          "--target" to appTargetJar.get().asFile.absolutePath,
+          "--source" to androidTestSourceJar.get().asFile.absolutePath,
+          "--output" to outputProguardRules.get().asFile.absolutePath
+      ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+          .reduce { acc, any -> acc + any } + keepRulesArgs.getOrElse(listOf())
+    }
 
     super.exec()
   }
@@ -122,6 +133,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         automaticallyAddR8Repo: Property<Boolean>,
         enableAssertions: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,
+        enableTraceReferences: Property<Boolean>,
         keepRulesArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
@@ -147,13 +159,17 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       androidLib.set(androidJar)
       androidTestLib.set(androidTestJar)
       jvmArgsProperty.set(extensionJvmArgs)
+      this.enableTraceReferences.set(enableTraceReferences)
       this.keepRulesArgs.set(keepRulesArgs)
       outputProguardRules.set(
           project.layout.buildDirectory.file(
               "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
                   Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
-      main = "com.android.tools.r8.tracereferences.TraceReferences"
+      main = when (this.enableTraceReferences.get()) {
+        false -> "com.android.tools.r8.PrintUses"
+        true -> "com.android.tools.r8.tracereferences.TraceReferences"
+      }
 
       enableAssertionsProperty.set(enableAssertions)
     }

@@ -19,6 +19,7 @@ package com.slack.keeper
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -56,13 +57,17 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    */
   public val r8JvmArgs: ListProperty<String> = objects.listProperty()
 
+  /** Controls whether or not to use the new experimental TraceReferences entry-point. Default is false. */
+  @Suppress("UnstableApiUsage")
+  public val enableTraceReferences: Property<Boolean> = objects.property<Boolean>().convention(false)
+
   /**
-   * Optional arguments for the keep-rules invocation.
+   * Optional arguments for the keep-rules invocation, only considered if [enableTraceReferences] is true.
    *
-   * Example: `"--map-diagnostics:MissingDefinitionsDiagnostic error info".split(" ")`
+   * Default value: `listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info")`
    */
   public val keepRulesArgs: ListProperty<String> = objects.listProperty<String>()
-    .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
+      .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
 
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")

@@ -88,7 +88,8 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val DEFAULT_R8_VERSION = "3.0.5-dev"
+    const val PRINTUSES_DEFAULT_VERSION = "2.2.41"
+    const val TRACE_REFERENCES_DEFAULT_VERSION = "3.0.9-dev"
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
@@ -166,7 +167,12 @@ public class KeeperPlugin : Plugin<Project> {
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+        val version = when (extension.enableTraceReferences.get()) {
+          false -> PRINTUSES_DEFAULT_VERSION
+          true -> TRACE_REFERENCES_DEFAULT_VERSION
+        }
+        logger.debug("keeper r8 default version: $version")
+        add(project.dependencies.create("com.android.tools:r8:$version"))
       }
     }
 
@@ -230,6 +236,7 @@ public class KeeperPlugin : Plugin<Project> {
               automaticallyAddR8Repo = extension.automaticR8RepoManagement,
               enableAssertions = extension.enableAssertions,
               extensionJvmArgs = extension.r8JvmArgs,
+              enableTraceReferences = extension.enableTraceReferences,
               keepRulesArgs = extension.keepRulesArgs,
               r8Configuration = r8Configuration
           )
