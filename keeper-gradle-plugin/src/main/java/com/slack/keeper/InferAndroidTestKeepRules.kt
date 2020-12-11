@@ -98,16 +98,16 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     }
 
     enableAssertions = enableAssertionsProperty.get()
-    args = listOf(
-        "--keep-rules",
-        "--lib", androidLib.get().asFile.absolutePath,
-        "--lib", androidTestLib.get().asFile.absolutePath,
-        "--target", appTargetJar.get().asFile.absolutePath,
-        "--source", androidTestSourceJar.get().asFile.absolutePath,
-        "--output", outputProguardRules.get().asFile.absolutePath
-    ) + keepRulesArgs.getOrElse(listOf())
+    args = listOf<Pair<String, String?>>(
+        "--keep-rules" to "",
+        "--lib" to androidLib.get().asFile.absolutePath,
+        "--lib" to androidTestLib.orNull?.asFile?.absolutePath,
+        "--target" to appTargetJar.get().asFile.absolutePath,
+        "--source" to androidTestSourceJar.get().asFile.absolutePath,
+        "--output" to outputProguardRules.get().asFile.absolutePath
+    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+        .reduce { acc, any -> acc + any } + keepRulesArgs.getOrElse(listOf())
 
-    println(args)
     super.exec()
   }
 

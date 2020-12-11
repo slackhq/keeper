@@ -170,19 +170,12 @@ public class KeeperPlugin : Plugin<Project> {
       }
     }
 
-    val androidEmbeddedJarRegularFileProvider: (String) -> Provider<RegularFile> = { path: String ->
-        layout.file(provider {
-            val compileSdkVersion = appExtension.compileSdkVersion
-                ?: error("No compileSdkVersion found")
-            File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}").also {
-                check(it.exists()) {
-                    "No $path found! Expected to find it at: $it"
-                }
-            }
-        })
-    }
-    val androidJarRegularFileProvider = androidEmbeddedJarRegularFileProvider("android.jar")
-    val androidTestJarRegularFileProvider = androidEmbeddedJarRegularFileProvider("optional/android.test.base.jar")
+    val androidJarRegularFileProvider = androidEmbeddedJarRegularFileProvider(
+      appExtension, "android.jar", required = true
+    )
+    val androidTestJarRegularFileProvider = androidEmbeddedJarRegularFileProvider(
+      appExtension, "optional/android.test.base.jar", required = false
+    )
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
@@ -247,6 +240,23 @@ public class KeeperPlugin : Plugin<Project> {
       applyGeneratedRules(appVariant.name, prop)
     }
   }
+
+  private fun Project.androidEmbeddedJarRegularFileProvider(
+      appExtension: AppExtension,
+      path: String,
+      required: Boolean
+  ): Provider<RegularFile> =
+    layout.file(provider {
+      val compileSdkVersion = appExtension.compileSdkVersion
+        ?: error("No compileSdkVersion found")
+      File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}").let {
+        val exists = it.exists()
+        check(required.not() or exists) {
+          "No $path found! Expected to find it at: $it"
+        }
+        it.takeIf { exists }
+      }
+    })
 
   private fun AppExtension.onApplicableVariants(
       project: Project,
