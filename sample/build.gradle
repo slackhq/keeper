@@ -93,11 +93,14 @@ keeper {
   // Example: share proguard rules for L8 (library desugaring).
   enableL8RuleSharing = true
 
-  // Example: enable the new experimental R8 entry-point.
-  enableTraceReferences = true
-
   // Uncomment this line to debug the R8 from a remote instance.
   //r8JvmArgs.addAll(Arrays.asList("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"))
+
+  // Example: enable the new experimental R8 entry-point.
+  //traceReferences {
+    //enabled.set(true)
+    //arguments.set(Arrays.asList("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
+  //}
 }
 
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.

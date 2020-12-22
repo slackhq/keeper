@@ -19,11 +19,11 @@ package com.slack.keeper
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.listProperty
+import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
@@ -57,18 +57,6 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    */
   public val r8JvmArgs: ListProperty<String> = objects.listProperty()
 
-  /** Controls whether or not to use the new experimental TraceReferences entry-point. Default is false. */
-  @Suppress("UnstableApiUsage")
-  public val enableTraceReferences: Property<Boolean> = objects.property<Boolean>().convention(false)
-
-  /**
-   * Optional arguments for the keep-rules invocation, only considered if [enableTraceReferences] is true.
-   *
-   * Default value: `listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info")`
-   */
-  public val keepRulesArgs: ListProperty<String> = objects.listProperty<String>()
-      .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
-
   /** Emit extra debug information, useful for bug reporting. */
   @Suppress("UnstableApiUsage")
   public val emitDebugInformation: Property<Boolean> = objects.property<Boolean>().convention(false)
@@ -95,8 +83,14 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * More details can be found here: https://issuetracker.google.com/issues/158018485
    */
   public val enableL8RuleSharing: Property<Boolean> = objects.property<Boolean>().convention(false)
-}
 
+  internal val traceReferences: TraceReferences = objects.newInstance()
+
+  public fun traceReferences(action: Action<TraceReferences>) {
+    traceReferences.enabled.set(true)
+    action.execute(traceReferences)
+  }
+}
 
 public interface VariantFilter {
   /**
@@ -118,4 +112,21 @@ public interface VariantFilter {
    * Returns the unique variant name.
    */
   public val name: String
+}
+
+public abstract class TraceReferences @Inject constructor(objects: ObjectFactory) {
+  /**
+   * Controls whether or not to use the new experimental TraceReferences entry-point.
+   * Default is false but it's automatically enabled if the traceReferences block was used.
+   */
+  public val enabled: Property<Boolean> = objects.property<Boolean>().convention(false)
+
+  /**
+   * Optional arguments during the trace-references invocation,
+   * only considered if [isTraceReferencesEnabled] is true.
+   *
+   * Default value: `listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info")`
+   */
+  public val arguments: ListProperty<String> = objects.listProperty<String>()
+          .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
 }

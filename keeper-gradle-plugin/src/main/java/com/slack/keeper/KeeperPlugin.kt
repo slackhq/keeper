@@ -167,7 +167,7 @@ public class KeeperPlugin : Plugin<Project> {
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        val version = when (extension.enableTraceReferences.get()) {
+        val version = when (extension.traceReferences.enabled.get()) {
           false -> PRINTUSES_DEFAULT_VERSION
           true -> TRACE_REFERENCES_DEFAULT_VERSION
         }
@@ -236,8 +236,8 @@ public class KeeperPlugin : Plugin<Project> {
               automaticallyAddR8Repo = extension.automaticR8RepoManagement,
               enableAssertions = extension.enableAssertions,
               extensionJvmArgs = extension.r8JvmArgs,
-              enableTraceReferences = extension.enableTraceReferences,
-              keepRulesArgs = extension.keepRulesArgs,
+              traceReferencesEnabled = extension.traceReferences.enabled,
+              traceReferencesArgs = extension.traceReferences.arguments,
               r8Configuration = r8Configuration
           )
       )
