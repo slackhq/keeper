@@ -98,7 +98,6 @@ keeper {
 
   // Example: enable the new experimental R8 entry-point.
   //traceReferences {
-    //enabled.set(true)
     //arguments.set(Arrays.asList("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
   //}
 }
