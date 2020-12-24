@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         ci_java_version: [1.8]
-        ci_agp_version: [4.0.0, 4.1.1, 4.2.0-beta01]
+        ci_agp_version: [4.0.0, 4.1.1, 4.2.0-beta02]
         job: [instrumentation, plugin]
     steps:
       - name: Checkout
@@ -59,7 +59,7 @@ jobs:
           # Run connectedCheck with both Proguard and R8.
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
           script: .github/workflows/run_instrumentation_tests.sh ${{ matrix.ci_agp_version }}
-          api-level: 29
+          api-level: 30
 
       - name: (Fail-only) Bundle the build report
         if: failure()
