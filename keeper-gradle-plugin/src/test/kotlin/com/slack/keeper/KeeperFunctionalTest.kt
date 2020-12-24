@@ -248,7 +248,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .withProjectDir(projectDir)
         // TODO eventually test with configuration caching enabled
         // https://docs.gradle.org/nightly/userguide/configuration_cache.html#testkit
-        .withArguments("--stacktrace", "-Pandroid.enableR8=${minifierType.isProguard.not()}", *args)
+        .withArguments("--stacktrace", "-Pandroid.enableR8=${!minifierType.isProguard}", *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()

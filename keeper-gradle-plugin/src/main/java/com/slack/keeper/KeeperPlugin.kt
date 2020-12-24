@@ -261,7 +261,7 @@ public class KeeperPlugin : Plugin<Project> {
         ?: error("No compileSdkVersion found")
       File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}").let {
         val exists = it.exists()
-        check(required.not() or exists) {
+        check(!required || exists) {
           "No $path found! Expected to find it at: $it"
         }
         it.takeIf { exists }
