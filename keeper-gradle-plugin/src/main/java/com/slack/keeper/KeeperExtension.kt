@@ -89,6 +89,11 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
 
   internal val traceReferences: TraceReferences = objects.newInstance()
 
+  /**
+   * Allows to enable the new experimental TraceReferences entry-point,
+   * and optionally specify additional arguments.
+   * @see TraceReferences.arguments
+   */
   public fun traceReferences(action: Action<TraceReferences>) {
     traceReferences.enabled.set(true)
     action.execute(traceReferences)
