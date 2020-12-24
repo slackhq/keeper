@@ -124,7 +124,6 @@ public class KeeperPlugin : Plugin<Project> {
           appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
             val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
             val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
-            logger.debug("KEEPER: Patching $androidTestL8Task with ")
             val inputFiles = tasks
                 .named<R8Task>(appR8Task)
                 .flatMap { it.projectOutputKeepRules }
