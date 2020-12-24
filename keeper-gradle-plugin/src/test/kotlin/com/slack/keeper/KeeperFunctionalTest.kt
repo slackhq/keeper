@@ -17,6 +17,7 @@
 package com.slack.keeper
 
 import com.google.common.truth.Truth.assertThat
+import com.slack.keeper.KeeperPlugin.Companion.interpolateTaskName
 import com.squareup.javapoet.ClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
@@ -92,14 +93,14 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
    */
   enum class MinifierType(
       val taskName: String,
-      val expectedRules: String,
-      val enableR8: Boolean = true,
+      val expectedRules: Map<String, List<String>?>,
+      val isProguard: Boolean = false,
       val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
   ) {
-    R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_RULES),
-    R8_TRACE_REFERENCES("Proguard", EXPECTED_TRACE_REFERENCES_CONFIG,
+    R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
+    R8_TRACE_REFERENCES("R8", EXPECTED_TRACE_REFERENCES_CONFIG,
       keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED),
-    PROGUARD("Proguard", EXPECTED_PROGUARD_CONFIG, enableR8 = false)
+    PROGUARD("Proguard", EXPECTED_PRINT_RULES_CONFIG, isProguard = true)
   }
 
   @Rule
@@ -121,11 +122,10 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
-    val taskName = KeeperPlugin.interpolateTaskName("ExternalStaging", minifierType.taskName)
-    print("Check $taskName for ${minifierType.taskName}")
-    assertThat(result.resultOf(taskName)).isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(KeeperPlugin.interpolateTaskName("ExternalStagingAndroidTest",
-        minifierType.taskName))).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(interpolateTaskName("ExternalStaging", minifierType.taskName)))
+        .isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.resultOf(interpolateTaskName("ExternalStagingAndroidTest", minifierType.taskName)))
+        .isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
     val appJar = projectDir.generatedChild("externalStaging.jar")
@@ -142,11 +142,18 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     // Assert we correctly generated rules
     val generatedRules = projectDir.generatedChild(
         "inferredExternalStagingAndroidTestKeepRules.pro")
-    assertThat(generatedRules.readText().trim()).isEqualTo(minifierType.expectedRules)
+    assertThat(generatedRules.readText().trim()).isEqualTo(
+      minifierType.expectedRules.map { indentRules(it.key, it.value) }.joinToString("\n")
+    )
 
     // Finally - verify our rules were included in the final minification execution.
     // Have to compare slightly different strings because proguard's format is a little different
-    assertThat(proguardConfigOutput.readText().trim()).contains(minifierType.expectedRules)
+    assertThat(proguardConfigOutput.readText().trim().replace("    ", "  ")).let { assertion ->
+      minifierType.expectedRules.forEach {
+        val content = if (minifierType.isProguard) it.value?.reversed() else it.value
+        assertion.contains(indentRules(it.key, content))
+      }
+    }
   }
 
   // Asserts that our variant filter properly filters things out. In our fixture project, the
@@ -241,7 +248,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .withProjectDir(projectDir)
         // TODO eventually test with configuration caching enabled
         // https://docs.gradle.org/nightly/userguide/configuration_cache.html#testkit
-        .withArguments("--stacktrace", *minifierType.gradleArgs, *args)
+        .withArguments("--stacktrace", "-Pandroid.enableR8=${minifierType.isProguard.not()}", *args)
         .withPluginClasspath()
 //        .withDebug(true)
         .build()
@@ -262,40 +269,23 @@ private fun String.prefixIfNot(prefix: String) =
     if (this.startsWith(prefix)) this else "$prefix$this"
 
 @Language("PROGUARD")
-private val EXPECTED_PRINT_RULES_RULES = """
-  -keep class com.slack.keeper.sample.TestOnlyClass {
-    public static void testOnlyMethod();
-  }
-  -keep class com.slack.keeper.sample.TestOnlyKotlinClass {
-    public void testOnlyMethod();
-    com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
-  }
-  -keeppackagenames
-""".trimIndent()
+private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> = mapOf(
+  "-keep class com.slack.keeper.sample.TestOnlyClass" to listOf(
+    "public static void testOnlyMethod();"
+  ),
+  "-keep class com.slack.keeper.sample.TestOnlyKotlinClass" to listOf(
+    "public void testOnlyMethod();",
+    "com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;"
+  )
+)
 
 @Language("PROGUARD")
-private val EXPECTED_TRACE_REFERENCES_CONFIG = """
-  -keep class com.slack.keeper.sample.TestOnlyClass {
-      public static void testOnlyMethod();
-  }
-  
-  -keep class com.slack.keeper.sample.TestOnlyKotlinClass {
-      com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
-      public void testOnlyMethod();
-  }
-""".trimIndent()
+private val EXPECTED_PRINT_RULES_CONFIG =
+  EXPECTED_TRACE_REFERENCES_CONFIG + listOf("-keeppackagenames" to null)
 
-@Language("PROGUARD")
-private val EXPECTED_PROGUARD_CONFIG = """
-  -keep class com.slack.keeper.sample.TestOnlyClass {
-      public static void testOnlyMethod();
-  }
-  
-  -keep class com.slack.keeper.sample.TestOnlyKotlinClass {
-      com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;
-      public void testOnlyMethod();
-  }
-""".trimIndent()
+private fun indentRules(header: String, content: List<String>?) =
+  if (content == null) header else
+    "$header {\n${content.joinToString("\n") { "  $it" }}\n}"
 
 @Language("PROGUARD")
 private val TEST_PROGUARD_RULES = """
