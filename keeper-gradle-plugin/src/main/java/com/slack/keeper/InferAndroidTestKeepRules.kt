@@ -120,7 +120,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     }
 
   private fun genTraceReferencesArgs(): List<String?> =
-    listOf<Pair<String, String?>>(
+    listOf(
       "--keep-rules" to "",
       "--lib" to androidJar.get().asFile.absolutePath,
       "--lib" to androidTestJar.orNull?.asFile?.absolutePath,
