@@ -101,28 +101,34 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
 
     enableAssertions = enableAssertionsProperty.get()
     args = when (traceReferencesEnabled.get()) {
-      false -> listOf(
-          "--keeprules",
-          androidJar.get().asFile.absolutePath,
-          appTargetJar.get().asFile.absolutePath,
-          androidTestSourceJar.get().asFile.absolutePath
-      ).also {
-        // print-uses is using its output to print rules
-        standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
-      }
-      true -> listOf<Pair<String, String?>>(
-          "--keep-rules" to "",
-          "--lib" to androidJar.get().asFile.absolutePath,
-          "--lib" to androidTestJar.orNull?.asFile?.absolutePath,
-          "--target" to appTargetJar.get().asFile.absolutePath,
-          "--source" to androidTestSourceJar.get().asFile.absolutePath,
-          "--output" to outputProguardRules.get().asFile.absolutePath
-      ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
-          .reduce { acc, any -> acc + any } + traceReferencesArgs.getOrElse(listOf())
+      false -> genPrintUsesArgs()
+      true -> genTraceReferencesArgs()
     }
 
     super.exec()
   }
+
+  private fun genPrintUsesArgs(): List<String> =
+    listOf(
+      "--keeprules",
+      androidJar.get().asFile.absolutePath,
+      appTargetJar.get().asFile.absolutePath,
+      androidTestSourceJar.get().asFile.absolutePath
+    ).also {
+      // print-uses is using its output to print rules
+      standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
+    }
+
+  private fun genTraceReferencesArgs(): List<String?> =
+    listOf<Pair<String, String?>>(
+      "--keep-rules" to "",
+      "--lib" to androidJar.get().asFile.absolutePath,
+      "--lib" to androidTestJar.orNull?.asFile?.absolutePath,
+      "--target" to appTargetJar.get().asFile.absolutePath,
+      "--source" to androidTestSourceJar.get().asFile.absolutePath,
+      "--output" to outputProguardRules.get().asFile.absolutePath
+    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+      .reduce { acc, any -> acc + any } + traceReferencesArgs.getOrElse(listOf())
 
   public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
