@@ -26,6 +26,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.maven
@@ -53,10 +54,11 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   public abstract val appTargetJar: RegularFileProperty
 
   @get:Classpath
-  public abstract val androidLib: RegularFileProperty
+  public abstract val androidJar: RegularFileProperty
 
   @get:Classpath
-  public abstract val androidTestLib: RegularFileProperty
+  @get:Optional
+  public abstract val androidTestJar: RegularFileProperty
 
   /**
    * Optional custom jvm arguments to pass into the exec. Useful if you want to enable debugging in R8.
@@ -101,7 +103,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     args = when (traceReferencesEnabled.get()) {
       false -> listOf(
           "--keeprules",
-          androidLib.get().asFile.absolutePath,
+          androidJar.get().asFile.absolutePath,
           appTargetJar.get().asFile.absolutePath,
           androidTestSourceJar.get().asFile.absolutePath
       ).also {
@@ -110,8 +112,8 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       }
       true -> listOf<Pair<String, String?>>(
           "--keep-rules" to "",
-          "--lib" to androidLib.get().asFile.absolutePath,
-          "--lib" to androidTestLib.orNull?.asFile?.absolutePath,
+          "--lib" to androidJar.get().asFile.absolutePath,
+          "--lib" to androidTestJar.orNull?.asFile?.absolutePath,
           "--target" to appTargetJar.get().asFile.absolutePath,
           "--source" to androidTestSourceJar.get().asFile.absolutePath,
           "--output" to outputProguardRules.get().asFile.absolutePath
@@ -156,8 +158,8 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       group = KEEPER_TASK_GROUP
       androidTestSourceJar.set(androidTestJarProvider.flatMap { it.archiveFile })
       appTargetJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
-      androidLib.set(androidJar)
-      androidTestLib.set(androidTestJar)
+      this.androidJar.set(androidJar)
+      this.androidTestJar.set(androidTestJar)
       jvmArgsProperty.set(extensionJvmArgs)
       this.traceReferencesEnabled.set(traceReferencesEnabled)
       this.traceReferencesArgs.set(traceReferencesArgs)
