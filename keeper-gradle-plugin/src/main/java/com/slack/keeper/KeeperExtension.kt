@@ -16,6 +16,7 @@
 
 package com.slack.keeper
 
+import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Action
@@ -81,6 +82,8 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
    * generated `j$` rules in as inputs to the androidTest L8 task's input rules.
    *
    * More details can be found here: https://issuetracker.google.com/issues/158018485
+   *
+   * Patches the [L8DexDesugarLibTask].
    */
   public val enableL8RuleSharing: Property<Boolean> = objects.property<Boolean>().convention(false)
 
