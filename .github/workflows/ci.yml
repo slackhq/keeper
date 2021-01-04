@@ -47,10 +47,7 @@ jobs:
 
       - name: Test plugin
         if: matrix.job == 'plugin'
-        run: |
-          cd keeper-gradle-plugin
-          ./gradlew clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
-          cd ..
+        run: ./gradlew -p keeper-gradle-plugin clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.ci_agp_version }}
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
