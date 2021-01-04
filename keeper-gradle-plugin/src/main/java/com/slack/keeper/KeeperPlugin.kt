@@ -179,12 +179,12 @@ public class KeeperPlugin : Plugin<Project> {
       }
     }
 
-    val androidJarRegularFileProvider = androidEmbeddedJarRegularFileProvider(
-      appExtension, "android.jar", required = true
-    )
-    val androidTestJarRegularFileProvider = androidEmbeddedJarRegularFileProvider(
-      appExtension, "optional/android.test.base.jar", required = false
-    )
+    val androidJarRegularFileProvider = layout.file(provider {
+        resolveAndroidEmbeddedJar(appExtension, "android.jar", checkIfExisting = true)
+    })
+    val androidTestJarRegularFileProvider = layout.file(provider {
+        resolveAndroidEmbeddedJar(appExtension, "optional/android.test.base.jar", checkIfExisting = false)
+    })
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
@@ -251,25 +251,24 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.androidEmbeddedJarRegularFileProvider(
-      appExtension: AppExtension,
-      path: String,
-      required: Boolean
-  ): Provider<RegularFile> =
-    layout.file(provider {
-      val compileSdkVersion = appExtension.compileSdkVersion
-        ?: error("No compileSdkVersion found")
-      File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}").also {
-        check(!required || it.exists()) {
-          "No $path found! Expected to find it at: $it"
-        }
-      }
-    })
+  private fun resolveAndroidEmbeddedJar(
+    appExtension: AppExtension,
+    path: String,
+    checkIfExisting: Boolean
+  ): File {
+    val compileSdkVersion = appExtension.compileSdkVersion
+      ?: error("No compileSdkVersion found")
+    val file = File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}")
+    check(!checkIfExisting || file.exists()) {
+      "No $path found! Expected to find it at: ${file.absolutePath}"
+    }
+    return file
+  }
 
   private fun AppExtension.onApplicableVariants(
-      project: Project,
-      extension: KeeperExtension,
-      body: (TestVariant, BaseVariant) -> Unit
+    project: Project,
+    extension: KeeperExtension,
+    body: (TestVariant, BaseVariant) -> Unit
   ) {
     testVariants.configureEach {
       val testVariant = this
