@@ -131,9 +131,11 @@ public abstract class TraceReferences @Inject constructor(objects: ObjectFactory
 
   /**
    * Optional arguments during the trace-references invocation,
-   * only considered if [isTraceReferencesEnabled] is true.
+   * only considered when [enabled] is true.
    *
    * Default value: `listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info")`
+   * which is coming from [this discussion](https://issuetracker.google.com/issues/173435379)
+   * with the R8 team.
    */
   public val arguments: ListProperty<String> = objects.listProperty<String>()
           .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
