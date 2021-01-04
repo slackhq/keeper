@@ -128,7 +128,9 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       "--source" to androidTestSourceJar.get().asFile.absolutePath,
       "--output" to outputProguardRules.get().asFile.absolutePath
     ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
-      .reduce { acc, any -> acc + any } + traceReferencesArgs.getOrElse(listOf())
+      .reduce { acc, any -> acc + any }
+      // Add user provided args coming from TraceReferences.arguments after generated ones.
+      .plus(traceReferencesArgs.getOrElse(listOf()))
 
   public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
