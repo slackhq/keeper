@@ -88,7 +88,7 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val PRINTUSES_DEFAULT_VERSION = "2.2.41"
+    const val PRINTUSES_DEFAULT_VERSION = "1.6.53"
     const val TRACE_REFERENCES_DEFAULT_VERSION = "3.0.9-dev"
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")

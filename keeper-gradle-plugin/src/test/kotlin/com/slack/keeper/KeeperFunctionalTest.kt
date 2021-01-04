@@ -280,8 +280,7 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> = mapOf
 )
 
 @Language("PROGUARD")
-private val EXPECTED_PRINT_RULES_CONFIG =
-  EXPECTED_TRACE_REFERENCES_CONFIG + listOf("-keeppackagenames" to null)
+private val EXPECTED_PRINT_RULES_CONFIG = EXPECTED_TRACE_REFERENCES_CONFIG
 
 private fun indentRules(header: String, content: List<String>?) =
   if (content == null) header else
