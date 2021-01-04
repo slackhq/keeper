@@ -88,7 +88,8 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val DEFAULT_R8_VERSION = "1.6.53"
+    const val PRINTUSES_DEFAULT_VERSION = "1.6.53"
+    const val TRACE_REFERENCES_DEFAULT_VERSION = "3.0.9-dev"
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
@@ -169,20 +170,21 @@ public class KeeperPlugin : Plugin<Project> {
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        add(project.dependencies.create("com.android.tools:r8:$DEFAULT_R8_VERSION"))
+        val version = when (extension.traceReferences.enabled.get()) {
+          false -> PRINTUSES_DEFAULT_VERSION
+          true -> TRACE_REFERENCES_DEFAULT_VERSION
+        }
+        logger.debug("keeper r8 default version: $version")
+        add(project.dependencies.create("com.android.tools:r8:$version"))
       }
     }
 
-    val androidJarFileProvider = provider {
-      val compileSdkVersion = appExtension.compileSdkVersion
-          ?: error("No compileSdkVersion found")
-      File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/android.jar").also {
-        check(it.exists()) {
-          "No android.jar found! Expected to find it at: $it"
-        }
-      }
-    }
-    val androidJarRegularFileProvider = layout.file(androidJarFileProvider)
+    val androidJarRegularFileProvider = layout.file(provider {
+        resolveAndroidEmbeddedJar(appExtension, "android.jar", checkIfExisting = true)
+    })
+    val androidTestJarRegularFileProvider = layout.file(provider {
+        resolveAndroidEmbeddedJar(appExtension, "optional/android.test.base.jar", checkIfExisting = false)
+    })
 
     appExtension.testVariants.configureEach {
       val appVariant = testedVariant
@@ -233,9 +235,12 @@ public class KeeperPlugin : Plugin<Project> {
               androidTestJarProvider = intermediateAndroidTestJar,
               releaseClassesJarProvider = intermediateAppJar,
               androidJar = androidJarRegularFileProvider,
+              androidTestJar = androidTestJarRegularFileProvider,
               automaticallyAddR8Repo = extension.automaticR8RepoManagement,
               enableAssertions = extension.enableAssertions,
               extensionJvmArgs = extension.r8JvmArgs,
+              traceReferencesEnabled = extension.traceReferences.enabled,
+              traceReferencesArgs = extension.traceReferences.arguments,
               r8Configuration = r8Configuration
           )
       )
@@ -246,10 +251,24 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
+  private fun resolveAndroidEmbeddedJar(
+    appExtension: AppExtension,
+    path: String,
+    checkIfExisting: Boolean
+  ): File {
+    val compileSdkVersion = appExtension.compileSdkVersion
+      ?: error("No compileSdkVersion found")
+    val file = File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}")
+    check(!checkIfExisting || file.exists()) {
+      "No $path found! Expected to find it at: ${file.absolutePath}"
+    }
+    return file
+  }
+
   private fun AppExtension.onApplicableVariants(
-      project: Project,
-      extension: KeeperExtension,
-      body: (TestVariant, BaseVariant) -> Unit
+    project: Project,
+    extension: KeeperExtension,
+    body: (TestVariant, BaseVariant) -> Unit
   ) {
     testVariants.configureEach {
       val testVariant = this

@@ -26,6 +26,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.maven
@@ -33,9 +34,9 @@ import org.gradle.kotlin.dsl.repositories
 import java.util.Locale
 
 /**
- * Generates proguard keep rules from the generated [androidTestJar] and [appJar] tasks,
- * where the generates rules are based on what classes from [appJar] are used by
- * [androidTestJar].
+ * Generates proguard keep rules from the generated [androidTestSourceJar] and [appTargetJar] tasks,
+ * where the generates rules are based on what classes from [appTargetJar] are used by
+ * [androidTestSourceJar].
  *
  * This uses R8's [PrintUses](https://r8.googlesource.com/r8/+/master/src/main/java/com/android/tools/r8/PrintUses.java)
  * CLI to perform the analysis.
@@ -47,13 +48,17 @@ import java.util.Locale
 public abstract class InferAndroidTestKeepRules : JavaExec() {
 
   @get:Classpath
+  public abstract val androidTestSourceJar: RegularFileProperty
+
+  @get:Classpath
+  public abstract val appTargetJar: RegularFileProperty
+
+  @get:Classpath
+  public abstract val androidJar: RegularFileProperty
+
+  @get:Classpath
+  @get:Optional
   public abstract val androidTestJar: RegularFileProperty
-
-  @get:Classpath
-  public abstract val appJar: RegularFileProperty
-
-  @get:Classpath
-  public abstract val classpathJar: RegularFileProperty
 
   /**
    * Optional custom jvm arguments to pass into the exec. Useful if you want to enable debugging in R8.
@@ -69,6 +74,14 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
    */
   @get:Input
   public abstract val enableAssertionsProperty: Property<Boolean>
+
+  /** @see TraceReferences.isEnabled */
+  @get:Input
+  public abstract val traceReferencesEnabled: Property<Boolean>
+
+  /** @see TraceReferences.arguments */
+  @get:Input
+  public abstract val traceReferencesArgs: ListProperty<String>
 
   @get:OutputFile
   public abstract val outputProguardRules: RegularFileProperty
@@ -87,15 +100,37 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     }
 
     enableAssertions = enableAssertionsProperty.get()
-    standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
-    args = listOf(
-        "--keeprules",
-        classpathJar.get().asFile.absolutePath,
-        appJar.get().asFile.absolutePath,
-        androidTestJar.get().asFile.absolutePath
-    )
+    args = when (traceReferencesEnabled.get()) {
+      false -> genPrintUsesArgs()
+      true -> genTraceReferencesArgs()
+    }
+
     super.exec()
   }
+
+  private fun genPrintUsesArgs(): List<String> =
+    listOf(
+      "--keeprules",
+      androidJar.get().asFile.absolutePath,
+      appTargetJar.get().asFile.absolutePath,
+      androidTestSourceJar.get().asFile.absolutePath
+    ).also {
+      // print-uses is using its output to print rules
+      standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
+    }
+
+  private fun genTraceReferencesArgs(): List<String?> =
+    listOf(
+      "--keep-rules" to "",
+      "--lib" to androidJar.get().asFile.absolutePath,
+      "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
+      "--target" to appTargetJar.get().asFile.absolutePath,
+      "--source" to androidTestSourceJar.get().asFile.absolutePath,
+      "--output" to outputProguardRules.get().asFile.absolutePath
+    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+      .reduce { acc, any -> acc + any }
+      // Add user provided args coming from TraceReferences.arguments after generated ones.
+      .plus(traceReferencesArgs.getOrElse(listOf()))
 
   public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
@@ -104,9 +139,12 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
         releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
         androidJar: Provider<RegularFile>,
+        androidTestJar: Provider<RegularFile>,
         automaticallyAddR8Repo: Property<Boolean>,
         enableAssertions: Property<Boolean>,
         extensionJvmArgs: ListProperty<String>,
+        traceReferencesEnabled: Property<Boolean>,
+        traceReferencesArgs: ListProperty<String>,
         r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
       if (automaticallyAddR8Repo.get()) {
@@ -126,16 +164,22 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       }
 
       group = KEEPER_TASK_GROUP
-      androidTestJar.set(androidTestJarProvider.flatMap { it.archiveFile })
-      appJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
-      classpathJar.set(androidJar)
+      androidTestSourceJar.set(androidTestJarProvider.flatMap { it.archiveFile })
+      appTargetJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
+      this.androidJar.set(androidJar)
+      this.androidTestJar.set(androidTestJar)
       jvmArgsProperty.set(extensionJvmArgs)
+      this.traceReferencesEnabled.set(traceReferencesEnabled)
+      this.traceReferencesArgs.set(traceReferencesArgs)
       outputProguardRules.set(
           project.layout.buildDirectory.file(
               "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
                   Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
-      main = "com.android.tools.r8.PrintUses"
+      main = when (this.traceReferencesEnabled.get()) {
+        false -> "com.android.tools.r8.PrintUses"
+        true -> "com.android.tools.r8.tracereferences.TraceReferences"
+      }
 
       enableAssertionsProperty.set(enableAssertions)
     }
