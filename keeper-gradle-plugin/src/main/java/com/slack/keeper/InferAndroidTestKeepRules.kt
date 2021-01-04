@@ -176,10 +176,12 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
               "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
                   Locale.US)}KeepRules.pro"))
       classpath(r8Configuration)
-      main = when (this.traceReferencesEnabled.get()) {
-        false -> "com.android.tools.r8.PrintUses"
-        true -> "com.android.tools.r8.tracereferences.TraceReferences"
-      }
+      mainClass.set(this.traceReferencesEnabled.map { enabled ->
+        when (enabled) {
+          false -> "com.android.tools.r8.PrintUses"
+          true -> "com.android.tools.r8.tracereferences.TraceReferences"
+        }
+      })
 
       enableAssertionsProperty.set(enableAssertions)
     }
