@@ -123,7 +123,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
     listOf(
       "--keep-rules" to "",
       "--lib" to androidJar.get().asFile.absolutePath,
-      "--lib" to androidTestJar.orNull?.asFile?.absolutePath,
+      "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
       "--target" to appTargetJar.get().asFile.absolutePath,
       "--source" to androidTestSourceJar.get().asFile.absolutePath,
       "--output" to outputProguardRules.get().asFile.absolutePath
