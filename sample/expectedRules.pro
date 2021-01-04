@@ -18,4 +18,3 @@
 -keep class okio.ByteString$Companion {
   public okio.ByteString encodeUtf8(java.lang.String);
 }
--keeppackagenames 

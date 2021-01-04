@@ -115,8 +115,7 @@ if (isCi) {
           String outputRules = outputProguardRules.getAsFile().get().text
           String expectedRules = file("expectedRules.pro").text
           if (outputRules != expectedRules) {
-            println "Invalid rules: " + outputRules
-            throw new IllegalStateException("Rules don't match expected!")
+            throw new IllegalStateException("Rules don't match expected, existing ones:\n$outputRules")
           }
         }
       }
