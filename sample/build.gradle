@@ -105,6 +105,7 @@ keeper {
   if (useTraceReferences) {
     // Enable the new experimental TraceReferences tool.
     traceReferences {
+      // Don't fail the build if missing definitions are found.
       arguments = ["--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"]
     }
   }
