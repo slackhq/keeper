@@ -24,8 +24,7 @@ if ! [[ ${local} ]]; then
   cd ${DIR}
 
   # Generate the API docs
-  # TODO re-enable after https://github.com/Kotlin/dokka/issues/1686
-  # ./gradlew -p keeper-gradle-plugin dokkaHtml
+  ./gradlew -p keeper-gradle-plugin dokkaHtml
 
 fi
 
