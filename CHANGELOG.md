@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.8.0
+-----
+
+_2021-01-04_
+
+* **New:** Experimental support for the new upcoming `TraceReferences` tool from R8, which is the
+successor for the current `PrintUses` CLI that Keeper uses. See [configuration instructions](https://slackhq.github.io/keeper/configuration/#tracereferences) for more details.
+* Updated to Kotlin 1.4.21.
+
+Special thanks to [@pgreze](https://github.com/pgreze) for contributing the TraceReferences support in this release!
+
 0.7.0
 -----
 
