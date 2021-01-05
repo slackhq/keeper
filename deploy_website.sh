@@ -24,9 +24,7 @@ if ! [[ ${local} ]]; then
   cd ${DIR}
 
   # Generate the API docs
-  cd keeper-gradle-plugin
-  ./gradlew dokkaHtml
-  cd ../
+  ./gradlew -p keeper-gradle-plugin dokkaHtml
 
 fi
 
