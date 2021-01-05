@@ -1,7 +1,7 @@
 #!/bin/bash
 
 AGP_VERSION=$1
-ENABLE_TRACEREFS=$1
+ENABLE_TRACEREFS=$2
 
 function printthreads {
   echo "Thread dump"
