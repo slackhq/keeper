@@ -94,8 +94,8 @@ tasks.named<DokkaTask>("dokkaHtml") {
       url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
     }
     externalDocumentationLink {
-      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/package-list"))
-      url.set(URL("https://developer.android.com/reference/tools/gradle-api/"))
+      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/package-list"))
+      url.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/classes"))
     }
 
     // Suppress Zipflinger copy
