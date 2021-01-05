@@ -147,3 +147,27 @@ keeper {
   enableL8RuleSharing = true
 }
 ```
+
+## TraceReferences
+
+!!! warning "Heads up!"
+    TraceReferences is still experimental. Before reporting issues, please check if it's an issue with Keeper or TraceReferences itself before filing. If it's an issue with TraceReferences, please file on the Android issue tracker instead: https://issuetracker.google.com/issues/new?component=326788
+
+`TraceReferences` is a new tool for generating Proguard rules based on one jar's usage of classes
+in another jar. It is the formal successor and long-term replacement for the current `PrintUses` CLI
+that Keeper currently uses.
+
+```kotlin
+keeper {
+  traceReferences {
+    // Invoking this enables it!
+
+    // Optional: extra arguments to pass to TraceReferences
+    arguments.set(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
+  }
+}
+```
+
+Note that this uses the R8 version controlled by the R8 version defined by the `keeperR8` version.
+If you want to change it, set the version in `keeperR8` to whichever version you want (must be
+higher than `3.0.9-dev`).
