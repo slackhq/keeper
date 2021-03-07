@@ -78,10 +78,6 @@ gradlePlugin {
   }
 }
 
-kotlinDslPluginOptions {
-  experimentalWarning.set(false)
-}
-
 kotlin {
   explicitApi()
 }
