@@ -23,7 +23,7 @@ plugins {
   kotlin("jvm") version "1.4.31"
   kotlin("kapt") version "1.4.31"
   id("org.jetbrains.dokka") version "1.4.20"
-  id("com.vanniktech.maven.publish") version "0.13.0"
+  id("com.vanniktech.maven.publish") version "0.14.2"
 }
 
 buildscript {
