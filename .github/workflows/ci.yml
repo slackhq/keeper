@@ -20,10 +20,14 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        ci_java_version: [1.8]
-        ci_agp_version: [4.1.2, 4.2.0-beta05, 7.0.0-alpha08]
+        ci_java_version: ['1.8', '11']
+        ci_agp_version: ['4.1.2', '4.2.0-beta05', '7.0.0-alpha08']
         ci_tracerefs: [true, false]
-        job: [instrumentation, plugin]
+        job: ['instrumentation', 'plugin']
+        exclude:
+          # AGP 7.x requires JDK 11+
+          - agp: 7.0.0-alpha08
+            java: 1.8
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,9 +41,9 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-${{ hashFiles('checksum.txt') }}
+          key: ${{ runner.os }}-gradle-${{ matrix.ci_java_version }}-${{ hashFiles('checksum.txt') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.ci_agp_version }}-${{ matrix.job }}-
+            ${{ runner.os }}-gradle-${{ matrix.ci_java_version }}-
 
       - name: Install JDK ${{ matrix.ci_java_version }}
         uses: actions/setup-java@v1.4.3
@@ -72,7 +76,7 @@ jobs:
 
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '4.0.0' && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '4.1.2' && matrix.ci_tracerefs && matrix.job == 'plugin'
 
       - name: Upload snapshot (main only)
         env:
@@ -80,4 +84,4 @@ jobs:
           ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD: ${{ secrets.SonatypePassword }}
         run: |
           ./publish.sh --snapshot
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '4.0.0' && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.ci_java_version == '1.8' && matrix.ci_agp_version == '4.1.2' && matrix.ci_tracerefs && matrix.job == 'plugin'
