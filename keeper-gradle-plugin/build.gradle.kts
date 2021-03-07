@@ -97,13 +97,6 @@ tasks.named<DokkaTask>("dokkaHtml") {
       packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/package-list"))
       url.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/classes"))
     }
-
-    // Suppress Zipflinger copy
-    // TODO re-enable this with a proper regex
-//    perPackageOption {
-//      matchingRegex.set("com.slack.keeper.internal.zipflinger")
-//      suppress.set(true)
-//    }
   }
 }
 
@@ -115,6 +108,7 @@ val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.31")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.31")
+  implementation("com.android:zipflinger:4.1.2")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
