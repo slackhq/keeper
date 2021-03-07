@@ -92,8 +92,10 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       val inputJvmArgs = jvmArgsProperty.get()
       if (inputJvmArgs.isNotEmpty()) {
         logger.lifecycle(
-            "Starting infer exec with jvmArgs ${inputJvmArgs.joinToString(", ", prefix = "[",
-                postfix = "]")}. If debugging, attach the debugger now."
+            "Starting infer exec with jvmArgs ${
+              inputJvmArgs.joinToString(", ", prefix = "[",
+                  postfix = "]")
+            }. If debugging, attach the debugger now."
         )
         jvmArgs = inputJvmArgs
       }
@@ -109,28 +111,28 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   private fun genPrintUsesArgs(): List<String> =
-    listOf(
-      "--keeprules",
-      androidJar.get().asFile.absolutePath,
-      appTargetJar.get().asFile.absolutePath,
-      androidTestSourceJar.get().asFile.absolutePath
-    ).also {
-      // print-uses is using its output to print rules
-      standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
-    }
+      listOf(
+          "--keeprules",
+          androidJar.get().asFile.absolutePath,
+          appTargetJar.get().asFile.absolutePath,
+          androidTestSourceJar.get().asFile.absolutePath
+      ).also {
+        // print-uses is using its output to print rules
+        standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
+      }
 
   private fun genTraceReferencesArgs(): List<String?> =
-    listOf(
-      "--keep-rules" to "",
-      "--lib" to androidJar.get().asFile.absolutePath,
-      "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
-      "--target" to appTargetJar.get().asFile.absolutePath,
-      "--source" to androidTestSourceJar.get().asFile.absolutePath,
-      "--output" to outputProguardRules.get().asFile.absolutePath
-    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
-      .reduce { acc, any -> acc + any }
-      // Add user provided args coming from TraceReferences.arguments after generated ones.
-      .plus(traceReferencesArgs.getOrElse(listOf()))
+      listOf(
+          "--keep-rules" to "",
+          "--lib" to androidJar.get().asFile.absolutePath,
+          "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
+          "--target" to appTargetJar.get().asFile.absolutePath,
+          "--source" to androidTestSourceJar.get().asFile.absolutePath,
+          "--output" to outputProguardRules.get().asFile.absolutePath
+      ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+          .reduce { acc, any -> acc + any }
+          // Add user provided args coming from TraceReferences.arguments after generated ones.
+          .plus(traceReferencesArgs.getOrElse(listOf()))
 
   public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
@@ -173,8 +175,9 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       this.traceReferencesArgs.set(traceReferencesArgs)
       outputProguardRules.set(
           project.layout.buildDirectory.file(
-              "${KeeperPlugin.INTERMEDIATES_DIR}/inferred${variantName.capitalize(
-                  Locale.US)}KeepRules.pro"))
+              "${KeeperPlugin.INTERMEDIATES_DIR}/${
+                variantName.capitalize(Locale.US)
+              }/inferredKeepRules.pro"))
       classpath(r8Configuration)
       mainClass.set(this.traceReferencesEnabled.map { enabled ->
         when (enabled) {

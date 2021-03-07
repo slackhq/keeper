@@ -128,20 +128,20 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
-    val appJar = projectDir.generatedChild("externalStaging.jar")
+    val appJar = projectDir.generatedChild("externalStaging/classes.jar")
     val appClasses = ZipFile(appJar).readClasses()
     assertThat(appClasses).containsAtLeastElementsIn(EXPECTED_APP_CLASSES)
     assertThat(appClasses).containsNoneIn(EXPECTED_ANDROID_TEST_CLASSES)
 
     // Assert we correctly packaged androidTest classes
-    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest.jar")
+    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest/classes.jar")
     val androidTestClasses = ZipFile(androidTestJar).readClasses()
     assertThat(androidTestClasses).containsAtLeastElementsIn(EXPECTED_ANDROID_TEST_CLASSES)
     assertThat(androidTestClasses).containsNoneIn(EXPECTED_APP_CLASSES)
 
     // Assert we correctly generated rules
     val generatedRules = projectDir.generatedChild(
-        "inferredExternalStagingAndroidTestKeepRules.pro")
+        "externalStagingAndroidTest/inferredKeepRules.pro")
     assertThat(generatedRules.readText().trim()).isEqualTo(
       minifierType.expectedRules.map { indentRules(it.key, it.value) }.joinToString("\n")
     )
@@ -215,7 +215,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
     // Check that we emitted a duplicate classes file
     val duplicateClasses = projectDir.generatedChild(
-        "diagnostics/externalStagingAndroidTestDuplicateClasses.txt")
+        "externalStagingAndroidTest/diagnostics/duplicateClasses.txt")
     assertThat(duplicateClasses.readText().trim()).isNotEmpty()
   }
 

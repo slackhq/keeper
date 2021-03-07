@@ -359,7 +359,7 @@ public class KeeperPlugin : Plugin<Project> {
           "$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
       this.diagnosticsOutputDir.set(diagnosticsDir)
       archiveFile.set(outputDir.map {
-        it.file("androidTestClasses.jar")
+        it.file("classes.jar")
       })
     }
   }
@@ -391,8 +391,8 @@ public class KeeperPlugin : Plugin<Project> {
       val diagnosticsDir = layout.buildDirectory.dir(
           "$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
       diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map { it.file("appClasses.jar") })
-      appJarsFile.set(outputDir.map { it.file("appJars.txt") })
+      archiveFile.set(outputDir.map { it.file("classes.jar") })
+      appJarsFile.set(outputDir.map { it.file("jars.txt") })
     }
   }
 }
