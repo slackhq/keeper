@@ -112,7 +112,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
 
-    diagnostic("appClasses") {
+    diagnostic("classes") {
       appClasses.sorted()
           .joinToString("\n")
     }
