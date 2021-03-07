@@ -134,7 +134,7 @@ public class KeeperPlugin : Plugin<Project> {
                   keepRulesFiles.from(inputFiles)
                   keepRulesConfigurations.set(listOf("-dontobfuscate"))
                   val diagnosticOutputDir = layout.buildDirectory.dir(
-                      "$INTERMEDIATES_DIR/l8diagnostics/$taskName")
+                      "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
                   outputs.dir(diagnosticOutputDir)
                       .withPropertyName("diagnosticsDir")
 
@@ -148,7 +148,7 @@ public class KeeperPlugin : Plugin<Project> {
                           }
                       val configurations = keepRulesConfigurations.orNull.orEmpty().joinToString(
                           "\n", prefix = "# Source: extra configurations\n")
-                      diagnosticOutputDir.get().file("${testVariant.name}MergedL8Rules.pro")
+                      diagnosticOutputDir.get().file("mergedL8Rules.pro")
                           .asFile
                           .writeText("$mergedFilesContent\n$configurations")
                     }

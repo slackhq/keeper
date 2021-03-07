@@ -134,7 +134,7 @@ if (isCi) {
       .configureEach {
         doLast {
           println "Checking expected input rules from diagnostics output"
-          String diagnosticFilePath = "build/intermediates/keeper/diagnostics/externalStagingAndroidTestMergedL8Rules.pro"
+          String diagnosticFilePath = "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/mergedL8Rules.pro"
           String diagnostics = file(diagnosticFilePath).text
           if (!diagnostics.contains("-dontobfuscate")) {
             throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
