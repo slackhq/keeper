@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         ci_java_version: [1.8]
-        ci_agp_version: [4.0.0, 4.1.1, 4.2.0-beta02]
+        ci_agp_version: [4.1.2, 4.2.0-beta05, 7.0.0-alpha08]
         ci_tracerefs: [true, false]
         job: [instrumentation, plugin]
     steps:
