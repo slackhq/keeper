@@ -112,7 +112,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
 
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Classes") {
+    diagnostic("appClasses") {
       appClasses.sorted()
           .joinToString("\n")
     }
@@ -156,7 +156,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
     val androidTestClasspath = androidTestArtifactFiles.files
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Jars") {
+    diagnostic("jars") {
       androidTestClasspath.sortedBy { it.canonicalPath }
           .joinToString("\n") {
             it.canonicalPath
@@ -167,7 +167,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
       removeAll { it.canonicalPath in appJars }
     }
 
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DistinctJars") {
+    diagnostic("distinctJars") {
       distinctAndroidTestClasspath.sortedBy { it.canonicalPath }
           .joinToString("\n") {
             it.canonicalPath
@@ -195,7 +195,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
           }
     }
 
-    diagnostic("${archiveFile.get().asFile.nameWithoutExtension}Classes") {
+    diagnostic("androidTestClasses") {
       androidTestClasses.sorted().joinToString("\n")
     }
 
@@ -208,7 +208,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
           .filterTo(LinkedHashSet()) { it in androidTestClasses }
 
       if (duplicateClasses.isNotEmpty()) {
-        val output = diagnostic("${archiveFile.get().asFile.nameWithoutExtension}DuplicateClasses") {
+        val output = diagnostic("duplicateClasses") {
           duplicateClasses.sorted().joinToString("\n")
         }
         logger.warn("Duplicate classes found in androidTest APK and app APK! This" +
