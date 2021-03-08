@@ -135,8 +135,11 @@ public class KeeperPlugin : Plugin<Project> {
                   keepRulesConfigurations.set(listOf("-dontobfuscate"))
                   val diagnosticOutputDir = layout.buildDirectory.dir(
                       "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
-                  outputs.dir(diagnosticOutputDir)
-                      .withPropertyName("diagnosticsDir")
+
+                  // We can't actually declare this because AGP's NonIncrementalTask will clear it
+                  // during the task action
+//                  outputs.dir(diagnosticOutputDir)
+//                      .withPropertyName("diagnosticsDir")
 
                   if (extension.emitDebugInformation.getOrElse(false)) {
                     doFirst {
@@ -146,8 +149,13 @@ public class KeeperPlugin : Plugin<Project> {
                           .joinToString("\n") {
                             "# Source: ${it.absolutePath}\n${it.readText()}"
                           }
-                      val configurations = keepRulesConfigurations.orNull.orEmpty().joinToString(
-                          "\n", prefix = "# Source: extra configurations\n")
+
+                      val configurations = keepRulesConfigurations.orNull.orEmpty()
+                          .joinToString(
+                          "\n",
+                              prefix = "# Source: extra configurations\n"
+                          )
+
                       diagnosticOutputDir.get().file("mergedL8Rules.pro")
                           .asFile
                           .writeText("$mergedFilesContent\n$configurations")
