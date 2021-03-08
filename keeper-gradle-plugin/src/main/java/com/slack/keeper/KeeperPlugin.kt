@@ -156,7 +156,7 @@ public class KeeperPlugin : Plugin<Project> {
                               prefix = "# Source: extra configurations\n"
                           )
 
-                      diagnosticOutputDir.get().file("mergedL8Rules.pro")
+                      diagnosticOutputDir.get().file("patchedL8Rules.pro")
                           .asFile
                           .writeText("$mergedFilesContent\n$configurations")
                     }
