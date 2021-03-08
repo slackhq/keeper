@@ -167,7 +167,7 @@ repositories {
 dependencies {
   implementation project(":sample-libraries:a")
 
-  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.1"
+  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
 
   androidTestImplementation project(":sample-libraries:c")
   androidTestImplementation "com.squareup.okio:okio:2.10.0"
