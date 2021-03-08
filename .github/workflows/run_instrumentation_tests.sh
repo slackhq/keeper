@@ -21,4 +21,6 @@ echo "Building APK"
 ./gradlew --stop || jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
 # Now proceed, with much of the build being cached up to this point
 echo "Running instrumentation tests"
-gtimeout --signal=SIGINT 10m ./gradlew connectedExternalStagingAndroidTest --stacktrace -PkeeperTest.agpVersion="${AGP_VERSION}" -PkeeperTest.enableTraceReferences="${ENABLE_TRACEREFS}"
+# Disable the l8DexDesugarLibExternalStagingAndroidTest task because it's not cacheable and it
+# wipes some of our diagnostic outputs in testing. We've already run it in the previous step.
+gtimeout --signal=SIGINT 10m ./gradlew connectedExternalStagingAndroidTest -x l8DexDesugarLibExternalStagingAndroidTest --stacktrace -PkeeperTest.agpVersion="${AGP_VERSION}" -PkeeperTest.enableTraceReferences="${ENABLE_TRACEREFS}"
