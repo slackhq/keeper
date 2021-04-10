@@ -20,9 +20,9 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.4.31"
-  kotlin("kapt") version "1.4.31"
-  id("org.jetbrains.dokka") version "1.4.20"
+  kotlin("jvm") version "1.4.32"
+  kotlin("kapt") version "1.4.32"
+  id("org.jetbrains.dokka") version "1.4.30"
   id("com.vanniktech.maven.publish") version "0.14.2"
 }
 
@@ -102,9 +102,9 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.31")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.31")
-  implementation("com.android:zipflinger:4.1.2")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.32")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
+  implementation("com.android:zipflinger:4.1.3")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
@@ -112,11 +112,11 @@ dependencies {
     implementation("com.android.tools.build:gradle:$agpVersion")
   }
 
-  compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
-  kapt("com.google.auto.service:auto-service:1.0-rc7")
+  compileOnly("com.google.auto.service:auto-service-annotations:1.0")
+  kapt("com.google.auto.service:auto-service:1.0")
 
   testImplementation("com.squareup:javapoet:1.13.0")
-  testImplementation("com.squareup:kotlinpoet:1.7.2")
+  testImplementation("com.squareup:kotlinpoet:1.8.0")
   testImplementation("com.google.truth:truth:1.1.2")
   testImplementation("junit:junit:4.13.2")
 }

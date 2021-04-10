@@ -20,14 +20,14 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        java: ['1.8', '11']
-        agp: ['4.1.2', '4.2.0-beta05', '7.0.0-alpha08']
+        java: ['8', '11']
+        agp: ['4.1.3', '4.2.0-rc01', '7.0.0-alpha14']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
         exclude:
           # AGP 7.x requires JDK 11+
-          - agp: 7.0.0-alpha08
-            java: 1.8
+          - agp: 7.0.0-alpha14
+            java: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -46,8 +46,9 @@ jobs:
             ${{ runner.os }}-gradle-${{ matrix.java }}-
 
       - name: Install JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1.4.3
+        uses: actions/setup-java@v2
         with:
+          distribution: 'adopt'
           java-version: ${{ matrix.java }}
 
       - name: Test plugin
@@ -76,7 +77,7 @@ jobs:
 
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '1.8' && matrix.agp == '4.1.2' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.1.2' && matrix.tracerefs && matrix.job == 'plugin'
 
       - name: Upload snapshot (main only)
         env:
@@ -84,4 +85,4 @@ jobs:
           ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD: ${{ secrets.SonatypePassword }}
         run: |
           ./publish.sh --snapshot
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '1.8' && matrix.agp == '4.1.2' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.1.3' && matrix.tracerefs && matrix.job == 'plugin'
