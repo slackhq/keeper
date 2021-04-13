@@ -156,9 +156,18 @@ public class KeeperPlugin : Plugin<Project> {
                               prefix = "# Source: extra configurations\n"
                           )
 
-                      diagnosticOutputDir.get().file("patchedL8Rules.pro")
-                          .asFile
-                          .writeText("$mergedFilesContent\n$configurations")
+                      // TODO why does this file never exist?!
+//                      diagnosticOutputDir.get()
+//                        .file("patchedL8Rules.pro")
+//                          .asFile
+//                          .apply {
+//                            if (exists()) {
+//                              delete()
+//                            }
+//                            mkdirs()
+//                            createNewFile()
+//                          }
+//                          .writeText("$mergedFilesContent\n$configurations")
                     }
                   }
                 }
