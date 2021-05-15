@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['8', '11']
-        agp: ['4.1.3', '4.2.0-rc01', '7.0.0-alpha14']
+        agp: ['4.2.1', '7.0.0-alpha14']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
         exclude:
@@ -77,12 +77,12 @@ jobs:
 
       - name: Reclaim memory
         run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.1.2' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'
 
       - name: Upload snapshot (main only)
         env:
-          ORG_GRADLE_PROJECT_SONATYPE_NEXUS_USERNAME: ${{ secrets.SonatypeUsername }}
-          ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD: ${{ secrets.SonatypePassword }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SonatypeUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SonatypePassword }}
         run: |
           ./publish.sh --snapshot
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.1.3' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'

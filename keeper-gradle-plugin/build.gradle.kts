@@ -20,17 +20,16 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.4.32"
-  kotlin("kapt") version "1.4.32"
-  id("org.jetbrains.dokka") version "1.4.30"
-  id("com.vanniktech.maven.publish") version "0.14.2"
+  kotlin("jvm") version "1.5.0"
+  kotlin("kapt") version "1.5.0"
+  id("org.jetbrains.dokka") version "1.4.32"
+  id("com.vanniktech.maven.publish") version "0.15.1"
 }
 
 buildscript {
   repositories {
-    gradlePluginPortal()
     mavenCentral()
-    jcenter()
+    gradlePluginPortal()
   }
 }
 
@@ -38,19 +37,16 @@ repositories {
   mavenCentral()
   google()
   gradlePluginPortal()
-  jcenter().mavenContent {
-    // Required for Dokka
-    includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
-    includeGroup("org.jetbrains.dokka")
-    includeModule("org.jetbrains", "markdown")
-  }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     jvmTarget = "1.8"
-    @Suppress("SuspiciousCollectionReassignment")
-    freeCompilerArgs += listOf("-progressive")
+    // Because Gradle's Kotlin handling is stupid
+    apiVersion = "1.4"
+    languageVersion = "1.4"
+//    @Suppress("SuspiciousCollectionReassignment")
+//    freeCompilerArgs += listOf("-progressive")
   }
 }
 
@@ -96,15 +92,15 @@ tasks.named<DokkaTask>("dokkaHtml") {
   }
 }
 
-val defaultAgpVersion = "4.1.2"
+val defaultAgpVersion = "4.2.1"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.32")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
-  implementation("com.android:zipflinger:4.1.3")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
+  implementation("com.android:zipflinger:4.2.1")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
