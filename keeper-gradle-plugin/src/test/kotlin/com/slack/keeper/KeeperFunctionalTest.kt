@@ -94,13 +94,11 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   enum class MinifierType(
       val taskName: String,
       val expectedRules: Map<String, List<String>?>,
-      val isProguard: Boolean = false,
       val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
   ) {
     R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
     R8_TRACE_REFERENCES("R8", EXPECTED_TRACE_REFERENCES_CONFIG,
-      keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED),
-    PROGUARD("Proguard", EXPECTED_PRINT_RULES_CONFIG, isProguard = true)
+      keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED)
   }
 
   @Rule
@@ -150,8 +148,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     // Have to compare slightly different strings because proguard's format is a little different
     assertThat(proguardConfigOutput.readText().trim().replace("    ", "  ")).let { assertion ->
       minifierType.expectedRules.forEach {
-        val content = if (minifierType.isProguard) it.value?.reversed() else it.value
-        assertion.contains(indentRules(it.key, content))
+        assertion.contains(indentRules(it.key, it.value))
       }
     }
   }
@@ -242,15 +239,17 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   }
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
+    val extraArgs = args.toMutableList()
+    extraArgs += "--stacktrace"
     return GradleRunner.create()
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
         // TODO eventually test with configuration caching enabled
         // https://docs.gradle.org/nightly/userguide/configuration_cache.html#testkit
-        .withArguments("--stacktrace", "-Pandroid.enableR8=${!minifierType.isProguard}", *args)
+        .withArguments(extraArgs)
         .withPluginClasspath()
-//        .withDebug(true)
+        .withDebug(true) // Tests run in-process and way faster with this enabled
         .build()
   }
 

@@ -117,46 +117,43 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
-        val r8Enabled = !hasProperty("android.enableR8") ||
-            property("android.enableR8")?.toString()?.toBoolean() != false
-        if (r8Enabled) {
-          appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
-            val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
-            val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
-            val inputFiles = tasks
-                .named<R8Task>(appR8Task)
-                .flatMap { it.projectOutputKeepRules }
+        appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+          val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
+          val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
+          val inputFiles = tasks
+              .named<R8Task>(appR8Task)
+              .flatMap { it.projectOutputKeepRules }
 
-            tasks
-                .named<L8DexDesugarLibTask>(androidTestL8Task)
-                .configure {
-                  val taskName = name
-                  keepRulesFiles.from(inputFiles)
-                  keepRulesConfigurations.set(listOf("-dontobfuscate"))
-                  val diagnosticOutputDir = layout.buildDirectory.dir(
-                      "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+          tasks
+              .named<L8DexDesugarLibTask>(androidTestL8Task)
+              .configure {
+                val taskName = name
+                keepRulesFiles.from(inputFiles)
+                keepRulesConfigurations.set(listOf("-dontobfuscate"))
+                val diagnosticOutputDir = layout.buildDirectory.dir(
+                    "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
 
-                  // We can't actually declare this because AGP's NonIncrementalTask will clear it
-                  // during the task action
+                // We can't actually declare this because AGP's NonIncrementalTask will clear it
+                // during the task action
 //                  outputs.dir(diagnosticOutputDir)
 //                      .withPropertyName("diagnosticsDir")
 
-                  if (extension.emitDebugInformation.getOrElse(false)) {
-                    doFirst {
-                      val mergedFilesContent = keepRulesFiles.files.asSequence()
-                          .flatMap { it.walkTopDown() }
-                          .filterNot { it.isDirectory }
-                          .joinToString("\n") {
-                            "# Source: ${it.absolutePath}\n${it.readText()}"
-                          }
+                if (extension.emitDebugInformation.getOrElse(false)) {
+                  doFirst {
+                    val mergedFilesContent = keepRulesFiles.files.asSequence()
+                        .flatMap { it.walkTopDown() }
+                        .filterNot { it.isDirectory }
+                        .joinToString("\n") {
+                          "# Source: ${it.absolutePath}\n${it.readText()}"
+                        }
 
-                      val configurations = keepRulesConfigurations.orNull.orEmpty()
-                          .joinToString(
-                          "\n",
-                              prefix = "# Source: extra configurations\n"
-                          )
+                    val configurations = keepRulesConfigurations.orNull.orEmpty()
+                        .joinToString(
+                        "\n",
+                            prefix = "# Source: extra configurations\n"
+                        )
 
-                      // TODO why does this file never exist?!
+                    // TODO why does this file never exist?!
 //                      diagnosticOutputDir.get()
 //                        .file("patchedL8Rules.pro")
 //                          .asFile
@@ -168,12 +165,9 @@ public class KeeperPlugin : Plugin<Project> {
 //                            createNewFile()
 //                          }
 //                          .writeText("$mergedFilesContent\n$configurations")
-                    }
                   }
                 }
-          }
-        } else {
-          error("enableL8RuleSharing only works if R8 is enabled!")
+              }
         }
       }
     }
@@ -324,16 +318,7 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun Project.applyGeneratedRules(appVariant: String, prop: Provider<Directory>) {
-    // R8 is the default, so we'll only look to see if it's explicitly disabled
-    val r8Enabled = providers.gradleProperty("android.enableR8")
-        .forUseAtConfigurationTime()
-        .map {
-          @Suppress("PlatformExtensionReceiverOfInline")
-          it.toBoolean()
-        }
-        .getOrElse(true)
-
-    val minifierTool = if (r8Enabled) "R8" else "Proguard"
+    val minifierTool = "R8"
 
     val targetName = interpolateTaskName(appVariant, minifierTool)
 
