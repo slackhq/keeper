@@ -334,14 +334,13 @@ private fun buildGradleFile(
     repositories {
       google()
       mavenCentral()
-      jcenter()
     }
 
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:4.0.0"
+      classpath "com.android.tools.build:gradle:4.2.1"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.0"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
     }
   }
 
@@ -354,12 +353,12 @@ private fun buildGradleFile(
   apply plugin: 'com.slack.keeper'
 
   android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
       minSdkVersion 21
-      targetSdkVersion 29
+      targetSdkVersion 30
     }
 
     buildTypes {
@@ -394,7 +393,6 @@ private fun buildGradleFile(
   repositories {
     google()
     mavenCentral()
-    jcenter()
     ${
     if (automaticR8RepoManagement) "" else """
     maven {
