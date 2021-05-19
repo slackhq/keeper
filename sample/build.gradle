@@ -129,20 +129,20 @@ if (isCi) {
         }
       }
 
-  tasks.withType(L8DexDesugarLibTask)
-      .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
-      .configureEach {
-        doLast {
-          println "Checking expected input rules from diagnostics output"
-          String diagnosticFilePath = "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
-          String diagnostics = file(diagnosticFilePath).text
-          if (!diagnostics.contains("-dontobfuscate")) {
-            throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
-          } else if (!diagnostics.contains("-keep class j\$.time.Instant")) {
-            throw new IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
-          }
-        }
-      }
+//  tasks.withType(L8DexDesugarLibTask)
+//      .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
+//      .configureEach {
+//        doLast {
+//          println "Checking expected input rules from diagnostics output"
+//          String diagnosticFilePath = "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
+//          String diagnostics = file(diagnosticFilePath).text
+//          if (!diagnostics.contains("-dontobfuscate")) {
+//            throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
+//          } else if (!diagnostics.contains("-keep class j\$.time.Instant")) {
+//            throw new IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
+//          }
+//        }
+//      }
 }
 
 // Example demo of how to configure your own R8 repo
