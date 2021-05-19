@@ -21,12 +21,12 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['8', '11']
-        agp: ['4.2.1', '7.0.0-alpha14']
+        agp: ['4.2.1', '7.0.0-beta01']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
         exclude:
           # AGP 7.x requires JDK 11+
-          - agp: 7.0.0-alpha14
+          - agp: 7.0.0-beta01
             java: 8
     steps:
       - name: Checkout
