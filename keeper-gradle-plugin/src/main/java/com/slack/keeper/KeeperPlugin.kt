@@ -132,6 +132,9 @@ public class KeeperPlugin : Plugin<Project> {
                 keepRulesConfigurations.set(listOf("-dontobfuscate"))
                 val diagnosticOutputDir = layout.buildDirectory.dir(
                     "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+                    .forUseAtConfigurationTime()
+                    .get()
+                    .asFile
 
                 // We can't actually declare this because AGP's NonIncrementalTask will clear it
                 // during the task action
@@ -149,22 +152,19 @@ public class KeeperPlugin : Plugin<Project> {
 
                     val configurations = keepRulesConfigurations.orNull.orEmpty()
                         .joinToString(
-                        "\n",
+                            "\n",
                             prefix = "# Source: extra configurations\n"
                         )
 
-                    // TODO why does this file never exist?!
-//                      diagnosticOutputDir.get()
-//                        .file("patchedL8Rules.pro")
-//                          .asFile
-//                          .apply {
-//                            if (exists()) {
-//                              delete()
-//                            }
-//                            mkdirs()
-//                            createNewFile()
-//                          }
-//                          .writeText("$mergedFilesContent\n$configurations")
+
+                    File(diagnosticOutputDir, "patchedL8Rules.pro")
+                        .apply {
+                          if (exists()) {
+                            delete()
+                          }
+                          createNewFile()
+                        }
+                        .writeText("$mergedFilesContent\n$configurations")
                   }
                 }
               }
