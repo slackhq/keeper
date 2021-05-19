@@ -162,6 +162,7 @@ public class KeeperPlugin : Plugin<Project> {
                           if (exists()) {
                             delete()
                           }
+                          parentFile.mkdirs()
                           createNewFile()
                         }
                         .writeText("$mergedFilesContent\n$configurations")
