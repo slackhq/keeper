@@ -20,17 +20,16 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.4.30"
-  kotlin("kapt") version "1.4.30"
-  id("org.jetbrains.dokka") version "1.4.20"
-  id("com.vanniktech.maven.publish") version "0.13.0"
+  kotlin("jvm") version "1.5.0"
+  kotlin("kapt") version "1.5.0"
+  id("org.jetbrains.dokka") version "1.4.32"
+  id("com.vanniktech.maven.publish") version "0.15.1"
 }
 
 buildscript {
   repositories {
-    gradlePluginPortal()
     mavenCentral()
-    jcenter()
+    gradlePluginPortal()
   }
 }
 
@@ -38,19 +37,16 @@ repositories {
   mavenCentral()
   google()
   gradlePluginPortal()
-  jcenter().mavenContent {
-    // Required for Dokka
-    includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
-    includeGroup("org.jetbrains.dokka")
-    includeModule("org.jetbrains", "markdown")
-  }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     jvmTarget = "1.8"
-    @Suppress("SuspiciousCollectionReassignment")
-    freeCompilerArgs += listOf("-progressive")
+    // Because Gradle's Kotlin handling is stupid
+    apiVersion = "1.4"
+    languageVersion = "1.4"
+//    @Suppress("SuspiciousCollectionReassignment")
+//    freeCompilerArgs += listOf("-progressive")
   }
 }
 
@@ -78,10 +74,6 @@ gradlePlugin {
   }
 }
 
-kotlinDslPluginOptions {
-  experimentalWarning.set(false)
-}
-
 kotlin {
   explicitApi()
 }
@@ -97,24 +89,18 @@ tasks.named<DokkaTask>("dokkaHtml") {
       packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/package-list"))
       url.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/classes"))
     }
-
-    // Suppress Zipflinger copy
-    // TODO re-enable this with a proper regex
-//    perPackageOption {
-//      matchingRegex.set("com.slack.keeper.internal.zipflinger")
-//      suppress.set(true)
-//    }
   }
 }
 
-val defaultAgpVersion = "4.0.0"
+val defaultAgpVersion = "4.2.1"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.4.30")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.30")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
+  implementation("com.android:zipflinger:4.2.1")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
@@ -122,11 +108,11 @@ dependencies {
     implementation("com.android.tools.build:gradle:$agpVersion")
   }
 
-  compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
-  kapt("com.google.auto.service:auto-service:1.0-rc7")
+  compileOnly("com.google.auto.service:auto-service-annotations:1.0")
+  kapt("com.google.auto.service:auto-service:1.0")
 
   testImplementation("com.squareup:javapoet:1.13.0")
-  testImplementation("com.squareup:kotlinpoet:1.7.2")
+  testImplementation("com.squareup:kotlinpoet:1.8.0")
   testImplementation("com.google.truth:truth:1.1.2")
   testImplementation("junit:junit:4.13.2")
 }

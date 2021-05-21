@@ -116,6 +116,9 @@ keeper {
 boolean isCi = providers.environmentVariable("CI").forUseAtConfigurationTime()
     .orElse("false")
     .get() == "true"
+boolean verifyL8 = providers.environmentVariable("keeper.verifyL8").forUseAtConfigurationTime()
+    .orElse("false")
+    .get() == "true"
 if (isCi) {
   tasks.withType(InferAndroidTestKeepRules)
       .configureEach {
@@ -129,20 +132,22 @@ if (isCi) {
         }
       }
 
-  tasks.withType(L8DexDesugarLibTask)
-      .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
-      .configureEach {
-        doLast {
-          println "Checking expected input rules from diagnostics output"
-          String diagnosticFilePath = "build/intermediates/keeper/diagnostics/externalStagingAndroidTestMergedL8Rules.pro"
-          String diagnostics = file(diagnosticFilePath).text
-          if (!diagnostics.contains("-dontobfuscate")) {
-            throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
-          } else if (!diagnostics.contains("-keep class j\$.time.Instant")) {
-            throw new IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
+  if (verifyL8) {
+    tasks.withType(L8DexDesugarLibTask)
+        .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
+        .configureEach {
+          doLast {
+            println "Checking expected input rules from diagnostics output"
+            String diagnosticFilePath = "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
+            String diagnostics = file(diagnosticFilePath).text
+            if (!diagnostics.contains("-dontobfuscate")) {
+              throw new IllegalStateException("L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see ${diagnosticFilePath}")
+            } else if (!diagnostics.contains("-keep class j\$.time.Instant")) {
+              throw new IllegalStateException("L8 diagnostic rules include the main variant's R8-generated rules, see ${diagnosticFilePath}")
+            }
           }
         }
-      }
+  }
 }
 
 // Example demo of how to configure your own R8 repo
@@ -167,15 +172,15 @@ repositories {
 dependencies {
   implementation project(":sample-libraries:a")
 
-  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.1"
+  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
 
   androidTestImplementation project(":sample-libraries:c")
   androidTestImplementation "com.squareup.okio:okio:2.10.0"
-  androidTestImplementation "androidx.annotation:annotation:1.1.0"
-  androidTestImplementation "androidx.test:rules:1.3.0"
-  androidTestImplementation "androidx.test:runner:1.3.0"
-  androidTestImplementation "androidx.test:orchestrator:1.3.0"
-  androidTestImplementation "androidx.test.ext:junit:1.1.2"
+  androidTestImplementation "androidx.annotation:annotation:1.2.0"
+  androidTestImplementation "androidx.test:rules:1.4.0-beta01"
+  androidTestImplementation "androidx.test:runner:1.4.0-beta01"
+  androidTestUtil "androidx.test:orchestrator:1.4.0-beta01"
+  androidTestImplementation "androidx.test.ext:junit:1.1.3-beta01"
   androidTestImplementation "junit:junit:4.13.2"
   androidTestImplementation "com.google.truth:truth:1.1.2"
 }

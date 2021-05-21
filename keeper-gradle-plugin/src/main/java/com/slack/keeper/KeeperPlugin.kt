@@ -106,53 +106,69 @@ public class KeeperPlugin : Plugin<Project> {
     project.pluginManager.withPlugin("com.android.application") {
       val appExtension = project.extensions.getByType<AppExtension>()
       val extension = project.extensions.create<KeeperExtension>("keeper")
-      val diagnosticOutputDir = project.layout.buildDirectory.dir("$INTERMEDIATES_DIR/diagnostics")
-      project.configureKeepRulesGeneration(appExtension, extension, diagnosticOutputDir)
-      project.configureL8Rules(appExtension, extension, diagnosticOutputDir)
+      project.configureKeepRulesGeneration(appExtension, extension)
+      project.configureL8Rules(appExtension, extension)
     }
   }
 
   private fun Project.configureL8Rules(
       appExtension: AppExtension,
-      extension: KeeperExtension,
-      diagnosticOutputDir: Provider<Directory>
+      extension: KeeperExtension
   ) {
     afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
-        val r8Enabled = !hasProperty("android.enableR8") ||
-            property("android.enableR8")?.toString()?.toBoolean() != false
-        if (r8Enabled) {
-          appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
-            val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
-            val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
-            val inputFiles = tasks
-                .named<R8Task>(appR8Task)
-                .flatMap { it.projectOutputKeepRules }
+        appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+          val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
+          val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
+          val inputFiles = tasks
+              .named<R8Task>(appR8Task)
+              .flatMap { it.projectOutputKeepRules }
 
-            tasks
-                .named<L8DexDesugarLibTask>(androidTestL8Task)
-                .configure {
-                  keepRulesFiles.from(inputFiles)
-                  keepRulesConfigurations.set(listOf("-dontobfuscate"))
+          tasks
+              .named<L8DexDesugarLibTask>(androidTestL8Task)
+              .configure {
+                val taskName = name
+                keepRulesFiles.from(inputFiles)
+                keepRulesConfigurations.set(listOf("-dontobfuscate"))
+                val diagnosticOutputDir = layout.buildDirectory.dir(
+                    "$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+                    .forUseAtConfigurationTime()
+                    .get()
+                    .asFile
 
-                  if (extension.emitDebugInformation.getOrElse(false)) {
-                    doFirst {
-                      val mergedFilesContent = keepRulesFiles.files.asSequence()
-                          .flatMap { it.walkTopDown() }
-                          .filterNot { it.isDirectory }
-                          .joinToString("\n") {
-                            "# Source: ${it.absolutePath}\n${it.readText()}"
+                // We can't actually declare this because AGP's NonIncrementalTask will clear it
+                // during the task action
+//                  outputs.dir(diagnosticOutputDir)
+//                      .withPropertyName("diagnosticsDir")
+
+                if (extension.emitDebugInformation.getOrElse(false)) {
+                  doFirst {
+                    val mergedFilesContent = keepRulesFiles.files.asSequence()
+                        .flatMap { it.walkTopDown() }
+                        .filterNot { it.isDirectory }
+                        .joinToString("\n") {
+                          "# Source: ${it.absolutePath}\n${it.readText()}"
+                        }
+
+                    val configurations = keepRulesConfigurations.orNull.orEmpty()
+                        .joinToString(
+                            "\n",
+                            prefix = "# Source: extra configurations\n"
+                        )
+
+
+                    File(diagnosticOutputDir, "patchedL8Rules.pro")
+                        .apply {
+                          if (exists()) {
+                            delete()
                           }
-                      val configurations = keepRulesConfigurations.orNull.orEmpty().joinToString("\n", prefix = "# Source: extra configurations\n")
-                      diagnosticOutputDir.get().file("${testVariant.name}MergedL8Rules.pro")
-                          .asFile
-                          .writeText("$mergedFilesContent\n$configurations")
-                    }
+                          parentFile.mkdirs()
+                          createNewFile()
+                        }
+                        .writeText("$mergedFilesContent\n$configurations")
                   }
                 }
-          }
-        } else {
-          error("enableL8RuleSharing only works if R8 is enabled!")
+              }
         }
       }
     }
@@ -160,8 +176,7 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun Project.configureKeepRulesGeneration(
       appExtension: AppExtension,
-      extension: KeeperExtension,
-      diagnosticOutputDir: Provider<Directory>
+      extension: KeeperExtension
   ) {
     // Set up r8 configuration
     val r8Configuration = configurations.create(CONFIGURATION_NAME) {
@@ -180,10 +195,11 @@ public class KeeperPlugin : Plugin<Project> {
     }
 
     val androidJarRegularFileProvider = layout.file(provider {
-        resolveAndroidEmbeddedJar(appExtension, "android.jar", checkIfExisting = true)
+      resolveAndroidEmbeddedJar(appExtension, "android.jar", checkIfExisting = true)
     })
     val androidTestJarRegularFileProvider = layout.file(provider {
-        resolveAndroidEmbeddedJar(appExtension, "optional/android.test.base.jar", checkIfExisting = false)
+      resolveAndroidEmbeddedJar(appExtension, "optional/android.test.base.jar",
+          checkIfExisting = false)
     })
 
     appExtension.testVariants.configureEach {
@@ -191,7 +207,7 @@ public class KeeperPlugin : Plugin<Project> {
       val extensionFilter = extension._variantFilter
       val ignoredVariant = extensionFilter?.let {
         logger.debug(
-          "$TAG Resolving ignored status for android variant ${appVariant.name}")
+            "$TAG Resolving ignored status for android variant ${appVariant.name}")
         val filter = VariantFilterImpl(appVariant)
         it.execute(filter)
         logger.debug("$TAG Variant '${appVariant.name}' ignored? ${filter._ignored}")
@@ -219,11 +235,9 @@ public class KeeperPlugin : Plugin<Project> {
     appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
       val intermediateAppJar = createIntermediateAppJar(
           appVariant = appVariant,
-          diagnosticOutputDir = diagnosticOutputDir,
           emitDebugInfo = extension.emitDebugInformation
       )
       val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-          diagnosticOutputDir = diagnosticOutputDir,
           emitDebugInfo = extension.emitDebugInformation,
           testVariant = testVariant,
           appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
@@ -252,12 +266,12 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun resolveAndroidEmbeddedJar(
-    appExtension: AppExtension,
-    path: String,
-    checkIfExisting: Boolean
+      appExtension: AppExtension,
+      path: String,
+      checkIfExisting: Boolean
   ): File {
     val compileSdkVersion = appExtension.compileSdkVersion
-      ?: error("No compileSdkVersion found")
+        ?: error("No compileSdkVersion found")
     val file = File("${appExtension.sdkDirectory}/platforms/${compileSdkVersion}/${path}")
     check(!checkIfExisting || file.exists()) {
       "No $path found! Expected to find it at: ${file.absolutePath}"
@@ -266,9 +280,9 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun AppExtension.onApplicableVariants(
-    project: Project,
-    extension: KeeperExtension,
-    body: (TestVariant, BaseVariant) -> Unit
+      project: Project,
+      extension: KeeperExtension,
+      body: (TestVariant, BaseVariant) -> Unit
   ) {
     testVariants.configureEach {
       val testVariant = this
@@ -305,16 +319,7 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun Project.applyGeneratedRules(appVariant: String, prop: Provider<Directory>) {
-    // R8 is the default, so we'll only look to see if it's explicitly disabled
-    val r8Enabled = providers.gradleProperty("android.enableR8")
-        .forUseAtConfigurationTime()
-        .map {
-          @Suppress("PlatformExtensionReceiverOfInline")
-          it.toBoolean()
-        }
-        .getOrElse(true)
-
-    val minifierTool = if (r8Enabled) "R8" else "Proguard"
+    val minifierTool = "R8"
 
     val targetName = interpolateTaskName(appVariant, minifierTool)
 
@@ -332,7 +337,6 @@ public class KeeperPlugin : Plugin<Project> {
    * This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
-      diagnosticOutputDir: Provider<Directory>,
       emitDebugInfo: Provider<Boolean>,
       testVariant: TestVariant,
       appJarsProvider: Provider<RegularFile>
@@ -341,7 +345,6 @@ public class KeeperPlugin : Plugin<Project> {
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
-      this.diagnosticsOutputDir.set(diagnosticOutputDir)
       this.appJarsFile.set(appJarsProvider)
 
       with(testVariant) {
@@ -354,8 +357,12 @@ public class KeeperPlugin : Plugin<Project> {
             }
       }
 
-      archiveFile.set(layout.buildDirectory.dir(INTERMEDIATES_DIR).map {
-        it.file("${testVariant.name}.jar")
+      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
+      val diagnosticsDir = layout.buildDirectory.dir(
+          "$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
+      this.diagnosticsOutputDir.set(diagnosticsDir)
+      archiveFile.set(outputDir.map {
+        it.file("classes.jar")
       })
     }
   }
@@ -366,13 +373,11 @@ public class KeeperPlugin : Plugin<Project> {
    */
   private fun Project.createIntermediateAppJar(
       appVariant: BaseVariant,
-      diagnosticOutputDir: Provider<Directory>,
       emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
     return tasks.register<VariantClasspathJar>(
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper") {
       group = KEEPER_TASK_GROUP
-      this.diagnosticsOutputDir.set(diagnosticOutputDir)
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
@@ -385,9 +390,12 @@ public class KeeperPlugin : Plugin<Project> {
             }
       }
 
-      val intermediatesDir = layout.buildDirectory.dir(INTERMEDIATES_DIR)
-      archiveFile.set(intermediatesDir.map { it.file("${appVariant.name}.jar") })
-      appJarsFile.set(intermediatesDir.map { it.file("${appVariant.name}Jars.txt") })
+      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
+      val diagnosticsDir = layout.buildDirectory.dir(
+          "$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
+      diagnosticsOutputDir.set(diagnosticsDir)
+      archiveFile.set(outputDir.map { it.file("classes.jar") })
+      appJarsFile.set(outputDir.map { it.file("jars.txt") })
     }
   }
 }

@@ -94,13 +94,11 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   enum class MinifierType(
       val taskName: String,
       val expectedRules: Map<String, List<String>?>,
-      val isProguard: Boolean = false,
       val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
   ) {
     R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
     R8_TRACE_REFERENCES("R8", EXPECTED_TRACE_REFERENCES_CONFIG,
-      keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED),
-    PROGUARD("Proguard", EXPECTED_PRINT_RULES_CONFIG, isProguard = true)
+      keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED)
   }
 
   @Rule
@@ -128,20 +126,20 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
         .isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
-    val appJar = projectDir.generatedChild("externalStaging.jar")
+    val appJar = projectDir.generatedChild("externalStaging/classes.jar")
     val appClasses = ZipFile(appJar).readClasses()
     assertThat(appClasses).containsAtLeastElementsIn(EXPECTED_APP_CLASSES)
     assertThat(appClasses).containsNoneIn(EXPECTED_ANDROID_TEST_CLASSES)
 
     // Assert we correctly packaged androidTest classes
-    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest.jar")
+    val androidTestJar = projectDir.generatedChild("externalStagingAndroidTest/classes.jar")
     val androidTestClasses = ZipFile(androidTestJar).readClasses()
     assertThat(androidTestClasses).containsAtLeastElementsIn(EXPECTED_ANDROID_TEST_CLASSES)
     assertThat(androidTestClasses).containsNoneIn(EXPECTED_APP_CLASSES)
 
     // Assert we correctly generated rules
     val generatedRules = projectDir.generatedChild(
-        "inferredExternalStagingAndroidTestKeepRules.pro")
+        "externalStagingAndroidTest/inferredKeepRules.pro")
     assertThat(generatedRules.readText().trim()).isEqualTo(
       minifierType.expectedRules.map { indentRules(it.key, it.value) }.joinToString("\n")
     )
@@ -150,8 +148,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     // Have to compare slightly different strings because proguard's format is a little different
     assertThat(proguardConfigOutput.readText().trim().replace("    ", "  ")).let { assertion ->
       minifierType.expectedRules.forEach {
-        val content = if (minifierType.isProguard) it.value?.reversed() else it.value
-        assertion.contains(indentRules(it.key, content))
+        assertion.contains(indentRules(it.key, it.value))
       }
     }
   }
@@ -215,7 +212,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
     // Check that we emitted a duplicate classes file
     val duplicateClasses = projectDir.generatedChild(
-        "diagnostics/externalStagingAndroidTestDuplicateClasses.txt")
+        "externalStagingAndroidTest/diagnostics/duplicateClasses.txt")
     assertThat(duplicateClasses.readText().trim()).isNotEmpty()
   }
 
@@ -242,15 +239,17 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   }
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
+    val extraArgs = args.toMutableList()
+    extraArgs += "--stacktrace"
     return GradleRunner.create()
         .forwardStdOutput(System.out.writer())
         .forwardStdError(System.err.writer())
         .withProjectDir(projectDir)
         // TODO eventually test with configuration caching enabled
         // https://docs.gradle.org/nightly/userguide/configuration_cache.html#testkit
-        .withArguments("--stacktrace", "-Pandroid.enableR8=${!minifierType.isProguard}", *args)
+        .withArguments(extraArgs)
         .withPluginClasspath()
-//        .withDebug(true)
+        .withDebug(true) // Tests run in-process and way faster with this enabled
         .build()
   }
 
@@ -335,14 +334,13 @@ private fun buildGradleFile(
     repositories {
       google()
       mavenCentral()
-      jcenter()
     }
 
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:4.0.0"
+      classpath "com.android.tools.build:gradle:4.2.1"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.0"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
     }
   }
 
@@ -355,12 +353,12 @@ private fun buildGradleFile(
   apply plugin: 'com.slack.keeper'
 
   android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
       minSdkVersion 21
-      targetSdkVersion 29
+      targetSdkVersion 30
     }
 
     buildTypes {
@@ -395,7 +393,6 @@ private fun buildGradleFile(
   repositories {
     google()
     mavenCentral()
-    jcenter()
     ${
     if (automaticR8RepoManagement) "" else """
     maven {
