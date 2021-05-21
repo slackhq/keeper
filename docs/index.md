@@ -3,7 +3,7 @@
 
 A Gradle plugin that infers Proguard/R8 keep rules for androidTest sources.
 
-Keeper hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the
+Keeper hooks into R8 to add extra keep rules based on what androidTest classes use from the
 target app's sources. This is necessary because the Android Gradle Plugin (AGP) does not currently
 factor in androidTest usages of target app sources when running the minification step, which can
 result in runtime errors if APIs used by tests are removed.
@@ -77,7 +77,7 @@ The general logic flow:
 * Register a [`infer${androidTestVariant}UsageForKeeper`](https://github.com/slackhq/keeper/blob/main/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt)
   task that plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred
   proguard rules into a new intermediate `.pro` file.
-* Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
+* Finally - the generated file is wired in to R8 via private task APIs and setting their
   `configurationFiles` to include our generated one.
 
 Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is
