@@ -390,7 +390,7 @@
                 
                 <h1 id="keeper">🥅 Keeper<a class="headerlink" href="#keeper" title="Permanent link">&para;</a></h1>
 <p>A Gradle plugin that infers Proguard/R8 keep rules for androidTest sources.</p>
-<p>Keeper hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the
+<p>Keeper hooks into R8 to add extra keep rules based on what androidTest classes use from the
 target app&rsquo;s sources. This is necessary because the Android Gradle Plugin (AGP) does not currently
 factor in androidTest usages of target app sources when running the minification step, which can
 result in runtime errors if APIs used by tests are removed.</p>
@@ -444,7 +444,7 @@ in <code>settings.gradle</code>.</p>
 <li>Register a <a href="https://github.com/slackhq/keeper/blob/main/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt"><code>infer${androidTestVariant}UsageForKeeper</code></a>
   task that plugs the two aforementioned jars into R8&rsquo;s <code>PrintUses</code> CLI and outputs the inferred
   proguard rules into a new intermediate <code>.pro</code> file.</li>
-<li>Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
+<li>Finally - the generated file is wired in to R8 via private task APIs and setting their
   <code>configurationFiles</code> to include our generated one.</li>
 </ul>
 <p>Appropriate task dependencies (via inputs/outputs, not <code>dependsOn</code>) are set up, so this is
