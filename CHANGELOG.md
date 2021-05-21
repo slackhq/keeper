@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.9.0
+-----
+
+_2021-05-20_
+
+* **New:** Support for Gradle 7.0.
+  * If you read diagnostic outputs, note that these are now always written to a unique directory per task.
+* **New:** Experimental support for AGP 7.0.0 (tested up to beta01).
+* **New:** Support for JDK 11 (possibly higher, but we test only JDK 11).
+* We no longer ship a copy of ZipFlinger and now just use it directly from AGP.
+* AGP 4.1.x is no longer supported.
+  * It may work, but we no longer test against it. New minimum supported version is AGP 4.2.0.
+* Proguard is no longer supported.
+  * It may work, but we no longer test against it. Only R8 is officially supported now.
+
 0.8.0
 -----
 
