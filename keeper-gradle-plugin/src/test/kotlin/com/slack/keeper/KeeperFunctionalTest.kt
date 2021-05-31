@@ -120,9 +120,9 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
-    assertThat(result.resultOf(interpolateTaskName("ExternalStaging", minifierType.taskName)))
+    assertThat(result.resultOf(interpolateTaskName("ExternalStaging")))
         .isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(interpolateTaskName("ExternalStagingAndroidTest", minifierType.taskName)))
+    assertThat(result.resultOf(interpolateTaskName("ExternalStagingAndroidTest")))
         .isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes
