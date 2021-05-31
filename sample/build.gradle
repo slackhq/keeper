@@ -156,7 +156,14 @@ if (isCi) {
         .configureEach { r8Task ->
           doLast {
             println "Checking expected configuration contains embedded library rules from androidTest"
-            String allConfigurations = r8Task.getProguardConfigurationOutput().getText()
+            def output = r8Task.getProguardConfigurationOutput()
+            String allConfigurations
+            if (output instanceof Provider<File>) {
+              // This is a Provider on AGP 7
+              allConfigurations = output.get().text
+            } else {
+              allConfigurations = output.text
+            }
             PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Android { *; }"))
             PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Embedded { *; }"))
           }
