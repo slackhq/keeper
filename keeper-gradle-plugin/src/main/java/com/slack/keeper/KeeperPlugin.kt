@@ -22,6 +22,7 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
+import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
 import com.android.build.gradle.internal.tasks.R8Task
@@ -93,8 +94,8 @@ public class KeeperPlugin : Plugin<Project> {
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
-    fun interpolateTaskName(appVariant: String, minifierTool: String): String {
-      return "minify${appVariant.capitalize(Locale.US)}With$minifierTool"
+    fun interpolateTaskName(appVariant: String): String {
+      return "minify${appVariant.capitalize(Locale.US)}WithR8"
     }
   }
 
@@ -111,6 +112,10 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
+  private fun Project.r8TaskFor(variantName: String): TaskProvider<R8Task> {
+    return tasks.named<R8Task>(interpolateTaskName(variantName))
+  }
+
   private fun Project.configureL8Rules(
       appExtension: AppExtension,
       extension: KeeperExtension
@@ -118,10 +123,8 @@ public class KeeperPlugin : Plugin<Project> {
     afterEvaluate {
       if (extension.enableL8RuleSharing.getOrElse(false)) {
         appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
-          val appR8Task = "minify${appVariant.name.capitalize(Locale.US)}WithR8"
           val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
-          val inputFiles = tasks
-              .named<R8Task>(appR8Task)
+          val inputFiles = r8TaskFor(appVariant.name)
               .flatMap { it.projectOutputKeepRules }
 
           tasks
@@ -261,7 +264,9 @@ public class KeeperPlugin : Plugin<Project> {
 
       val prop = layout.dir(
           inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-      applyGeneratedRules(appVariant.name, prop)
+      val testProguardFiles = testVariant.runtimeConfiguration
+          .proguardFiles()
+      applyGeneratedRules(appVariant.name, prop, testProguardFiles)
     }
   }
 
@@ -318,10 +323,12 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.applyGeneratedRules(appVariant: String, prop: Provider<Directory>) {
-    val minifierTool = "R8"
-
-    val targetName = interpolateTaskName(appVariant, minifierTool)
+  private fun Project.applyGeneratedRules(
+      appVariant: String,
+      prop: Provider<Directory>,
+      testProguardFiles: FileCollection
+  ) {
+    val targetName = interpolateTaskName(appVariant)
 
     tasks.withType<ProguardConfigurableTask>()
         .matching { it.name == targetName }
@@ -329,6 +336,7 @@ public class KeeperPlugin : Plugin<Project> {
           logger.debug(
               "$TAG: Patching task '$name' with inferred androidTest proguard rules")
           configurationFiles.from(prop)
+          configurationFiles.from(testProguardFiles)
         }
   }
 
@@ -349,7 +357,7 @@ public class KeeperPlugin : Plugin<Project> {
 
       with(testVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(runtimeConfiguration.artifactView())
+        androidTestArtifactFiles.from(runtimeConfiguration.classesJars())
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(Locale.US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -381,7 +389,7 @@ public class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(runtimeConfiguration.artifactView())
+        artifactFiles.from(runtimeConfiguration.classesJars())
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(Locale.US)}Kotlin")
@@ -400,16 +408,27 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.artifactView(): FileCollection {
+private fun Configuration.classesJars(): FileCollection {
+  return artifactView(ArtifactType.CLASSES_JAR)
+      .filter { it.exists() && it.extension == "jar" }
+}
+
+private fun Configuration.proguardFiles(): FileCollection {
+  return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
+}
+
+private fun Configuration.artifactView(artifactType: ArtifactType): FileCollection {
   return incoming
       .artifactView {
         attributes {
-          attribute(AndroidArtifacts.ARTIFACT_TYPE, "android-classes-jar")
+          attribute(
+              AndroidArtifacts.ARTIFACT_TYPE,
+              artifactType.type
+          )
         }
       }
       .artifacts
       .artifactFiles
-      .filter { it.exists() && it.extension == "jar" }
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
