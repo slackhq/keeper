@@ -15,7 +15,9 @@
  */
 
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
+import com.android.build.gradle.internal.tasks.R8Task
 import com.slack.keeper.InferAndroidTestKeepRules
+import kotlin.PreconditionsKt
 
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
@@ -148,6 +150,17 @@ if (isCi) {
           }
         }
   }
+
+  tasks.withType(R8Task)
+        .matching { it.name == "minifyExternalStagingWithR8" }
+        .configureEach { r8Task ->
+          doLast {
+            println "Checking expected configuration contains embedded library rules from androidTest"
+            String allConfigurations = r8Task.getProguardConfigurationOutput().text
+            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Android { *; }"))
+            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Embedded { *; }"))
+          }
+        }
 }
 
 // Example demo of how to configure your own R8 repo
@@ -182,5 +195,7 @@ dependencies {
   androidTestUtil "androidx.test:orchestrator:1.4.0-beta01"
   androidTestImplementation "androidx.test.ext:junit:1.1.3-beta01"
   androidTestImplementation "junit:junit:4.13.2"
-  androidTestImplementation "com.google.truth:truth:1.1.2"
+  androidTestImplementation "com.google.truth:truth:1.1.3"
+  androidTestImplementation project(":sample-libraries:test-only-android")
+  androidTestImplementation project(":sample-libraries:test-only-jvm")
 }
