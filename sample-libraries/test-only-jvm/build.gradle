@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Slack Technologies, Inc.
+ * Copyright (C) 2021 Slack Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,4 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
-include ':sample-libraries:test-only-android'
-include ':sample-libraries:test-only-jvm'
-
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
-  }
-}
+apply plugin: 'org.jetbrains.kotlin.jvm'

@@ -20,8 +20,8 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.5.0"
-  kotlin("kapt") version "1.5.0"
+  kotlin("jvm") version "1.5.10"
+  kotlin("kapt") version "1.5.10"
   id("org.jetbrains.dokka") version "1.4.32"
   id("com.vanniktech.maven.publish") version "0.15.1"
   id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.5.0"
@@ -99,8 +99,8 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.0")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.10")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10")
   implementation("com.android:zipflinger:4.2.1")
 
   if (releaseMode) {

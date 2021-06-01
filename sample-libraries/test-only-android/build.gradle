@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-rootProject.name = 'keeper-root'
-include ':sample'
-include ':sample-libraries:a'
-include ':sample-libraries:b'
-include ':sample-libraries:c'
-include ':sample-libraries:test-only-android'
-include ':sample-libraries:test-only-jvm'
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
 
-includeBuild('keeper-gradle-plugin') {
-  dependencySubstitution {
-    substitute module('com.slack.keeper:keeper') with project(':')
+android {
+  compileSdkVersion 30
+  defaultConfig {
+    minSdkVersion 21
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+  }
+
+  variantFilter {
+    setIgnore(it.name != "release")
   }
 }
