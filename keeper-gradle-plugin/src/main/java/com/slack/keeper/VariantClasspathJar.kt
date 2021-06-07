@@ -201,11 +201,14 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
     // See https://issuetracker.google.com/issues/157583077 for why we do this
     if (emitDebugInfo.get()) {
-      val duplicateClasses: Set<String> = appJars.asSequence()
+      val duplicateClasses = appJars.asSequence()
           .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
           .map { it.name }
           .distinct()
           .filterTo(LinkedHashSet()) { it in androidTestClasses }
+
+      // https://github.com/slackhq/keeper/issues/82
+      duplicateClasses.remove("module-info.class")
 
       if (duplicateClasses.isNotEmpty()) {
         val output = diagnostic("duplicateClasses") {
