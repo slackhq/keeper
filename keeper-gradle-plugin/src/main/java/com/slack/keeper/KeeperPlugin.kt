@@ -48,6 +48,7 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
+import java.io.IOException
 import java.util.Locale
 
 internal const val TAG = "Keeper"
@@ -94,7 +95,7 @@ public class KeeperPlugin : Plugin<Project> {
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
-    fun interpolateTaskName(appVariant: String): String {
+    fun interpolateR8TaskName(appVariant: String): String {
       return "minify${appVariant.capitalize(Locale.US)}WithR8"
     }
   }
@@ -108,27 +109,53 @@ public class KeeperPlugin : Plugin<Project> {
       val appExtension = project.extensions.getByType<AppExtension>()
       val extension = project.extensions.create<KeeperExtension>("keeper")
       project.configureKeepRulesGeneration(appExtension, extension)
-      project.configureL8Rules(appExtension, extension)
+      project.configureL8(appExtension, extension)
     }
   }
 
   private fun Project.r8TaskFor(variantName: String): TaskProvider<R8Task> {
-    return tasks.named<R8Task>(interpolateTaskName(variantName))
+    return tasks.named<R8Task>(interpolateR8TaskName(variantName))
   }
 
-  private fun Project.configureL8Rules(
+  /**
+   * Configures L8 support via rule sharing and clearing androidTest dex file generation by patching
+   * the respective app and test [L8DexDesugarLibTask] tasks.
+   *
+   * By default, L8 will generate separate rules for test app and androidTest app L8 rules. This
+   * can cause problems in minified tests for a couple reasons though! This tries to resolve these
+   * via two steps.
+   *
+   * Issue 1: L8 will try to obfuscate this otherwise and can result in conflicting class names
+   * between the app and test APKs. This is a little confusing because L8 treats "minified" as
+   * "obfuscated" and tries to match. Since we don't care about obfuscating here, we can just
+   * disable it.
+   *
+   * Issue 2: L8 packages `j$` classes into androidTest but doesn't match what's in the target app.
+   * This causes confusion when invoking code in the target app from the androidTest classloader
+   * and it then can't find some expected `j$` classes. To solve this, we feed the the test app's
+   * generated `j$` rules in as inputs to the app L8 task's input rules.
+   *
+   * More details can be found here: https://issuetracker.google.com/issues/158018485
+   *
+   * Issue 3: In order for this to work, there needs to only be _one_ dex file generated and it
+   * _must_ be the one in the app. This way we avoid classpath conflicts and the one in the app is
+   * the source of truth. To force this, we simply clear all the generated output dex files from the
+   * androidTest [L8DexDesugarLibTask] task.
+   */
+  private fun Project.configureL8(
       appExtension: AppExtension,
       extension: KeeperExtension
   ) {
     afterEvaluate {
-      if (extension.enableL8RuleSharing.getOrElse(false)) {
+      if (appExtension.compileOptions.coreLibraryDesugaringEnabled) {
         appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
-          val androidTestL8Task = "l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}"
-          val inputFiles = r8TaskFor(appVariant.name)
+
+          // First merge the L8 rules into the app's L8 task
+          val inputFiles = r8TaskFor(testVariant.name)
               .flatMap { it.projectOutputKeepRules }
 
           tasks
-              .named<L8DexDesugarLibTask>(androidTestL8Task)
+              .named<L8DexDesugarLibTask>(interpolateR8TaskName(appVariant.name))
               .configure {
                 val taskName = name
                 keepRulesFiles.from(inputFiles)
@@ -172,9 +199,32 @@ public class KeeperPlugin : Plugin<Project> {
                   }
                 }
               }
+
+          // Now clear the outputs from androidTest's L8 task to end with
+          tasks
+            .named<L8DexDesugarLibTask>("l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}")
+            .configure {
+              doLast {
+                clearDir(desugarLibDex.asFile.get())
+              }
+            }
         }
       }
     }
+  }
+
+  private fun clearDir(path: File) {
+    if (!path.isDirectory) {
+      if (path.exists()) {
+        path.deleteRecursively()
+      }
+      if (!path.mkdirs()) {
+        throw IOException(String.format("Could not create empty folder %s", path))
+      }
+      return
+    }
+
+    path.listFiles()?.forEach(File::deleteRecursively)
   }
 
   private fun Project.configureKeepRulesGeneration(
@@ -328,7 +378,7 @@ public class KeeperPlugin : Plugin<Project> {
       prop: Provider<Directory>,
       testProguardFiles: FileCollection
   ) {
-    val targetName = interpolateTaskName(appVariant)
+    val targetName = interpolateR8TaskName(appVariant)
 
     tasks.withType<ProguardConfigurableTask>()
         .matching { it.name == targetName }
