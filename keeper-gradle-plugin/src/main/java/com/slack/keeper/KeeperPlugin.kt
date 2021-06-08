@@ -95,8 +95,12 @@ public class KeeperPlugin : Plugin<Project> {
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("6.0")
 
-    fun interpolateR8TaskName(appVariant: String): String {
-      return "minify${appVariant.capitalize(Locale.US)}WithR8"
+    fun interpolateR8TaskName(variantName: String): String {
+      return "minify${variantName.capitalize(Locale.US)}WithR8"
+    }
+
+    fun interpolateL8TaskName(variantName: String): String {
+      return "l8DexDesugarLib${variantName.capitalize(Locale.US)}"
     }
   }
 
@@ -155,7 +159,7 @@ public class KeeperPlugin : Plugin<Project> {
               .flatMap { it.projectOutputKeepRules }
 
           tasks
-              .named<L8DexDesugarLibTask>(interpolateR8TaskName(appVariant.name))
+              .named<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name))
               .configure {
                 val taskName = name
                 keepRulesFiles.from(inputFiles)
@@ -202,7 +206,7 @@ public class KeeperPlugin : Plugin<Project> {
 
           // Now clear the outputs from androidTest's L8 task to end with
           tasks
-            .named<L8DexDesugarLibTask>("l8DexDesugarLib${testVariant.name.capitalize(Locale.US)}")
+            .named<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name))
             .configure {
               doLast {
                 clearDir(desugarLibDex.asFile.get())
