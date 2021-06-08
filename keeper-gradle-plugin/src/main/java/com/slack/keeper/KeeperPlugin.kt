@@ -151,7 +151,7 @@ public class KeeperPlugin : Plugin<Project> {
       extension: KeeperExtension
   ) {
     afterEvaluate {
-      if (appExtension.compileOptions.coreLibraryDesugaringEnabled == true) {
+      if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         appExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
 
           // First merge the L8 rules into the app's L8 task
