@@ -32,7 +32,6 @@ $dokka.location:com.slack.keeper/KeeperExtension/KeeperExtension/#org.gradle.api
 $dokka.location:com.slack.keeper/KeeperExtension/automaticR8RepoManagement/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/automatic-r8-repo-management.html
 $dokka.location:com.slack.keeper/KeeperExtension/emitDebugInformation/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/emit-debug-information.html
 $dokka.location:com.slack.keeper/KeeperExtension/enableAssertions/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/enable-assertions.html
-$dokka.location:com.slack.keeper/KeeperExtension/enableL8RuleSharing/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/enable-l8-rule-sharing.html
 $dokka.location:com.slack.keeper/KeeperExtension/r8JvmArgs/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/r8-jvm-args.html
 $dokka.location:com.slack.keeper/KeeperExtension/traceReferences/#org.gradle.api.Action[com.slack.keeper.TraceReferences]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/trace-references.html
 $dokka.location:com.slack.keeper/KeeperExtension/variantFilter/#org.gradle.api.Action[com.slack.keeper.VariantFilter]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/variant-filter.html
