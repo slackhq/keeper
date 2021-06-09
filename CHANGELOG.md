@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.10.0
+------
+
+_2021-06-09_
+
+* Core Library Desugaring is now fully supported. See its
+[section](https://slackhq.github.io/keeper/#core-library-desugaring-l8-support) in on the project
+site for more details!
+* The `keeper.enableL8RuleSharing` Gradle API is now deprecated and does nothing. L8 support is
+automatically enabled if `android.compileOptions.coreLibraryDesugaringEnabled` is true in AGP.
+
 0.9.0
 -----
 
