@@ -298,13 +298,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-library-desugaring-l8-support" class="md-nav__link">
-    Core Library Desugaring (L8) Support
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#tracereferences" class="md-nav__link">
     TraceReferences
   </a>
@@ -448,13 +441,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-library-desugaring-l8-support" class="md-nav__link">
-    Core Library Desugaring (L8) Support
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#tracereferences" class="md-nav__link">
     TraceReferences
   </a>
@@ -577,22 +563,6 @@ via the <code>keeper</code> extension.</p>
   <span class="n">r8JvmArgs</span> <span class="o">=</span> <span class="o">[]</span>
 <span class="o">}</span>
 </code></pre></div>
-<h2 id="core-library-desugaring-l8-support">Core Library Desugaring (L8) Support<a class="headerlink" href="#core-library-desugaring-l8-support" title="Permanent link">&para;</a></h2>
-<p>Library Desugaring (L8) was introduced in Android Gradle Plugin 4.0. To make this work, the R8 task
-will generate proguard rules indicating which <code>j$</code> types are used in source, which the <code>L8DexDesugarLibTask</code>
-then uses to know which desugared APIs to keep. This approach can have flaws at runtime though, as the
-classpath of the test APK may not have the right <code>j$</code> classes available on its classpath to run app
-code it is invoking. To work around this, Keeper does two things:</p>
-<ol>
-<li>Keeper merges generated L8 rules from both the androidTest and target app to ensure they cover all
-used APIs. These merged rules are given to the target app <code>L8DexDesugarLibTask</code>.</li>
-<li>L8 will still, by default, generate a dex file of backported APIs into both the test app and target
-app, which can cause confusing runtime classpath issues due to L8 generating different implementations
-in each app. Keeper works around this by forcing the use of a single dex file in the target app and
-preventing the inclusion of a backport dex file in the test app.</li>
-</ol>
-<p>This L8 support is automatically enabled if <code>android.compileOptions.coreLibraryDesugaringEnabled</code> is
-true in AGP.</p>
 <h2 id="tracereferences">TraceReferences<a class="headerlink" href="#tracereferences" title="Permanent link">&para;</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Heads up!</p>
