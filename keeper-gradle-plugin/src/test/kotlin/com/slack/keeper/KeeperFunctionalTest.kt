@@ -17,7 +17,7 @@
 package com.slack.keeper
 
 import com.google.common.truth.Truth.assertThat
-import com.slack.keeper.KeeperPlugin.Companion.interpolateTaskName
+import com.slack.keeper.KeeperPlugin.Companion.interpolateR8TaskName
 import com.squareup.javapoet.ClassName
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
@@ -120,9 +120,9 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val result = projectDir.runAsWiredStaging()
 
     // Ensure the expected parameterized minifiers ran
-    assertThat(result.resultOf(interpolateTaskName("ExternalStaging")))
+    assertThat(result.resultOf(interpolateR8TaskName("ExternalStaging")))
         .isEqualTo(TaskOutcome.SUCCESS)
-    assertThat(result.resultOf(interpolateTaskName("ExternalStagingAndroidTest")))
+    assertThat(result.resultOf(interpolateR8TaskName("ExternalStagingAndroidTest")))
         .isEqualTo(TaskOutcome.SUCCESS)
 
     // Assert we correctly packaged app classes

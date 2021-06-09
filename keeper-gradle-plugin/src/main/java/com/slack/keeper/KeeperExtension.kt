@@ -16,7 +16,6 @@
 
 package com.slack.keeper
 
-import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.builder.model.BuildType
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Action
@@ -27,6 +26,7 @@ import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
+import kotlin.DeprecationLevel.ERROR
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
@@ -66,25 +66,11 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
   @Suppress("UnstableApiUsage")
   public val enableAssertions: Property<Boolean> = objects.property<Boolean>().convention(true)
 
-  /**
-   * Enables L8 rule sharing. By default, L8 will generate separate rules for test app and
-   * androidTest app L8 rules. This can cause problems in minified tests for a couple reasons
-   * though! This tries to resolve these via two steps.
-   *
-   * Issue 1: L8 will try to obfuscate this otherwise and can result in conflicting class names
-   * between the app and test APKs. This is a little confusing because L8 treats "minified" as
-   * "obfuscated" and tries to match. Since we don't care about obfuscating here, we can just
-   * disable it.
-   *
-   * Issue 2: L8 packages `j$` classes into androidTest but doesn't match what's in the target app.
-   * This causes confusion when invoking code in the target app from the androidTest classloader
-   * and it then can't find some expected `j$` classes. To solve this, we feed the the app's
-   * generated `j$` rules in as inputs to the androidTest L8 task's input rules.
-   *
-   * More details can be found here: https://issuetracker.google.com/issues/158018485
-   *
-   * Patches the [L8DexDesugarLibTask].
-   */
+  @Deprecated(
+    message = "Core Library Desugaring (L8) is automatically configured, this does nothing now " +
+      "and will eventually be removed.",
+    level = ERROR
+  )
   public val enableL8RuleSharing: Property<Boolean> = objects.property<Boolean>().convention(false)
 
   internal val traceReferences: TraceReferences = objects.newInstance()

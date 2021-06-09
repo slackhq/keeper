@@ -133,20 +133,23 @@ keeper {
 }
 ```
 
-## L8 rule sharing
+## Core Library Desugaring (L8) Support
 
 Library Desugaring (L8) was introduced in Android Gradle Plugin 4.0. To make this work, the R8 task
 will generate proguard rules indicating which `j$` types are used in source, which the `L8DexDesugarLibTask`
 then uses to know which desugared APIs to keep. This approach can have flaws at runtime though, as the
 classpath of the test APK may not have the right `j$` classes available on its classpath to run app
-code it is invoking. To work around this, you can enable rule sharing to make the AndroidTest-specific
-L8 task reuse the same L8-specific rules that the target variant does.
+code it is invoking. To work around this, Keeper does two things:
 
-```groovy
-keeper {
-  enableL8RuleSharing = true
-}
-```
+1. Keeper merges generated L8 rules from both the androidTest and target app to ensure they cover all
+used APIs. These merged rules are given to the target app `L8DexDesugarLibTask`.
+2. L8 will still, by default, generate a dex file of backported APIs into both the test app and target
+app, which can cause confusing runtime classpath issues due to L8 generating different implementations
+in each app. Keeper works around this by forcing the use of a single dex file in the target app and
+preventing the inclusion of a backport dex file in the test app.
+
+This L8 support is automatically enabled if `android.compileOptions.coreLibraryDesugaringEnabled` is
+true in AGP.
 
 ## TraceReferences
 

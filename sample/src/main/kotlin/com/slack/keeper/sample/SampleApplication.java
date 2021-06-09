@@ -18,6 +18,9 @@ package com.slack.keeper.sample;
 
 import android.app.Application;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
 
 public class SampleApplication extends Application {
   @Override public void onCreate() {
@@ -26,5 +29,13 @@ public class SampleApplication extends Application {
 
     // This tests that j$ classes produced by L8 are properly kept in the androidTest APK
     System.out.println("Time is " + Instant.now());
+
+    // Regression test for https://github.com/slackhq/keeper/issues/67
+    @SuppressWarnings("unused")
+    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .appendInstant(9)
+        .toFormatter()
+        .withResolverStyle(ResolverStyle.STRICT);
   }
 }
