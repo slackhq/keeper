@@ -129,7 +129,7 @@ public class KeeperPlugin : Plugin<Project> {
    * can cause problems in minified tests for a couple reasons though! This tries to resolve these
    * via two steps.
    *
-   * Issue 1: L8 will try to obfuscate this otherwise and can result in conflicting class names
+   * Issue 1: L8 will try to minify the backported APIs otherwise and can result in conflicting class names
    * between the app and test APKs. This is a little confusing because L8 treats "minified" as
    * "obfuscated" and tries to match. Since we don't care about obfuscating here, we can just
    * disable it.

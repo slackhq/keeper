@@ -145,7 +145,7 @@ code it is invoking. To work around this, Keeper does two things:
 used APIs. These merged rules are given to the target app `L8DexDesugarLibTask`.
 2. L8 will still, by default, generate a dex file of backported APIs into both the test app and target
 app, which can cause confusing runtime classpath issues due to L8 generating different implementations
-in each app). Keeper works around this by forcing the use of a single dex file in the target app and
+in each app. Keeper works around this by forcing the use of a single dex file in the target app and
 preventing the inclusion of a backport dex file in the test app.
 
 This L8 support is automatically enabled if `android.compileOptions.coreLibraryDesugaringEnabled` is
