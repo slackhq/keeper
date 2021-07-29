@@ -90,7 +90,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
   public fun createJar() {
     val appJars = mutableSetOf<String>()
     val appClasses = mutableSetOf<String>()
-    ZipArchive(archiveFile.asFile.get()).use { archive ->
+    ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       artifactFiles
           .forEach { jar ->
@@ -106,7 +106,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
           .forEach { (name, file) ->
             appClasses.add(name)
             archive.delete(name)
-            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+            archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
           }
     }
 
@@ -175,7 +175,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     }
 
     val androidTestClasses = mutableSetOf<String>()
-    ZipArchive(archiveFile.asFile.get()).use { archive ->
+    ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       distinctAndroidTestClasspath
           .filter { it.exists() && it.extension == "jar" }
@@ -191,7 +191,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
           .forEach { (name, file) ->
             androidTestClasses += name
             archive.delete(name)
-            archive.add(BytesSource(file, name, Deflater.NO_COMPRESSION))
+            archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
           }
     }
 

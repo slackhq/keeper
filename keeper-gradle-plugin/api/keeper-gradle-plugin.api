@@ -47,7 +47,6 @@ public class com/slack/keeper/KeeperExtension {
 
 public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
 	public static final field CONFIGURATION_NAME Ljava/lang/String;
-	public static final field Companion Lcom/slack/keeper/KeeperPlugin$Companion;
 	public static final field INTERMEDIATES_DIR Ljava/lang/String;
 	public static final field PRINTUSES_DEFAULT_VERSION Ljava/lang/String;
 	public static final field TRACE_REFERENCES_DEFAULT_VERSION Ljava/lang/String;
