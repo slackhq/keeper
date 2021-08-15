@@ -79,16 +79,17 @@ kotlin {
   explicitApi()
 }
 
-tasks.named<DokkaTask>("dokkaHtml") {
+tasks.withType<DokkaTask>().configureEach {
   outputDirectory.set(rootDir.resolve("../docs/0.x"))
   dokkaSourceSets.configureEach {
     skipDeprecated.set(true)
+    suppressInheritedMembers.set(true)
     externalDocumentationLink {
       url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
     }
     externalDocumentationLink {
-      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/package-list"))
-      url.set(URL("https://developer.android.com/reference/tools/gradle-api/4.1/classes"))
+      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/7.0/package-list"))
+      url.set(URL("https://developer.android.com/reference/tools/gradle-api/7.0/classes"))
     }
   }
 }

@@ -62,7 +62,8 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
  *
  * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
- * ```
+ *
+ * ```kotlin
  * keeper {
  *   automaticR8RepoManagement = false
  *   r8JvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"]
