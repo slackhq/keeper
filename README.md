@@ -8,7 +8,7 @@ A Gradle plugin that infers Proguard/R8 keep rules for androidTest sources.
 License
 -------
 
-    Copyright (C) 2020 Slack Technologies, Inc.
+    Copyright (C) 2020 Slack Technologies, LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

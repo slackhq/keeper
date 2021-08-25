@@ -5,7 +5,7 @@ site_description: "A Gradle plugin that infers Proguard/R8 keep rules for androi
 site_author: Slack
 remote_branch: gh-pages
 
-copyright: 'Copyright &copy; 2020 Slack Technologies, Inc.'
+copyright: 'Copyright &copy; 2020 Slack Technologies, LLC'
 
 theme:
   name: 'material'
