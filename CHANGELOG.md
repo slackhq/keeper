@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.11.1
+------
+
+_2021-08-31_
+
+* **Fix:** Keeper's intermediate jar creation tasks previously accepted dependencies inputs based on content only. This caused build caching issues across multiple machines with Gradle remote cache enabled because it would then attempt to use the previous build's absolute path to those dependency jars and subsequently fail. This is now fixed by reworking this logic internally a bit and using absolute path sensitivity for that input. This should ensure that caching still works like before across the same machine/paths but will properly be out of date when the absolute paths change across different machines.
+
 0.11.0
 ------
 
