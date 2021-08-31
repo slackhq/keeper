@@ -37,6 +37,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
+import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 import java.util.zip.Deflater
