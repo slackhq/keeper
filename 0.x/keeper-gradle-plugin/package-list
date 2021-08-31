@@ -3,7 +3,6 @@ $dokka.linkExtension:md
 $dokka.location:com.slack.keeper////PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/index.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/index.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/AndroidTestVariantClasspathJar/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/-android-test-variant-classpath-jar.md
-$dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/androidTestArtifactFiles/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/android-test-artifact-files.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/appJarsFile/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/app-jars-file.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/archiveFile/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/archive-file.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/classpath/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/classpath.md
@@ -13,6 +12,8 @@ $dokka.location:com.slack.keeper/BaseKeeperJarTask///PointingToDeclaration/keep
 $dokka.location:com.slack.keeper/BaseKeeperJarTask/BaseKeeperJarTask/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-base-keeper-jar-task/-base-keeper-jar-task.md
 $dokka.location:com.slack.keeper/BaseKeeperJarTask/diagnosticsOutputDir/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-base-keeper-jar-task/diagnostics-output-dir.md
 $dokka.location:com.slack.keeper/BaseKeeperJarTask/emitDebugInfo/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-base-keeper-jar-task/emit-debug-info.md
+$dokka.location:com.slack.keeper/BaseKeeperJarTask/getArtifactFiles/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-base-keeper-jar-task/get-artifact-files.md
+$dokka.location:com.slack.keeper/BaseKeeperJarTask/setArtifacts/#org.gradle.api.artifacts.ArtifactCollection/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-base-keeper-jar-task/set-artifacts.md
 $dokka.location:com.slack.keeper/InferAndroidTestKeepRules.Companion///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-infer-android-test-keep-rules/-companion/index.md
 $dokka.location:com.slack.keeper/InferAndroidTestKeepRules.Companion/invoke/#kotlin.String#org.gradle.api.tasks.TaskProvider[com.slack.keeper.AndroidTestVariantClasspathJar]#org.gradle.api.tasks.TaskProvider[com.slack.keeper.VariantClasspathJar]#org.gradle.api.provider.Provider[org.gradle.api.file.RegularFile]#org.gradle.api.provider.Provider[org.gradle.api.file.RegularFile]#org.gradle.api.provider.Property[kotlin.Boolean]#org.gradle.api.provider.Property[kotlin.Boolean]#org.gradle.api.provider.ListProperty[kotlin.String]#org.gradle.api.provider.Property[kotlin.Boolean]#org.gradle.api.provider.ListProperty[kotlin.String]#org.gradle.api.artifacts.Configuration/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-infer-android-test-keep-rules/-companion/invoke.md
 $dokka.location:com.slack.keeper/InferAndroidTestKeepRules///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-infer-android-test-keep-rules/index.md
@@ -45,7 +46,6 @@ $dokka.location:com.slack.keeper/VariantClasspathJar///PointingToDeclaration/ke
 $dokka.location:com.slack.keeper/VariantClasspathJar/VariantClasspathJar/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/-variant-classpath-jar.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/appJarsFile/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/app-jars-file.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/archiveFile/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/archive-file.md
-$dokka.location:com.slack.keeper/VariantClasspathJar/artifactFiles/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/artifact-files.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/classpath/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/classpath.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/createJar/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/create-jar.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/from/#kotlin.Array[kotlin.Any]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/from.md
