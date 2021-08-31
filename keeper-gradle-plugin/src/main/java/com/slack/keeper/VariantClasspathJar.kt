@@ -21,17 +21,21 @@ package com.slack.keeper
 import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
@@ -44,8 +48,28 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
   @get:Input
   public abstract val emitDebugInfo: Property<Boolean>
 
+  private lateinit var artifacts: ArtifactCollection
+
   @get:OutputDirectory
   public abstract val diagnosticsOutputDir: DirectoryProperty
+
+  /**
+   * This artifact collection is the result of resolving the compilation classpath.
+   */
+  public fun setArtifacts(artifacts: ArtifactCollection) {
+    this.artifacts = artifacts
+  }
+
+  /**
+   * This is the "official" input for wiring task dependencies correctly, but is otherwise
+   * unused. This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the
+   * jars really does matter here. Using [Classpath] is an error, as it looks only at content and
+   * not name or path, and we really do need to know the actual path to the artifact, even if its
+   * contents haven't changed.
+   */
+  @PathSensitive(PathSensitivity.ABSOLUTE)
+  @InputFiles
+  public fun getArtifactFiles(): FileCollection = artifacts.artifactFiles
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
@@ -69,9 +93,6 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 @CacheableTask
 public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
-  @get:Classpath
-  public abstract val artifactFiles: ConfigurableFileCollection
-
   @get:OutputFile
   public abstract val archiveFile: RegularFileProperty
 
@@ -92,7 +113,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      artifactFiles
+      getArtifactFiles()
           .forEach { jar ->
             appJars.add(jar.canonicalPath)
             archive.extractClassesFrom(jar) {
@@ -132,9 +153,6 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
-  @get:Classpath
-  public abstract val androidTestArtifactFiles: ConfigurableFileCollection
-
   @get:PathSensitive(NONE) // Only care about the contents
   @get:InputFile
   public abstract val appJarsFile: RegularFileProperty
@@ -155,7 +173,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
-    val androidTestClasspath = androidTestArtifactFiles.files
+    val androidTestClasspath = getArtifactFiles()
     diagnostic("jars") {
       androidTestClasspath.sortedBy { it.canonicalPath }
           .joinToString("\n") {

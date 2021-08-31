@@ -32,9 +32,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
@@ -381,7 +381,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
       appVariant: String,
       prop: Provider<Directory>,
-      testProguardFiles: FileCollection
+      testProguardFiles: ArtifactCollection
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
@@ -391,7 +391,7 @@ public class KeeperPlugin : Plugin<Project> {
           logger.debug(
               "$TAG: Patching task '$name' with inferred androidTest proguard rules")
           configurationFiles.from(prop)
-          configurationFiles.from(testProguardFiles)
+          configurationFiles.from(testProguardFiles.artifactFiles)
         }
   }
 
@@ -412,7 +412,7 @@ public class KeeperPlugin : Plugin<Project> {
 
       with(testVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
-        androidTestArtifactFiles.from(runtimeConfiguration.classesJars())
+        setArtifacts(runtimeConfiguration.classesJars())
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(Locale.US)}Kotlin")
             ?.let { kotlinCompileTask ->
@@ -444,7 +444,7 @@ public class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(layout.dir(javaCompileProvider.map { it.destinationDir }))
-        artifactFiles.from(runtimeConfiguration.classesJars())
+        setArtifacts(runtimeConfiguration.classesJars())
 
         tasks.providerWithNameOrNull<KotlinCompile>(
             "compile${name.capitalize(Locale.US)}Kotlin")
@@ -463,16 +463,15 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.classesJars(): FileCollection {
+private fun Configuration.classesJars(): ArtifactCollection {
   return artifactView(ArtifactType.CLASSES_JAR)
-      .filter { it.exists() && it.extension == "jar" }
 }
 
-private fun Configuration.proguardFiles(): FileCollection {
+private fun Configuration.proguardFiles(): ArtifactCollection {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
-private fun Configuration.artifactView(artifactType: ArtifactType): FileCollection {
+private fun Configuration.artifactView(artifactType: ArtifactType): ArtifactCollection {
   return incoming
       .artifactView {
         attributes {
@@ -483,7 +482,6 @@ private fun Configuration.artifactView(artifactType: ArtifactType): FileCollecti
         }
       }
       .artifacts
-      .artifactFiles
 }
 
 private inline fun <reified T : Task> TaskContainer.providerWithNameOrNull(
