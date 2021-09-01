@@ -13,7 +13,7 @@ _2021-08-31_
 
 _2021-07-29_
 
-* Minimum supported AGP version is now `7.0.0`. It make work on older versions but YMMV.
+* Minimum supported AGP version is now `7.0.0`. It may work on older versions but YMMV.
 * Update embedded ZipFlinger to `7.0.0` and update to its new `Path` constructors.
 * Update to Kotlin `1.5.21`
 
