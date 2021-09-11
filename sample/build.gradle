@@ -88,9 +88,7 @@ boolean useTraceReferences = providers.gradleProperty("keeperTest.enableTraceRef
 
 keeper {
   // Example: Only enable on "externalStaging"
-  variantFilter {
-    setIgnore(name != "externalStaging")
-  }
+  variantSelector = androidComponents.selector().withName("externalStaging")
 
   // Example: emit extra debug information during Keeper's execution.
   emitDebugInformation = true

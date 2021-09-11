@@ -16,8 +16,7 @@
 
 package com.slack.keeper
 
-import com.android.builder.model.BuildType
-import com.android.builder.model.ProductFlavor
+import com.android.build.api.variant.VariantSelector
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -29,19 +28,12 @@ import javax.inject.Inject
 import kotlin.DeprecationLevel.ERROR
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
-public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
-  @Suppress("PropertyName")
-  internal var _variantFilter: Action<VariantFilter>? = null
-
+public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory) {
   /**
-   * Applies a variant filter for Android. Note that the variant tested is the _app_ variant, not
+   * Applies a [VariantSelector] for Android. Note that the variant tested is the _app_ variant, not
    * the test variant.
-   *
-   * @param action the configure action for the [VariantFilter]
    */
-  public fun variantFilter(action: Action<VariantFilter>) {
-    this._variantFilter = action
-  }
+  public abstract val variantSelector: Property<VariantSelector>
 
   /**
    * Controls whether or not to automatically add the R8 repository for dependencies. Default is
@@ -84,28 +76,6 @@ public open class KeeperExtension @Inject constructor(objects: ObjectFactory) {
     traceReferences.enabled.set(true)
     action.execute(traceReferences)
   }
-}
-
-public interface VariantFilter {
-  /**
-   * Indicate whether or not to ignore this particular variant. Default is false.
-   */
-  public fun setIgnore(ignore: Boolean)
-
-  /**
-   * Returns the Build Type.
-   */
-  public val buildType: BuildType
-
-  /**
-   * Returns the list of flavors, or an empty list.
-   */
-  public val flavors: List<ProductFlavor>
-
-  /**
-   * Returns the unique variant name.
-   */
-  public val name: String
 }
 
 public abstract class TraceReferences @Inject constructor(objects: ObjectFactory) {
