@@ -35,15 +35,15 @@ public final class com/slack/keeper/InferAndroidTestKeepRules$Companion {
 	public final fun invoke (Ljava/lang/String;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/artifacts/Configuration;)Lkotlin/jvm/functions/Function1;
 }
 
-public class com/slack/keeper/KeeperExtension {
+public abstract class com/slack/keeper/KeeperExtension {
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun getAutomaticR8RepoManagement ()Lorg/gradle/api/provider/Property;
 	public final fun getEmitDebugInformation ()Lorg/gradle/api/provider/Property;
 	public final fun getEnableAssertions ()Lorg/gradle/api/provider/Property;
 	public final fun getEnableL8RuleSharing ()Lorg/gradle/api/provider/Property;
 	public final fun getR8JvmArgs ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getVariantSelector ()Lorg/gradle/api/provider/Property;
 	public final fun traceReferences (Lorg/gradle/api/Action;)V
-	public final fun variantFilter (Lorg/gradle/api/Action;)V
 }
 
 public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
@@ -54,16 +54,6 @@ public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/Project;)V
-}
-
-public final class com/slack/keeper/KeeperPlugin$configureKeepRulesGeneration$2$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
-	public fun <init> (Lkotlin/jvm/functions/Function1;)V
-	public final synthetic fun execute (Ljava/lang/Object;)V
-}
-
-public final class com/slack/keeper/KeeperPlugin$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
-	public fun <init> (Lkotlin/jvm/functions/Function1;)V
-	public final synthetic fun execute (Ljava/lang/Object;)V
 }
 
 public abstract class com/slack/keeper/TraceReferences {
@@ -78,12 +68,5 @@ public abstract class com/slack/keeper/VariantClasspathJar : com/slack/keeper/Ba
 	public abstract fun getAppJarsFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getArchiveFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getClasspath ()Lorg/gradle/api/file/ConfigurableFileCollection;
-}
-
-public abstract interface class com/slack/keeper/VariantFilter {
-	public abstract fun getBuildType ()Lcom/android/builder/model/BuildType;
-	public abstract fun getFlavors ()Ljava/util/List;
-	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun setIgnore (Z)V
 }
 
