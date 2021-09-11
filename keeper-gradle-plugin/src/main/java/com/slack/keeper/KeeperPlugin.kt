@@ -151,7 +151,11 @@ public class KeeperPlugin : Plugin<Project> {
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
   ) {
-    appComponentsExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+    appComponentsExtension.onApplicableVariants(project,
+      extension,
+      appExtension,
+      verifyMinification = false
+    ) { testVariant, appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
@@ -273,7 +277,11 @@ public class KeeperPlugin : Plugin<Project> {
     })
 
 
-    appComponentsExtension.onApplicableVariants(project, extension) { testVariant, appVariant ->
+    appComponentsExtension.onApplicableVariants(project,
+      extension,
+      appExtension,
+      verifyMinification = false
+    ) { testVariant, appVariant ->
       val intermediateAppJar = createIntermediateAppJar(
         appVariant = appVariant,
         emitDebugInfo = extension.emitDebugInformation
@@ -327,19 +335,21 @@ public class KeeperPlugin : Plugin<Project> {
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
     extension: KeeperExtension,
+    appExtension: AppExtension,
+    verifyMinification: Boolean,
     body: (AndroidTest, ApplicationVariant) -> Unit
   ) {
     val selector = extension.variantSelector.getOrElse(selector().all())
     onVariants(selector) { appVariant ->
+      val buildType = appVariant.buildType ?: return@onVariants
       appVariant.androidTest?.let { testVariant ->
-        // TODO https://issuetracker.google.com/issues/199411018
-        //  maybe we can keep the AppExtension and look up the variant during this callback to confirm?
-        if (false /* !appVariant.buildType.isMinifyEnabled */) {
+        // TODO use only components after https://issuetracker.google.com/issues/199411018
+        if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
           project.logger.error(
             """
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
             have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
-            the Keeper plugin when android.testBuildType = ${appVariant.buildType}, or use the variant filter feature 
+            the Keeper plugin when android.testBuildType = ${buildType}, or use the variant filter feature 
             of the DSL to exclude "${appVariant.name}" from keeper:
               keeper {
                 variantSelector.set(androidComponents.selector()...)
