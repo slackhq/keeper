@@ -300,16 +300,12 @@ enum class KeeperExtraConfig(val groovy: String) {
   NONE(""),
   ONLY_INTERNAL_RELEASE(
       """
-      variantFilter {
-        setIgnore(name != "internalRelease")
-      }
+      variantSelector = androidComponents.selector().withName("internalRelease")
       """.trimIndent()
   ),
   ONLY_INTERNAL_DEBUG(
       """
-      variantFilter {
-        setIgnore(name != "internalDebug")
-      }
+      variantSelector = androidComponents.selector().withName("internalDebug")
       """.trimIndent()
   ),
   TRACE_REFERENCES_ENABLED(
@@ -338,9 +334,9 @@ private fun buildGradleFile(
 
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:4.2.1"
+      classpath "com.android.tools.build:gradle:7.1.0-alpha11"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
     }
   }
 
