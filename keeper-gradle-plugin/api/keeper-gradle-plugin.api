@@ -42,7 +42,6 @@ public abstract class com/slack/keeper/KeeperExtension {
 	public final fun getEnableAssertions ()Lorg/gradle/api/provider/Property;
 	public final fun getEnableL8RuleSharing ()Lorg/gradle/api/provider/Property;
 	public final fun getR8JvmArgs ()Lorg/gradle/api/provider/ListProperty;
-	public abstract fun getVariantSelector ()Lorg/gradle/api/provider/Property;
 	public final fun traceReferences (Lorg/gradle/api/Action;)V
 }
 
@@ -54,6 +53,14 @@ public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/Project;)V
+}
+
+public final class com/slack/keeper/KeeperVariantMarker {
+	public static final field INSTANCE Lcom/slack/keeper/KeeperVariantMarker;
+}
+
+public final class com/slack/keeper/KeeperVariantMarkerKt {
+	public static final fun optInToKeeper (Lcom/android/build/api/variant/VariantBuilder;)V
 }
 
 public abstract class com/slack/keeper/TraceReferences {

@@ -26,7 +26,6 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
-import com.android.build.gradle.internal.tasks.ProguardConfigurableTask
 import com.android.build.gradle.internal.tasks.R8Task
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -152,14 +151,13 @@ public class KeeperPlugin : Plugin<Project> {
     extension: KeeperExtension
   ) {
     appComponentsExtension.onApplicableVariants(project,
-      extension,
       appExtension,
       verifyMinification = false
     ) { testVariant, appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
-        // exist yet during this callback.
+        // exist yet during this callback. https://issuetracker.google.com/issues/199509581
         project
           .namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { l8Task ->
             // First merge the L8 rules into the app's L8 task
@@ -277,10 +275,10 @@ public class KeeperPlugin : Plugin<Project> {
     })
 
 
-    appComponentsExtension.onApplicableVariants(project,
-      extension,
+    appComponentsExtension.onApplicableVariants(
+      project,
       appExtension,
-      verifyMinification = false
+      verifyMinification = true
     ) { testVariant, appVariant ->
       val intermediateAppJar = createIntermediateAppJar(
         appVariant = appVariant,
@@ -334,14 +332,14 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
-    extension: KeeperExtension,
     appExtension: AppExtension,
     verifyMinification: Boolean,
     body: (AndroidTest, ApplicationVariant) -> Unit
   ) {
-    val selector = extension.variantSelector.getOrElse(selector().all())
-    onVariants(selector) { appVariant ->
+    onVariants { appVariant ->
       val buildType = appVariant.buildType ?: return@onVariants
+      // Look for our marker extension
+      appVariant.getExtension(KeeperVariantMarker::class.java) ?: return@onVariants
       appVariant.androidTest?.let { testVariant ->
         // TODO use only components after https://issuetracker.google.com/issues/199411018
         if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
@@ -349,11 +347,7 @@ public class KeeperPlugin : Plugin<Project> {
             """
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
             have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
-            the Keeper plugin when android.testBuildType = ${buildType}, or use the variant filter feature 
-            of the DSL to exclude "${appVariant.name}" from keeper:
-              keeper {
-                variantSelector.set(androidComponents.selector()...)
-              }
+            the Keeper plugin when android.testBuildType = $buildType or enable minification on this variant.
             """.trimIndent()
           )
           return@let
@@ -371,7 +365,7 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks.withType<ProguardConfigurableTask>()
+    tasks.withType<R8Task>()
       .matching { it.name == targetName }
       .configureEach {
         logger.debug(

@@ -16,7 +16,6 @@
 
 package com.slack.keeper
 
-import com.android.build.api.variant.VariantSelector
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -29,12 +28,6 @@ import kotlin.DeprecationLevel.ERROR
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory) {
-  /**
-   * Applies a [VariantSelector] for Android. Note that the variant tested is the _app_ variant, not
-   * the test variant.
-   */
-  public abstract val variantSelector: Property<VariantSelector>
-
   /**
    * Controls whether or not to automatically add the R8 repository for dependencies. Default is
    * true. Disable if you want to define your own repo for fetching the R8 dependency.

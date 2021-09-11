@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import com.android.build.api.variant.VariantBuilder
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import com.slack.keeper.InferAndroidTestKeepRules
+import com.slack.keeper.KeeperVariantMarker
 import kotlin.PreconditionsKt
 
 apply plugin: 'com.android.application'
@@ -86,10 +88,16 @@ boolean useTraceReferences = providers.gradleProperty("keeperTest.enableTraceRef
     .map { Boolean.parseBoolean(it) }
     .orElse(false)
 
-keeper {
-  // Example: Only enable on "externalStaging"
-  variantSelector = androidComponents.selector().withName("externalStaging")
+// Example: Only enable on "externalStaging"
+androidComponents {
+  beforeVariants(selector().all()) { VariantBuilder variantBuilder ->
+    if (variantBuilder.name == "externalStaging") {
+      variantBuilder.registerExtension(KeeperVariantMarker.class, KeeperVariantMarker.INSTANCE)
+    }
+  }
+}
 
+keeper {
   // Example: emit extra debug information during Keeper's execution.
   emitDebugInformation = true
 
