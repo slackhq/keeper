@@ -21,7 +21,6 @@ plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
   kotlin("jvm") version "1.5.30"
-  kotlin("kapt") version "1.5.30"
   id("org.jetbrains.dokka") version "1.5.0"
   id("com.vanniktech.maven.publish") version "0.17.0"
   id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.7.1"
@@ -43,9 +42,9 @@ repositories {
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     jvmTarget = "1.8"
-    // Because Gradle's Kotlin handling is stupid
-    apiVersion = "1.4"
-    languageVersion = "1.4"
+    // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
+    apiVersion = "1.5"
+    languageVersion = "1.5"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
   }
@@ -62,8 +61,13 @@ sourceSets {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(11))
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release.set(8)
 }
 
 gradlePlugin {
@@ -101,17 +105,14 @@ val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgp
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.30")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
-  implementation("com.android:zipflinger:7.0.2")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30")
+  compileOnly("com.android:zipflinger:7.0.2")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
   } else {
     implementation("com.android.tools.build:gradle:$agpVersion")
   }
-
-  compileOnly("com.google.auto.service:auto-service-annotations:1.0")
-  kapt("com.google.auto.service:auto-service:1.0")
 
   testImplementation("com.squareup:javapoet:1.13.0")
   testImplementation("com.squareup:kotlinpoet:1.9.0")
