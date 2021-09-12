@@ -1,6 +1,33 @@
-Keeper's default behavior with no configuration will enable it for only buildTypes that set
-`minifyEnabled` to true. This may not be what you want for your actual production builds that you
-plan to distribute.
+## Basic Configuration
+
+In order to enable Keeper on a particular variant, you must register the `KeeperVariantMarker`
+extension in AGP's `VariantBuilder` API like so:
+
+```kotlin
+androidComponents {
+  beforeVariants { builder ->
+    if (shouldRunKeeperOnVariant()) {
+      builder.optInToKeeper() // Helpful extension function
+    }
+  }
+}
+```
+
+Or in Groovy
+
+```kotlin
+androidComponents {
+  beforeVariants { builder ->
+    if (shouldRunKeeperOnVariant(builder)) {
+      builder.registerExtension(KeeperVariantMarker.class, KeeperVariantMarker.INSTANCE)
+    }
+  }
+}
+```
+
+Keeper's default behavior with no configuration effectively be a no-op, which isn't what you want!
+
+## Advanced Configuration
 
 Normally, your app variant's minification task doesn't depend on compilation of its corresponding
 `androidTest` variant. This means you can call `assembleRelease` and `assembleAndroidTestRelease`
@@ -9,9 +36,9 @@ Normally, your app variant's minification task doesn't depend on compilation of 
 you likely _do_ want these "test-only" APIs removed if possible though. There are a few patterns to
 better control this behavior via Gradle property.
 
-## Simplest solution
+### Simplest solution
 
-The simplest solution is to add a new build type that extends release but is solely used for these
+The simplest solution is to add a new build type that extends `release` but is solely used for these
 tests. This way it's identical to release in everything except the name.
 
 ```groovy
@@ -66,27 +93,6 @@ This is probably the simplest approach, but not as dynamic as controlling the `t
 ```groovy
 if (!hasProperty("productionBuild")) {
   apply plugin: "com.slack.keeper"
-}
-```
-
-### Variant filter
-
-By default, Keeper will run on any app variant that sets `minifyEnabled` to true.
-
-Alternatively, you can specify a `variantFilter` on the `keeper` extension and dynamically configure
-which variants Keeper operates on. This is nearly identical to AGP's native `variantFilter` API except
-that there is no `defaultConfig` property.
-
-**Note:** Variants with different `enabled` values will have to be compiled separately. This is common
-in most multi-variant projects anyway, but something to be aware of.
-
-```groovy
-keeper {
-  variantFilter {
-    if (name == "variantThatShouldTotallyBeIgnored") {
-      setIgnore(true)
-    }
-  }
 }
 ```
 
