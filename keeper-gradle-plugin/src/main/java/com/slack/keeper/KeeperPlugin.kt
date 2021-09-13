@@ -108,7 +108,7 @@ public class KeeperPlugin : Plugin<Project> {
   override fun apply(project: Project) {
     val gradleVersion = GradleVersion.version(project.gradle.gradleVersion)
     check(gradleVersion >= MIN_GRADLE_VERSION) {
-      "Keeper requires Gradle 6.0 or later."
+      "Keeper requires Gradle ${MIN_GRADLE_VERSION.version} or later."
     }
     project.pluginManager.withPlugin("com.android.application") {
       val appExtension = project.extensions.getByType<AppExtension>()
