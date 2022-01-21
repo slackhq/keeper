@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        java: ['11']
+        java: [ '11' ]
         agp: ['7.0.0', '7.1.0-alpha05']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
@@ -44,7 +44,7 @@ jobs:
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'zulu'
           java-version: ${{ matrix.java }}
 
       - name: Test plugin
