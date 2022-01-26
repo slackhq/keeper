@@ -20,10 +20,10 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.5.30"
-  id("org.jetbrains.dokka") version "1.5.0"
-  id("com.vanniktech.maven.publish") version "0.17.0"
-  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.7.1"
+  kotlin("jvm") version "1.6.10"
+  id("org.jetbrains.dokka") version "1.6.10"
+  id("com.vanniktech.maven.publish") version "0.18.0"
+  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
 }
 
 buildscript {
@@ -98,15 +98,15 @@ tasks.withType<DokkaTask>().configureEach {
   }
 }
 
-val defaultAgpVersion = "7.1.0-alpha11"
+val defaultAgpVersion = "7.1.0"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.30")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30")
-  compileOnly("com.android:zipflinger:7.0.2")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.6.10")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
+  compileOnly("com.android:zipflinger:7.1.0")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")

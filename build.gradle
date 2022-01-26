@@ -22,10 +22,10 @@ buildscript {
         mavenCentral()
     }
 
-    String defaultAgpVersion = "7.1.0-alpha11"
+    String defaultAgpVersion = "7.1.0"
     String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
         classpath "com.android.tools.build:gradle:$agpVersion"
         classpath "com.slack.keeper:keeper"
     }

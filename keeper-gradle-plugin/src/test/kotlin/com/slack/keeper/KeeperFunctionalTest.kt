@@ -370,9 +370,9 @@ private fun buildGradleFile(
 
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:7.1.0-alpha11"
+      classpath "com.android.tools.build:gradle:7.1.0"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
     }
   }
 
