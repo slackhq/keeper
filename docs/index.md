@@ -16,13 +16,13 @@ build type that you test against is controlled by the `testBuildType` flag, whic
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
 **Note:** Keeper uses private APIs from AGP and could break between releases. It is currently
-tested against AGP version `7.1.0-alpha11` (or whatever `ci_agp_version` env
+tested against AGP version `7.1.0` and `7.2.0-beta01` (or whatever `ci_agp_version` env
 vars are described [here](https://github.com/slackhq/keeper/blob/main/.github/workflows/ci.yml).
 
 ## Installation
 
 Keeper is distributed via Maven Central. Apply the keeper Gradle plugin in your application's
-build.gradle. Keeper requires Gradle 7.0 or higher.
+build.gradle. Keeper requires Gradle 7.0 or higher and AGP 7.1.0 or higher.
 
 Keeper can be consumed via regular gradle `plugins {}` block.
 
@@ -60,8 +60,6 @@ apply plugin: "com.slack.keeper"
 ```
 
 Full configuration defaults can be found on the [Configuration page](configuration.md).
-
-As of 0.12.0, Keeper requires at least AGP 7.1.0.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snapshots].
 
