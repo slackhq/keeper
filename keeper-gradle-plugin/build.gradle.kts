@@ -47,6 +47,11 @@ tasks.withType<KotlinCompile>().configureEach {
     languageVersion = "1.5"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
+    // We use class SAM conversions because lambdas compiled into invokedynamic are not
+    // Serializable, which causes accidental headaches with Gradle configuration caching. It's
+    // easier for us to just use the previous anonymous classes behavior
+    @Suppress("SuspiciousCollectionReassignment")
+    freeCompilerArgs += "-Xsam-conversions=class"
   }
 }
 
