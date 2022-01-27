@@ -24,7 +24,7 @@ if ! [[ ${local} ]]; then
   cd ${DIR}
 
   # Generate the API docs
-  ./gradlew -p keeper-gradle-plugin dokkaGfm
+  ./gradlew -p keeper-gradle-plugin dokkaGfm --no-configuration-cache
 
 fi
 
