@@ -218,20 +218,6 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun clearDir(path: File) {
-    if (!path.isDirectory) {
-      if (path.exists()) {
-        path.deleteRecursively()
-      }
-      if (!path.mkdirs()) {
-        throw IOException(String.format("Could not create empty folder %s", path))
-      }
-      return
-    }
-
-    path.listFiles()?.forEach(File::deleteRecursively)
-  }
-
   private fun Project.configureKeepRulesGeneration(
       appExtension: AppExtension,
       extension: KeeperExtension
@@ -511,6 +497,20 @@ internal fun String.capitalize(locale: Locale): String {
     }
   }
   return this
+}
+
+private fun clearDir(path: File) {
+  if (!path.isDirectory) {
+    if (path.exists()) {
+      path.deleteRecursively()
+    }
+    if (!path.mkdirs()) {
+      throw IOException(String.format("Could not create empty folder %s", path))
+    }
+    return
+  }
+
+  path.listFiles()?.forEach(File::deleteRecursively)
 }
 
 private class VariantFilterImpl(variant: BaseVariant) : VariantFilter {
