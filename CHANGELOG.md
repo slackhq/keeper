@@ -39,6 +39,7 @@ androidComponents {
 Keeper's default behavior with no configuration effectively be a no-op, which isn't what you want!
 
 **Other updates**
+
 - Remove shaded ZipFlinger APIs, ZipFlinger is now used directly
 - Update Kotlin to `1.6.10`
 
