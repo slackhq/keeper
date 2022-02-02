@@ -339,7 +339,7 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">VariantClasspathJar</a></p>
 <h1 id="variantclasspathjar">VariantClasspathJar<a class="headerlink" href="#variantclasspathjar" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()</p>
+@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a></p>
 <p>abstract class <a href="./">VariantClasspathJar</a> : <a href="../-base-keeper-jar-task/">BaseKeeperJarTask</a></p>
 <p>A simple cacheable task that creates a jar from a given <a href="classpath/">classpath</a>. Normally these aren&rsquo;t intended to be cacheable, but in our case it&rsquo;s fine since the resulting jar is an input of a task and not just a transient operation of another plugin.</p>
 <p>This uses ZipFlinger under the hood to run the copy operation performantly.</p>
@@ -388,15 +388,15 @@
 <tbody>
 <tr>
 <td><a href="app-jars-file/">appJarsFile</a></td>
-<td>[jvm]<br>abstract val <a href="app-jars-file/">appJarsFile</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/OutputFile.html">OutputFile</a><br>abstract val <a href="app-jars-file/">appJarsFile</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="archive-file/">archiveFile</a></td>
-<td>[jvm]<br>abstract val <a href="archive-file/">archiveFile</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/OutputFile.html">OutputFile</a><br>abstract val <a href="archive-file/">archiveFile</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="classpath/">classpath</a></td>
-<td>[jvm]<br>abstract val <a href="classpath/">classpath</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/ConfigurableFileCollection.html">ConfigurableFileCollection</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>abstract val <a href="classpath/">classpath</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/ConfigurableFileCollection.html">ConfigurableFileCollection</a></td>
 </tr>
 </tbody>
 </table>

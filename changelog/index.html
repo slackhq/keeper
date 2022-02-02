@@ -273,6 +273,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#0120" class="md-nav__link">
+    0.12.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0112" class="md-nav__link">
     0.11.2
   </a>
@@ -462,6 +469,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#0120" class="md-nav__link">
+    0.12.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0112" class="md-nav__link">
     0.11.2
   </a>
@@ -611,6 +625,34 @@
                 
                 
                 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="0120">0.12.0<a class="headerlink" href="#0120" title="Permanent link">&para;</a></h2>
+<p><em>2022-02-02</em></p>
+<p><strong>New:</strong> Update to AGP 7.1 APIs</p>
+<p>Keeper now requires AGP 7.1.0 or higher and has been reworked to use AGP&rsquo;s new extension APIs. As
+such, the <code>variantFilter</code> API has now been removed.</p>
+<p>In order to enable Keeper on a particular variant, you must register the <code>KeeperVariantMarker</code>
+extension in AGP&rsquo;s <code>VariantBuilder</code> API like so:</p>
+<div class="highlight"><pre><span></span><code><span class="n">androidComponents</span> <span class="p">{</span>
+  <span class="n">beforeVariants</span> <span class="p">{</span> <span class="n">builder</span> <span class="p">-&gt;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shouldRunKeeperOnVariant</span><span class="p">())</span> <span class="p">{</span>
+      <span class="n">builder</span><span class="p">.</span><span class="n">optInToKeeper</span><span class="p">()</span> <span class="c1">// Helpful extension function</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Or in Groovy</p>
+<div class="highlight"><pre><span></span><code><span class="n">androidComponents</span> <span class="p">{</span>
+  <span class="n">beforeVariants</span> <span class="p">{</span> <span class="n">builder</span> <span class="p">-&gt;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shouldRunKeeperOnVariant</span><span class="p">(</span><span class="n">builder</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">builder</span><span class="p">.</span><span class="n">registerExtension</span><span class="p">(</span><span class="n">KeeperVariantMarker</span><span class="p">.</span><span class="k">class</span><span class="p">,</span> <span class="n">KeeperVariantMarker</span><span class="p">.</span><span class="n">INSTANCE</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Keeper&rsquo;s default behavior with no configuration effectively be a no-op, which isn&rsquo;t what you want!</p>
+<p><strong>Other updates</strong>
+- Remove shaded ZipFlinger APIs, ZipFlinger is now used directly
+- Update Kotlin to <code>1.6.10</code></p>
 <h2 id="0112">0.11.2<a class="headerlink" href="#0112" title="Permanent link">&para;</a></h2>
 <p><em>2022-01-27</em></p>
 <ul>

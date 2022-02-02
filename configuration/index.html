@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#simplest-solution" class="md-skip">
+        <a href="#basic-configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -243,6 +243,21 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    Basic Configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    Advanced Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#simplest-solution" class="md-nav__link">
     Simplest solution
   </a>
@@ -257,6 +272,11 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#use-the-testbuildtype-option" class="md-nav__link">
     Use the testBuildType option
@@ -267,13 +287,6 @@
           <li class="md-nav__item">
   <a href="#avoid-applying-the-plugin-entirely" class="md-nav__link">
     Avoid applying the plugin entirely
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#variant-filter" class="md-nav__link">
-    Variant filter
   </a>
   
 </li>
@@ -386,6 +399,21 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    Basic Configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    Advanced Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#simplest-solution" class="md-nav__link">
     Simplest solution
   </a>
@@ -400,6 +428,11 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#use-the-testbuildtype-option" class="md-nav__link">
     Use the testBuildType option
@@ -410,13 +443,6 @@
           <li class="md-nav__item">
   <a href="#avoid-applying-the-plugin-entirely" class="md-nav__link">
     Avoid applying the plugin entirely
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#variant-filter" class="md-nav__link">
-    Variant filter
   </a>
   
 </li>
@@ -466,17 +492,36 @@
                 
                   <h1>Configuration</h1>
                 
-                <p>Keeper&rsquo;s default behavior with no configuration will enable it for only buildTypes that set
-<code>minifyEnabled</code> to true. This may not be what you want for your actual production builds that you
-plan to distribute.</p>
+                <h2 id="basic-configuration">Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permanent link">&para;</a></h2>
+<p>In order to enable Keeper on a particular variant, you must register the <code>KeeperVariantMarker</code>
+extension in AGP&rsquo;s <code>VariantBuilder</code> API like so:</p>
+<div class="highlight"><pre><span></span><code><span class="n">androidComponents</span> <span class="p">{</span>
+  <span class="n">beforeVariants</span> <span class="p">{</span> <span class="n">builder</span> <span class="p">-&gt;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shouldRunKeeperOnVariant</span><span class="p">())</span> <span class="p">{</span>
+      <span class="n">builder</span><span class="p">.</span><span class="n">optInToKeeper</span><span class="p">()</span> <span class="c1">// Helpful extension function</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Or in Groovy</p>
+<div class="highlight"><pre><span></span><code><span class="n">androidComponents</span> <span class="p">{</span>
+  <span class="n">beforeVariants</span> <span class="p">{</span> <span class="n">builder</span> <span class="p">-&gt;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shouldRunKeeperOnVariant</span><span class="p">(</span><span class="n">builder</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">builder</span><span class="p">.</span><span class="n">registerExtension</span><span class="p">(</span><span class="n">KeeperVariantMarker</span><span class="p">.</span><span class="k">class</span><span class="p">,</span> <span class="n">KeeperVariantMarker</span><span class="p">.</span><span class="n">INSTANCE</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Keeper&rsquo;s default behavior with no configuration effectively be a no-op, which isn&rsquo;t what you want!</p>
+<h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
 <p>Normally, your app variant&rsquo;s minification task doesn&rsquo;t depend on compilation of its corresponding
 <code>androidTest</code> variant. This means you can call <code>assembleRelease</code> and <code>assembleAndroidTestRelease</code>
  won&rsquo;t inherently run. Keeper, however, changes this since it requires the compiled androidTest
  sources in order to correctly infer how they use APIs in the app variant. For a production build,
 you likely <em>do</em> want these &ldquo;test-only&rdquo; APIs removed if possible though. There are a few patterns to
 better control this behavior via Gradle property.</p>
-<h2 id="simplest-solution">Simplest solution<a class="headerlink" href="#simplest-solution" title="Permanent link">&para;</a></h2>
-<p>The simplest solution is to add a new build type that extends release but is solely used for these
+<h3 id="simplest-solution">Simplest solution<a class="headerlink" href="#simplest-solution" title="Permanent link">&para;</a></h3>
+<p>The simplest solution is to add a new build type that extends <code>release</code> but is solely used for these
 tests. This way it&rsquo;s identical to release in everything except the name.</p>
 <div class="highlight"><pre><span></span><code><span class="n">android</span> <span class="o">{</span>
   <span class="n">buildTypes</span> <span class="o">{</span>
@@ -515,21 +560,6 @@ would no longer be the <code>testedVariant</code> of any <code>androidTest</code
 <p>This is probably the simplest approach, but not as dynamic as controlling the <code>testBuildType</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="o">(!</span><span class="n">hasProperty</span><span class="o">(</span><span class="s2">&quot;productionBuild&quot;</span><span class="o">))</span> <span class="o">{</span>
   <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s2">&quot;com.slack.keeper&quot;</span>
-<span class="o">}</span>
-</code></pre></div>
-<h3 id="variant-filter">Variant filter<a class="headerlink" href="#variant-filter" title="Permanent link">&para;</a></h3>
-<p>By default, Keeper will run on any app variant that sets <code>minifyEnabled</code> to true.</p>
-<p>Alternatively, you can specify a <code>variantFilter</code> on the <code>keeper</code> extension and dynamically configure
-which variants Keeper operates on. This is nearly identical to AGP&rsquo;s native <code>variantFilter</code> API except
-that there is no <code>defaultConfig</code> property.</p>
-<p><strong>Note:</strong> Variants with different <code>enabled</code> values will have to be compiled separately. This is common
-in most multi-variant projects anyway, but something to be aware of.</p>
-<div class="highlight"><pre><span></span><code><span class="n">keeper</span> <span class="o">{</span>
-  <span class="n">variantFilter</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;variantThatShouldTotallyBeIgnored&quot;</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">setIgnore</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div>
 <h3 id="_1"><your build here><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>

@@ -266,6 +266,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -343,6 +350,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -373,35 +387,50 @@
 <tbody>
 <tr>
 <td><a href="-android-test-variant-classpath-jar/">AndroidTestVariantClasspathJar</a></td>
-<td>[jvm]<br>@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()<br>abstract class <a href="-android-test-variant-classpath-jar/">AndroidTestVariantClasspathJar</a> : <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a><br>A <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/jvm/tasks/Jar.html">Jar</a> task that sources from both the androidTest compiled sources <em>and</em> its distinct dependencies (as compared to the <a href="-android-test-variant-classpath-jar/app-jars-file/">appJarsFile</a>).</td>
+<td>[jvm]<br>@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a><br>abstract class <a href="-android-test-variant-classpath-jar/">AndroidTestVariantClasspathJar</a> : <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a><br>A <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/jvm/tasks/Jar.html">Jar</a> task that sources from both the androidTest compiled sources <em>and</em> its distinct dependencies (as compared to the <a href="-android-test-variant-classpath-jar/app-jars-file/">appJarsFile</a>). R8&rsquo;s PrintUses requires no class overlap between the two jars it&rsquo;s comparing, so at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be APIs that <em>they</em> use that are used in the target app runtime, and we want R8 to account for those usages as well.</td>
 </tr>
 <tr>
 <td><a href="-base-keeper-jar-task/">BaseKeeperJarTask</a></td>
-<td>[jvm]<br>abstract class <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/DefaultTask.html">DefaultTask</a></td>
+<td>[jvm]<br>abstract class <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/DefaultTask.html">DefaultTask</a></td>
 </tr>
 <tr>
 <td><a href="-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a></td>
-<td>[jvm]<br>@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()<br>abstract class <a href="-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/JavaExec.html">JavaExec</a><br>Generates proguard keep rules from the generated <a href="-infer-android-test-keep-rules/android-test-source-jar/">androidTestSourceJar</a> and <a href="-infer-android-test-keep-rules/app-target-jar/">appTargetJar</a> tasks, where the generates rules are based on what classes from <a href="-infer-android-test-keep-rules/app-target-jar/">appTargetJar</a> are used by <a href="-infer-android-test-keep-rules/android-test-source-jar/">androidTestSourceJar</a>.</td>
+<td>[jvm]<br>@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a><br>abstract class <a href="-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/JavaExec.html">JavaExec</a><br>Generates proguard keep rules from the generated <a href="-infer-android-test-keep-rules/android-test-source-jar/">androidTestSourceJar</a> and <a href="-infer-android-test-keep-rules/app-target-jar/">appTargetJar</a> tasks, where the generates rules are based on what classes from <a href="-infer-android-test-keep-rules/app-target-jar/">appTargetJar</a> are used by <a href="-infer-android-test-keep-rules/android-test-source-jar/">androidTestSourceJar</a>.</td>
 </tr>
 <tr>
 <td><a href="-keeper-extension/">KeeperExtension</a></td>
-<td>[jvm]<br>open class <a href="-keeper-extension/">KeeperExtension</a>@Inject()constructor(<strong>objects</strong>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)<br>Configuration for the <a href="-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a>.</td>
+<td>[jvm]<br>abstract class <a href="-keeper-extension/">KeeperExtension</a>@Injectconstructor(objects: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)<br>Configuration for the <a href="-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a>.</td>
 </tr>
 <tr>
 <td><a href="-keeper-plugin/">KeeperPlugin</a></td>
-<td>[jvm]<br>class <a href="-keeper-plugin/">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Plugin.html">Plugin</a>&lt;<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Project.html">Project</a>&gt; <br>A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the target app&rsquo;s sources.</td>
+<td>[jvm]<br>class <a href="-keeper-plugin/">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Plugin.html">Plugin</a>&lt;<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Project.html">Project</a>&gt; <br>A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the target app&rsquo;s sources. This is necessary because AGP does not factor in androidTest usages of target app sources when running the minification step, which can result in runtime errors if APIs used by tests are removed.</td>
+</tr>
+<tr>
+<td><a href="-keeper-variant-marker/">KeeperVariantMarker</a></td>
+<td>[jvm]<br>object <a href="-keeper-variant-marker/">KeeperVariantMarker</a><br>Register this with <a href="https://developer.android.com/reference/tools/gradle-api/7.0/classes/com/android/build/api/variant/VariantBuilder.html#registerExtension-java.lang.Class[TypeParam(bounds=[kotlin.Any])]-TypeParam(bounds=[kotlin.Any])-">VariantBuilder.registerExtension</a> to opt this variant into Keeper.</td>
 </tr>
 <tr>
 <td><a href="-trace-references/">TraceReferences</a></td>
-<td>[jvm]<br>abstract class <a href="-trace-references/">TraceReferences</a>@Inject()constructor(<strong>objects</strong>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</td>
+<td>[jvm]<br>abstract class <a href="-trace-references/">TraceReferences</a>@Injectconstructor(objects: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</td>
 </tr>
 <tr>
 <td><a href="-variant-classpath-jar/">VariantClasspathJar</a></td>
-<td>[jvm]<br>@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()<br>abstract class <a href="-variant-classpath-jar/">VariantClasspathJar</a> : <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a><br>A simple cacheable task that creates a jar from a given <a href="-variant-classpath-jar/classpath/">classpath</a>.</td>
+<td>[jvm]<br>@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a><br>abstract class <a href="-variant-classpath-jar/">VariantClasspathJar</a> : <a href="-base-keeper-jar-task/">BaseKeeperJarTask</a><br>A simple cacheable task that creates a jar from a given <a href="-variant-classpath-jar/classpath/">classpath</a>. Normally these aren&rsquo;t intended to be cacheable, but in our case it&rsquo;s fine since the resulting jar is an input of a task and not just a transient operation of another plugin.</td>
 </tr>
+</tbody>
+</table>
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
 <tr>
-<td><a href="-variant-filter/">VariantFilter</a></td>
-<td>[jvm]<br>interface <a href="-variant-filter/">VariantFilter</a></td>
+<th>Name</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="opt-in-to-keeper/">optInToKeeper</a></td>
+<td>[jvm]<br>fun <a href="https://developer.android.com/reference/tools/gradle-api/7.0/classes/com/android/build/api/variant/VariantBuilder.html">VariantBuilder</a>.<a href="opt-in-to-keeper/">optInToKeeper</a>()<br>Shorthand to register Keeper on this variant.</td>
 </tr>
 </tbody>
 </table>

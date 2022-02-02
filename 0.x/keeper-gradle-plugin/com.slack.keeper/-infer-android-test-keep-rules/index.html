@@ -346,8 +346,8 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">InferAndroidTestKeepRules</a></p>
 <h1 id="inferandroidtestkeeprules">InferAndroidTestKeepRules<a class="headerlink" href="#inferandroidtestkeeprules" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()</p>
-<p>abstract class <a href="./">InferAndroidTestKeepRules</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/JavaExec.html">JavaExec</a></p>
+@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a></p>
+<p>abstract class <a href="./">InferAndroidTestKeepRules</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/JavaExec.html">JavaExec</a></p>
 <p>Generates proguard keep rules from the generated <a href="android-test-source-jar/">androidTestSourceJar</a> and <a href="app-target-jar/">appTargetJar</a> tasks, where the generates rules are based on what classes from <a href="app-target-jar/">appTargetJar</a> are used by <a href="android-test-source-jar/">androidTestSourceJar</a>.</p>
 <p>This uses R8&rsquo;s <a href="https://r8.googlesource.com/r8/+/master/src/main/java/com/android/tools/r8/PrintUses.java">PrintUses</a> CLI to perform the analysis.</p>
 <p>This task&rsquo;s output is finally used as an input into the app variant&rsquo;s proguard transform task.</p>
@@ -407,39 +407,39 @@
 <tbody>
 <tr>
 <td><a href="android-jar/">androidJar</a></td>
-<td>[jvm]<br>abstract val <a href="android-jar/">androidJar</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>abstract val <a href="android-jar/">androidJar</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="android-test-jar/">androidTestJar</a></td>
-<td>[jvm]<br>abstract val <a href="android-test-jar/">androidTestJar</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Optional.html">Optional</a><br>abstract val <a href="android-test-jar/">androidTestJar</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="android-test-source-jar/">androidTestSourceJar</a></td>
-<td>[jvm]<br>abstract val <a href="android-test-source-jar/">androidTestSourceJar</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>abstract val <a href="android-test-source-jar/">androidTestSourceJar</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="app-target-jar/">appTargetJar</a></td>
-<td>[jvm]<br>abstract val <a href="app-target-jar/">appTargetJar</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>abstract val <a href="app-target-jar/">appTargetJar</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="enable-assertions-property/">enableAssertionsProperty</a></td>
-<td>[jvm]<br>abstract val <a href="enable-assertions-property/">enableAssertionsProperty</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Enable more descriptive precondition checks in the CLI.</td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Input.html">Input</a><br>abstract val <a href="enable-assertions-property/">enableAssertionsProperty</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Enable more descriptive precondition checks in the CLI. If disabled, errors will be emitted to the generated proguard rules file instead.</td>
 </tr>
 <tr>
 <td><a href="jvm-args-property/">jvmArgsProperty</a></td>
-<td>[jvm]<br>abstract val <a href="jvm-args-property/">jvmArgsProperty</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;<br>Optional custom jvm arguments to pass into the exec.</td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Input.html">Input</a><br>abstract val <a href="jvm-args-property/">jvmArgsProperty</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;<br>Optional custom jvm arguments to pass into the exec. Useful if you want to enable debugging in R8.</td>
 </tr>
 <tr>
 <td><a href="output-proguard-rules/">outputProguardRules</a></td>
-<td>[jvm]<br>abstract val <a href="output-proguard-rules/">outputProguardRules</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/OutputFile.html">OutputFile</a><br>abstract val <a href="output-proguard-rules/">outputProguardRules</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="trace-references-args/">traceReferencesArgs</a></td>
-<td>[jvm]<br>abstract val <a href="trace-references-args/">traceReferencesArgs</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;</td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Input.html">Input</a><br>abstract val <a href="trace-references-args/">traceReferencesArgs</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;</td>
 </tr>
 <tr>
 <td><a href="trace-references-enabled/">traceReferencesEnabled</a></td>
-<td>[jvm]<br>abstract val <a href="trace-references-enabled/">traceReferencesEnabled</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;</td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Input.html">Input</a><br>abstract val <a href="trace-references-enabled/">traceReferencesEnabled</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;</td>
 </tr>
 </tbody>
 </table>

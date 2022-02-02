@@ -339,7 +339,7 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">BaseKeeperJarTask</a></p>
 <h1 id="basekeeperjartask">BaseKeeperJarTask<a class="headerlink" href="#basekeeperjartask" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-abstract class <a href="./">BaseKeeperJarTask</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/DefaultTask.html">DefaultTask</a></p>
+abstract class <a href="./">BaseKeeperJarTask</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/DefaultTask.html">DefaultTask</a></p>
 <h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -351,11 +351,11 @@ abstract class <a href="./">BaseKeeperJarTask</a> : <a href="https://docs.gradle
 <tbody>
 <tr>
 <td><a href="get-artifact-files/">getArtifactFiles</a></td>
-<td>[jvm]<br>@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/PathSensitive.html">PathSensitive</a>(value = <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/PathSensitivity.ABSOLUTE.html">PathSensitivity.ABSOLUTE</a>)<br>@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/InputFiles.html">InputFiles</a>()<br>fun <a href="get-artifact-files/">getArtifactFiles</a>(): <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/FileCollection.html">FileCollection</a><br>This needs to use <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/InputFiles.html">InputFiles</a> and <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/PathSensitivity.ABSOLUTE.html">PathSensitivity.ABSOLUTE</a> because the path to the jars really does matter here.</td>
+<td>[jvm]<br>@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/PathSensitive.html">PathSensitive</a>(value = <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/PathSensitivity.ABSOLUTE.html">PathSensitivity.ABSOLUTE</a>)<br>@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/InputFiles.html">InputFiles</a><br>fun <a href="get-artifact-files/">getArtifactFiles</a>(): <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/FileCollection.html">FileCollection</a><br>This needs to use <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/InputFiles.html">InputFiles</a> and <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/PathSensitivity.html#ABSOLUTE">PathSensitivity.ABSOLUTE</a> because the path to the jars really does matter here. Using <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a> is an error, as it looks only at content and not name or path, and we really do need to know the actual path to the artifact, even if its contents haven&rsquo;t changed.</td>
 </tr>
 <tr>
 <td><a href="set-artifacts/">setArtifacts</a></td>
-<td>[jvm]<br>fun <a href="set-artifacts/">setArtifacts</a>(artifacts: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/artifacts/ArtifactCollection.html">ArtifactCollection</a>)<br>This artifact collection is the result of resolving the compilation classpath.</td>
+<td>[jvm]<br>fun <a href="set-artifacts/">setArtifacts</a>(artifacts: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/artifacts/ArtifactCollection.html">ArtifactCollection</a>)<br>This artifact collection is the result of resolving the compilation classpath.</td>
 </tr>
 </tbody>
 </table>
@@ -370,11 +370,11 @@ abstract class <a href="./">BaseKeeperJarTask</a> : <a href="https://docs.gradle
 <tbody>
 <tr>
 <td><a href="diagnostics-output-dir/">diagnosticsOutputDir</a></td>
-<td>[jvm]<br>abstract val <a href="diagnostics-output-dir/">diagnosticsOutputDir</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/DirectoryProperty.html">DirectoryProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/OutputDirectory.html">OutputDirectory</a><br>abstract val <a href="diagnostics-output-dir/">diagnosticsOutputDir</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/DirectoryProperty.html">DirectoryProperty</a></td>
 </tr>
 <tr>
 <td><a href="emit-debug-info/">emitDebugInfo</a></td>
-<td>[jvm]<br>abstract val <a href="emit-debug-info/">emitDebugInfo</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;</td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Input.html">Input</a><br>abstract val <a href="emit-debug-info/">emitDebugInfo</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;</td>
 </tr>
 </tbody>
 </table>

@@ -332,7 +332,7 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">KeeperPlugin</a></p>
 <h1 id="keeperplugin">KeeperPlugin<a class="headerlink" href="#keeperplugin" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-class <a href="./">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Plugin.html">Plugin</a>&lt;<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Project.html">Project</a>&gt; </p>
+class <a href="./">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Plugin.html">Plugin</a>&lt;<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Project.html">Project</a>&gt; </p>
 <p>A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from the target app&rsquo;s sources. This is necessary because AGP does not factor in androidTest usages of target app sources when running the minification step, which can result in runtime errors if APIs used by tests are removed.</p>
 <p>This is a workaround until AGP supports this: <a href="https://issuetracker.google.com/issues/126429384">https://issuetracker.google.com/issues/126429384</a>.</p>
 <p>This is optionally configurable via the <a href="../-keeper-extension/">keeper</a> extension. For example:</p>
@@ -341,8 +341,20 @@ class <a href="./">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.1.1/jav
   r8JvmArgs = [&ldquo;-Xdebug&rdquo;, &ldquo;-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y&rdquo;]\
 }</p>
 <p>The general logic flow:</p>
-<ul><li>Create a custom r8 configuration for the R8 dependency.</li><li>Register two jar tasks. One for all the classes in its target testedVariant and one for all the classes in the androidTest variant itself. This will use their variant-provided [JavaCompile](https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/compile/JavaCompile.html) tasks and KotlinCompile tasks if available.</li><li>Register a [infer${androidTestVariant}UsageForKeeper](../-infer-android-test-keep-rules/index.md) task that plugs the two aforementioned jars into R8's PrintUses or TraceReferences CLI and outputs the inferred proguard rules into a new intermediate .pro file.</li><li>Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their configurationFiles to include our generated one.</li></ul>
-
+<ul>
+<li>
+<p>Create a custom r8 configuration for the R8 dependency.</p>
+</li>
+<li>
+<p>Register two jar tasks. One for all the classes in its target testedVariant and one for all the classes in the androidTest variant itself. This will use their variant-provided <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/compile/JavaCompile.html">JavaCompile</a> tasks and KotlinCompile tasks if available.</p>
+</li>
+<li>
+<p>Register a <a href="../-infer-android-test-keep-rules/">infer${androidTestVariant}UsageForKeeper</a> task that plugs the two aforementioned jars into R8&rsquo;s PrintUses or TraceReferences CLI and outputs the inferred proguard rules into a new intermediate .pro file.</p>
+</li>
+<li>
+<p>Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their configurationFiles to include our generated one.</p>
+</li>
+</ul>
 <p>Appropriate task dependencies (via inputs/outputs, not dependsOn) are set up, so this is automatically run as part of the target app variant&rsquo;s full minified APK.</p>
 <p>The tasks themselves take roughly ~20 seconds total extra work in the Slack android app, with the infer and app jar tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.</p>
 <h2 id="constructors">Constructors<a class="headerlink" href="#constructors" title="Permanent link">&para;</a></h2>
@@ -371,7 +383,7 @@ class <a href="./">KeeperPlugin</a> : <a href="https://docs.gradle.org/7.1.1/jav
 <tbody>
 <tr>
 <td><a href="apply/">apply</a></td>
-<td>[jvm]<br>open override fun <a href="apply/">apply</a>(project: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Project.html">Project</a>)</td>
+<td>[jvm]<br>open override fun <a href="apply/">apply</a>(project: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Project.html">Project</a>)</td>
 </tr>
 </tbody>
 </table>

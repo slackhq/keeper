@@ -18,7 +18,7 @@
     
     
       
-        <title>Index - Keeper</title>
+        <title>Opt in to keeper - Keeper</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#variantfilter" class="md-skip">
+        <a href="#optintokeeper" class="md-skip">
           Skip to content
         </a>
       
@@ -99,7 +99,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              Index
+              Opt in to keeper
             
           </span>
         </div>
@@ -292,28 +292,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#functions" class="md-nav__link">
-    Functions
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#properties" class="md-nav__link">
-    Properties
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -324,53 +302,16 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/slackhq/Keeper/edit/master/docs/0.x/keeper-gradle-plugin/com.slack.keeper/-variant-filter/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/slackhq/Keeper/edit/master/docs/0.x/keeper-gradle-plugin/com.slack.keeper/opt-in-to-keeper.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">VariantFilter</a></p>
-<h1 id="variantfilter">VariantFilter<a class="headerlink" href="#variantfilter" title="Permanent link">&para;</a></h1>
+                <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">optInToKeeper</a></p>
+<h1 id="optintokeeper">optInToKeeper<a class="headerlink" href="#optintokeeper" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-interface <a href="./">VariantFilter</a></p>
-<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Summary</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="set-ignore/">setIgnore</a></td>
-<td>[jvm]<br>abstract fun <a href="set-ignore/">setIgnore</a>(ignore: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>)<br>Indicate whether or not to ignore this particular variant.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Summary</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="build-type/">buildType</a></td>
-<td>[jvm]<br>abstract val <a href="build-type/">buildType</a>: BuildType<br>Returns the Build Type.</td>
-</tr>
-<tr>
-<td><a href="flavors/">flavors</a></td>
-<td>[jvm]<br>abstract val <a href="flavors/">flavors</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><ProductFlavor><br>Returns the list of flavors, or an empty list.</td>
-</tr>
-<tr>
-<td><a href="name/">name</a></td>
-<td>[jvm]<br>abstract val <a href="name/">name</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><br>Returns the unique variant name.</td>
-</tr>
-</tbody>
-</table>
+fun <a href="https://developer.android.com/reference/tools/gradle-api/7.0/classes/com/android/build/api/variant/VariantBuilder.html">VariantBuilder</a>.<a href="./">optInToKeeper</a>()</p>
+<p>Shorthand to register Keeper on this variant.</p>
                 
               
               

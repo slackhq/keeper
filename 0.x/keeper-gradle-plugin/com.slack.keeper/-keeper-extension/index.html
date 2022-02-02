@@ -339,7 +339,7 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">KeeperExtension</a></p>
 <h1 id="keeperextension">KeeperExtension<a class="headerlink" href="#keeperextension" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-open class <a href="./">KeeperExtension</a>@Inject()constructor(<strong>objects</strong>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</p>
+abstract class <a href="./">KeeperExtension</a>@Injectconstructor(objects: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</p>
 <p>Configuration for the <a href="../-infer-android-test-keep-rules/">InferAndroidTestKeepRules</a>.</p>
 <h2 id="constructors">Constructors<a class="headerlink" href="#constructors" title="Permanent link">&para;</a></h2>
 <table>
@@ -352,7 +352,7 @@ open class <a href="./">KeeperExtension</a>@Inject()constructor(<strong>objects<
 <tbody>
 <tr>
 <td><a href="-keeper-extension/">KeeperExtension</a></td>
-<td>[jvm]<br>@Inject()<br>fun <a href="-keeper-extension/">KeeperExtension</a>(objects: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</td>
+<td>[jvm]<br>@Inject<br>fun <a href="-keeper-extension/">KeeperExtension</a>(objects: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/model/ObjectFactory.html">ObjectFactory</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -367,11 +367,7 @@ open class <a href="./">KeeperExtension</a>@Inject()constructor(<strong>objects<
 <tbody>
 <tr>
 <td><a href="trace-references/">traceReferences</a></td>
-<td>[jvm]<br>fun <a href="trace-references/">traceReferences</a>(action: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Action.html">Action</a>&lt;<a href="../-trace-references/">TraceReferences</a>&gt;)<br>Allows to enable the new experimental TraceReferences entry-point, and optionally specify additional arguments.</td>
-</tr>
-<tr>
-<td><a href="variant-filter/">variantFilter</a></td>
-<td>[jvm]<br>fun <a href="variant-filter/">variantFilter</a>(action: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/Action.html">Action</a>&lt;<a href="../-variant-filter/">VariantFilter</a>&gt;)<br>Applies a variant filter for Android.</td>
+<td>[jvm]<br>fun <a href="trace-references/">traceReferences</a>(action: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/Action.html">Action</a>&lt;<a href="../-trace-references/">TraceReferences</a>&gt;)<br>Allows to enable the new experimental TraceReferences entry-point, and optionally specify additional arguments.</td>
 </tr>
 </tbody>
 </table>
@@ -386,19 +382,19 @@ open class <a href="./">KeeperExtension</a>@Inject()constructor(<strong>objects<
 <tbody>
 <tr>
 <td><a href="automatic-r8-repo-management/">automaticR8RepoManagement</a></td>
-<td>[jvm]<br>val <a href="automatic-r8-repo-management/">automaticR8RepoManagement</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Controls whether or not to automatically add the R8 repository for dependencies.</td>
+<td>[jvm]<br>val <a href="automatic-r8-repo-management/">automaticR8RepoManagement</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Controls whether or not to automatically add the R8 repository for dependencies. Default is true. Disable if you want to define your own repo for fetching the R8 dependency.</td>
 </tr>
 <tr>
 <td><a href="emit-debug-information/">emitDebugInformation</a></td>
-<td>[jvm]<br>val <a href="emit-debug-information/">emitDebugInformation</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Emit extra debug information, useful for bug reporting.</td>
+<td>[jvm]<br>val <a href="emit-debug-information/">emitDebugInformation</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Emit extra debug information, useful for bug reporting.</td>
 </tr>
 <tr>
 <td><a href="enable-assertions/">enableAssertions</a></td>
-<td>[jvm]<br>val <a href="enable-assertions/">enableAssertions</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Controls whether or not to enable assertions in the JavaExec run of R8.</td>
+<td>[jvm]<br>val <a href="enable-assertions/">enableAssertions</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/Property.html">Property</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a>&gt;<br>Controls whether or not to enable assertions in the JavaExec run of R8. Default is true.</td>
 </tr>
 <tr>
 <td><a href="r8-jvm-args/">r8JvmArgs</a></td>
-<td>[jvm]<br>val <a href="r8-jvm-args/">r8JvmArgs</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;<br>Optional custom jvm arguments to pass into the R8 PrintUses execution.</td>
+<td>[jvm]<br>val <a href="r8-jvm-args/">r8JvmArgs</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/provider/ListProperty.html">ListProperty</a>&lt;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>&gt;<br>Optional custom jvm arguments to pass into the R8 PrintUses execution. Useful if you want to enable debugging in R8.</td>
 </tr>
 </tbody>
 </table>

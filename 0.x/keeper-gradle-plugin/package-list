@@ -1,6 +1,7 @@
 $dokka.format:gfm-v1
 $dokka.linkExtension:md
 $dokka.location:com.slack.keeper////PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/index.md
+$dokka.location:com.slack.keeper//optInToKeeper/com.android.build.api.variant.VariantBuilder#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/opt-in-to-keeper.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/index.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/AndroidTestVariantClasspathJar/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/-android-test-variant-classpath-jar.md
 $dokka.location:com.slack.keeper/AndroidTestVariantClasspathJar/appJarsFile/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-android-test-variant-classpath-jar/app-jars-file.md
@@ -35,10 +36,10 @@ $dokka.location:com.slack.keeper/KeeperExtension/emitDebugInformation/#/Pointing
 $dokka.location:com.slack.keeper/KeeperExtension/enableAssertions/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/enable-assertions.md
 $dokka.location:com.slack.keeper/KeeperExtension/r8JvmArgs/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/r8-jvm-args.md
 $dokka.location:com.slack.keeper/KeeperExtension/traceReferences/#org.gradle.api.Action[com.slack.keeper.TraceReferences]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/trace-references.md
-$dokka.location:com.slack.keeper/KeeperExtension/variantFilter/#org.gradle.api.Action[com.slack.keeper.VariantFilter]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-extension/variant-filter.md
 $dokka.location:com.slack.keeper/KeeperPlugin///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-plugin/index.md
 $dokka.location:com.slack.keeper/KeeperPlugin/KeeperPlugin/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-plugin/-keeper-plugin.md
 $dokka.location:com.slack.keeper/KeeperPlugin/apply/#org.gradle.api.Project/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-plugin/apply.md
+$dokka.location:com.slack.keeper/KeeperVariantMarker///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-keeper-variant-marker/index.md
 $dokka.location:com.slack.keeper/TraceReferences///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-trace-references/index.md
 $dokka.location:com.slack.keeper/TraceReferences/TraceReferences/#org.gradle.api.model.ObjectFactory/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-trace-references/-trace-references.md
 $dokka.location:com.slack.keeper/TraceReferences/arguments/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-trace-references/arguments.md
@@ -49,10 +50,5 @@ $dokka.location:com.slack.keeper/VariantClasspathJar/archiveFile/#/PointingToDec
 $dokka.location:com.slack.keeper/VariantClasspathJar/classpath/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/classpath.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/createJar/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/create-jar.md
 $dokka.location:com.slack.keeper/VariantClasspathJar/from/#kotlin.Array[kotlin.Any]/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-classpath-jar/from.md
-$dokka.location:com.slack.keeper/VariantFilter///PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-filter/index.md
-$dokka.location:com.slack.keeper/VariantFilter/buildType/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-filter/build-type.md
-$dokka.location:com.slack.keeper/VariantFilter/flavors/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-filter/flavors.md
-$dokka.location:com.slack.keeper/VariantFilter/name/#/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-filter/name.md
-$dokka.location:com.slack.keeper/VariantFilter/setIgnore/#kotlin.Boolean/PointingToDeclaration/keeper-gradle-plugin/com.slack.keeper/-variant-filter/set-ignore.md
 com.slack.keeper
 

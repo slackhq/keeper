@@ -339,9 +339,9 @@
                 <p>//<a href="../../../">keeper-gradle-plugin</a>/<a href="../">com.slack.keeper</a>/<a href="./">AndroidTestVariantClasspathJar</a></p>
 <h1 id="androidtestvariantclasspathjar">AndroidTestVariantClasspathJar<a class="headerlink" href="#androidtestvariantclasspathjar" title="Permanent link">&para;</a></h1>
 <p>[jvm]\
-@<a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a>()</p>
+@<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/CacheableTask.html">CacheableTask</a></p>
 <p>abstract class <a href="./">AndroidTestVariantClasspathJar</a> : <a href="../-base-keeper-jar-task/">BaseKeeperJarTask</a></p>
-<p>A <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/jvm/tasks/Jar.html">Jar</a> task that sources from both the androidTest compiled sources <em>and</em> its distinct dependencies (as compared to the <a href="app-jars-file/">appJarsFile</a>). R8&rsquo;s PrintUses requires no class overlap between the two jars it&rsquo;s comparing, so at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be APIs that <em>they</em> use that are used in the target app runtime, and we want R8 to account for those usages as well.</p>
+<p>A <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/jvm/tasks/Jar.html">Jar</a> task that sources from both the androidTest compiled sources <em>and</em> its distinct dependencies (as compared to the <a href="app-jars-file/">appJarsFile</a>). R8&rsquo;s PrintUses requires no class overlap between the two jars it&rsquo;s comparing, so at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be APIs that <em>they</em> use that are used in the target app runtime, and we want R8 to account for those usages as well.</p>
 <h2 id="constructors">Constructors<a class="headerlink" href="#constructors" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -387,15 +387,15 @@
 <tbody>
 <tr>
 <td><a href="app-jars-file/">appJarsFile</a></td>
-<td>[jvm]<br>abstract val <a href="app-jars-file/">appJarsFile</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/PathSensitive.html">PathSensitive</a>(value = <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/PathSensitivity.NONE.html">PathSensitivity.NONE</a>)<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/InputFile.html">InputFile</a><br>abstract val <a href="app-jars-file/">appJarsFile</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="archive-file/">archiveFile</a></td>
-<td>[jvm]<br>abstract val <a href="archive-file/">archiveFile</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/OutputFile.html">OutputFile</a><br>abstract val <a href="archive-file/">archiveFile</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></td>
 </tr>
 <tr>
 <td><a href="classpath/">classpath</a></td>
-<td>[jvm]<br>abstract val <a href="classpath/">classpath</a>: <a href="https://docs.gradle.org/7.1.1/javadoc/index.html/org/gradle/api/file/ConfigurableFileCollection.html">ConfigurableFileCollection</a></td>
+<td>[jvm]<br>@get:<a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/tasks/Classpath.html">Classpath</a><br>abstract val <a href="classpath/">classpath</a>: <a href="https://docs.gradle.org/7.3.3/javadoc/index.html/org/gradle/api/file/ConfigurableFileCollection.html">ConfigurableFileCollection</a></td>
 </tr>
 </tbody>
 </table>
