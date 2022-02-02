@@ -226,20 +226,6 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun clearDir(path: File) {
-    if (!path.isDirectory) {
-      if (path.exists()) {
-        path.deleteRecursively()
-      }
-      if (!path.mkdirs()) {
-        throw IOException(String.format("Could not create empty folder %s", path))
-      }
-      return
-    }
-
-    path.listFiles()?.forEach(File::deleteRecursively)
-  }
-
   private fun Project.configureKeepRulesGeneration(
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
@@ -512,4 +498,18 @@ private inline fun <reified T : Task> Project.namedLazy(
       throw GradleException("Didn't find task $name with type ${T::class}.")
     }
   }
+}
+
+private fun clearDir(path: File) {
+  if (!path.isDirectory) {
+    if (path.exists()) {
+      path.deleteRecursively()
+    }
+    if (!path.mkdirs()) {
+      throw IOException(String.format("Could not create empty folder %s", path))
+    }
+    return
+  }
+
+  path.listFiles()?.forEach(File::deleteRecursively)
 }

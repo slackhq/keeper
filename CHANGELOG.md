@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.11.2
+------
+
+_2022-01-27_
+
+* **Fix:** Fix a configuration caching issue when L8 rule sharing is enabled.
+
 0.11.1
 ------
 
