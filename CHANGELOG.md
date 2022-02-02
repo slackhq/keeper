@@ -1,6 +1,47 @@
 Changelog
 =========
 
+0.12.0
+------
+
+_2022-02-02_
+
+**New:** Update to AGP 7.1 APIs
+
+Keeper now requires AGP 7.1.0 or higher and has been reworked to use AGP's new extension APIs. As
+such, the `variantFilter` API has now been removed.
+
+In order to enable Keeper on a particular variant, you must register the `KeeperVariantMarker`
+extension in AGP's `VariantBuilder` API like so:
+
+```kotlin
+androidComponents {
+  beforeVariants { builder ->
+    if (shouldRunKeeperOnVariant()) {
+      builder.optInToKeeper() // Helpful extension function
+    }
+  }
+}
+```
+
+Or in Groovy
+
+```kotlin
+androidComponents {
+  beforeVariants { builder ->
+    if (shouldRunKeeperOnVariant(builder)) {
+      builder.registerExtension(KeeperVariantMarker.class, KeeperVariantMarker.INSTANCE)
+    }
+  }
+}
+```
+
+Keeper's default behavior with no configuration effectively be a no-op, which isn't what you want!
+
+**Other updates**
+- Remove shaded ZipFlinger APIs, ZipFlinger is now used directly
+- Update Kotlin to `1.6.10`
+
 0.11.2
 ------
 
