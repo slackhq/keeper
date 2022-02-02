@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+import com.android.build.api.variant.VariantBuilder
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import com.slack.keeper.InferAndroidTestKeepRules
+import com.slack.keeper.KeeperVariantMarker
 import kotlin.PreconditionsKt
 
 apply plugin: 'com.android.application'
@@ -86,20 +88,21 @@ boolean useTraceReferences = providers.gradleProperty("keeperTest.enableTraceRef
     .map { Boolean.parseBoolean(it) }
     .orElse(false)
 
-keeper {
-  // Example: Only enable on "externalStaging"
-  variantFilter {
-    setIgnore(name != "externalStaging")
+// Example: Only enable on "externalStaging"
+androidComponents {
+  beforeVariants(selector().all()) { VariantBuilder variantBuilder ->
+    if (variantBuilder.name == "externalStaging") {
+      variantBuilder.registerExtension(KeeperVariantMarker.class, KeeperVariantMarker.INSTANCE)
+    }
   }
+}
 
+keeper {
   // Example: emit extra debug information during Keeper's execution.
-  emitDebugInformation = true
+  emitDebugInformation.set(true)
 
   // Example: automatic R8 repo management (more below)
-  automaticR8RepoManagement = false
-
-  // Example: share proguard rules for L8 (library desugaring).
-  enableL8RuleSharing = true
+  automaticR8RepoManagement.set(false)
 
   // Uncomment this line to debug the R8 from a remote instance.
   //r8JvmArgs.addAll(Arrays.asList("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"))
@@ -108,7 +111,7 @@ keeper {
     // Enable the new experimental TraceReferences tool.
     traceReferences {
       // Don't fail the build if missing definitions are found.
-      arguments = ["--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"]
+      arguments.set(["--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"])
     }
   }
 }
@@ -195,11 +198,11 @@ dependencies {
   coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
 
   androidTestImplementation project(":sample-libraries:c")
-  androidTestImplementation "com.squareup.okio:okio:2.10.0"
-  androidTestImplementation "androidx.annotation:annotation:1.2.0"
+  androidTestImplementation "com.squareup.okio:okio:3.0.0"
+  androidTestImplementation "androidx.annotation:annotation:1.3.0"
   androidTestImplementation "androidx.test:rules:1.4.0"
   androidTestImplementation "androidx.test:runner:1.4.0"
-  androidTestUtil "androidx.test:orchestrator:1.4.0"
+  androidTestUtil "androidx.test:orchestrator:1.4.1"
   androidTestImplementation "androidx.test.ext:junit:1.1.3"
   androidTestImplementation "junit:junit:4.13.2"
   androidTestImplementation "com.google.truth:truth:1.1.3"

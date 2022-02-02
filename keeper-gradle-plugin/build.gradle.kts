@@ -20,11 +20,10 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.5.21"
-  kotlin("kapt") version "1.5.21"
-  id("org.jetbrains.dokka") version "1.5.0"
-  id("com.vanniktech.maven.publish") version "0.17.0"
-  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.6.0"
+  kotlin("jvm") version "1.6.10"
+  id("org.jetbrains.dokka") version "1.6.10"
+  id("com.vanniktech.maven.publish") version "0.18.0"
+  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
 }
 
 buildscript {
@@ -43,11 +42,16 @@ repositories {
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     jvmTarget = "1.8"
-    // Because Gradle's Kotlin handling is stupid
-    apiVersion = "1.4"
-    languageVersion = "1.4"
+    // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
+    apiVersion = "1.5"
+    languageVersion = "1.5"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
+    // We use class SAM conversions because lambdas compiled into invokedynamic are not
+    // Serializable, which causes accidental headaches with Gradle configuration caching. It's
+    // easier for us to just use the previous anonymous classes behavior
+    @Suppress("SuspiciousCollectionReassignment")
+    freeCompilerArgs += "-Xsam-conversions=class"
   }
 }
 
@@ -62,8 +66,13 @@ sourceSets {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(11))
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release.set(8)
 }
 
 gradlePlugin {
@@ -94,15 +103,15 @@ tasks.withType<DokkaTask>().configureEach {
   }
 }
 
-val defaultAgpVersion = "7.0.0"
+val defaultAgpVersion = "7.1.0"
 val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
 
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.21")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
-  implementation("com.android:zipflinger:7.0.0")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.6.10")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
+  compileOnly("com.android:zipflinger:7.1.0")
 
   if (releaseMode) {
     compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
@@ -110,11 +119,8 @@ dependencies {
     implementation("com.android.tools.build:gradle:$agpVersion")
   }
 
-  compileOnly("com.google.auto.service:auto-service-annotations:1.0")
-  kapt("com.google.auto.service:auto-service:1.0")
-
   testImplementation("com.squareup:javapoet:1.13.0")
   testImplementation("com.squareup:kotlinpoet:1.9.0")
-  testImplementation("com.google.truth:truth:1.1.2")
+  testImplementation("com.google.truth:truth:1.1.3")
   testImplementation("junit:junit:4.13.2")
 }

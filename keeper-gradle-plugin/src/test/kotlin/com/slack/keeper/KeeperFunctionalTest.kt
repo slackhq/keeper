@@ -74,7 +74,7 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  * ```
  */
 @RunWith(Parameterized::class)
-class KeeperFunctionalTest(private val minifierType: MinifierType) {
+internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
 
   companion object {
     @JvmStatic
@@ -89,7 +89,7 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
    *
    * @property taskName The representation in a gradle task name.
    * @property expectedRules The expected generated rules outputted by `-printconfiguration`.
-   * @property gradleArgs The requisite gradle invocation parameters to enable this minifier.
+   * @property keeperExtraConfig Extra [KeeperExtension] configuration.
    */
   enum class MinifierType(
       val taskName: String,
@@ -153,13 +153,13 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
     }
   }
 
-  // Asserts that our variant filter properly filters things out. In our fixture project, the
+  // Asserts that our extension marker properly opts variants in. In our fixture project, the
   // "externalRelease" build variant will be ignored, while tasks will be generated for the
   // "internalRelease" variant.
   @Test
-  fun variantFilter() {
+  fun extensionMarker() {
     val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("release",
-        keeperExtraConfig = KeeperExtraConfig.ONLY_INTERNAL_RELEASE))
+        androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_RELEASE))
 
     val result = runGradle(projectDir, "assembleExternalRelease", "assembleInternalRelease", "-x",
         "lintVitalExternalRelease", "-x", "lintVitalInternalRelease")
@@ -175,10 +175,10 @@ class KeeperFunctionalTest(private val minifierType: MinifierType) {
   // Asserts that if Keeper was configured to create keep rules for a variant that isn't minified,
   // an error will be emitted, and the tasks won't be created.
   @Test
-  fun variantFilterWarning() {
-    // internalDebug variant isn't minified, but the variantFilter includes it.
+  fun extensionMarkerWarning() {
+    // internalDebug variant isn't minified, but the variant is opted into Keeper.
     val (projectDir, _) = prepareProject(temporaryFolder, buildGradleFile("debug",
-        keeperExtraConfig = KeeperExtraConfig.ONLY_INTERNAL_DEBUG))
+        androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_DEBUG))
 
     val result = runGradle(projectDir, "assembleInternalDebug")
 
@@ -296,25 +296,56 @@ private val TEST_PROGUARD_RULES = """
   -dontnote **
 """.trimIndent()
 
-enum class KeeperExtraConfig(val groovy: String) {
+internal enum class KeeperExtraConfig(val groovy: String) {
   NONE(""),
+  TRACE_REFERENCES_ENABLED(
+      """
+      traceReferences {}
+      """.trimIndent()
+  );
+}
+
+internal enum class AndroidExtraConfig(val groovy: String) {
+  ONLY_EXTERNAL_STAGING(
+      """
+      androidComponents {
+        beforeVariants(selector().all()) { variantBuilder ->
+          if (variantBuilder.name == "externalStaging") {
+            variantBuilder.registerExtension(
+              com.slack.keeper.KeeperVariantMarker.class,
+              com.slack.keeper.KeeperVariantMarker.INSTANCE
+            )
+          }
+        }
+      }
+      """.trimIndent()
+  ),
   ONLY_INTERNAL_RELEASE(
       """
-      variantFilter {
-        setIgnore(name != "internalRelease")
+      androidComponents {
+        beforeVariants(selector().all()) { variantBuilder ->
+          if (variantBuilder.name == "internalRelease") {
+            variantBuilder.registerExtension(
+              com.slack.keeper.KeeperVariantMarker.class,
+              com.slack.keeper.KeeperVariantMarker.INSTANCE
+            )
+          }
+        }
       }
       """.trimIndent()
   ),
   ONLY_INTERNAL_DEBUG(
       """
-      variantFilter {
-        setIgnore(name != "internalDebug")
+      androidComponents {
+        beforeVariants(selector().all()) { variantBuilder ->
+          if (variantBuilder.name == "internalDebug") {
+            variantBuilder.registerExtension(
+              com.slack.keeper.KeeperVariantMarker.class,
+              com.slack.keeper.KeeperVariantMarker.INSTANCE
+            )
+          }
+        }
       }
-      """.trimIndent()
-  ),
-  TRACE_REFERENCES_ENABLED(
-      """
-      traceReferences {}
       """.trimIndent()
   );
 }
@@ -324,6 +355,7 @@ private fun buildGradleFile(
     testBuildType: String,
     automaticR8RepoManagement: Boolean = true,
     keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE,
+    androidExtraConfig: AndroidExtraConfig = AndroidExtraConfig.ONLY_EXTERNAL_STAGING,
     emitDebugInformation: Boolean = false,
     extraDependencies: Map<String, String> = emptyMap()
 ): String {
@@ -338,9 +370,9 @@ private fun buildGradleFile(
 
     dependencies {
       // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:4.2.1"
+      classpath "com.android.tools.build:gradle:7.1.0"
       //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
     }
   }
 
@@ -404,6 +436,8 @@ private fun buildGradleFile(
     """
   }
   }
+  
+  ${androidExtraConfig.groovy}
   
   keeper {
     emitDebugInformation.set($emitDebugInformation)
