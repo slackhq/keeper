@@ -47,6 +47,9 @@ jobs:
           distribution: 'zulu'
           java-version: ${{ matrix.java }}
 
+      - name: Spot check
+        run: ./gradlew spotlessCheck
+
       - name: Test plugin
         if: matrix.job == 'plugin'
         run: ./gradlew -p keeper-gradle-plugin clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.agp }}
