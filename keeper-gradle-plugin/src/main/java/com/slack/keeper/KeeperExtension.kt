@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2020 Slack Technologies, LLC
+ * Copyright (C) 2020. Slack Technologies, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.slack.keeper
 
 import org.gradle.api.Action
@@ -87,5 +86,5 @@ public abstract class TraceReferences @Inject constructor(objects: ObjectFactory
    * with the R8 team.
    */
   public val arguments: ListProperty<String> = objects.listProperty<String>()
-          .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
+    .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
 }

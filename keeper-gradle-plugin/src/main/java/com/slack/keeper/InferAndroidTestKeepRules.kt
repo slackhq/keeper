@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2020 Slack Technologies, LLC
+ * Copyright (C) 2020. Slack Technologies, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.slack.keeper
 
 import org.gradle.api.artifacts.Configuration
@@ -92,10 +91,12 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       val inputJvmArgs = jvmArgsProperty.get()
       if (inputJvmArgs.isNotEmpty()) {
         logger.lifecycle(
-            "Starting infer exec with jvmArgs ${
-              inputJvmArgs.joinToString(", ", prefix = "[",
-                  postfix = "]")
-            }. If debugging, attach the debugger now."
+          "Starting infer exec with jvmArgs ${
+          inputJvmArgs.joinToString(
+            ", ", prefix = "[",
+            postfix = "]"
+          )
+          }. If debugging, attach the debugger now."
         )
         jvmArgs = inputJvmArgs
       }
@@ -111,43 +112,43 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   }
 
   private fun genPrintUsesArgs(): List<String> =
-      listOf(
-          "--keeprules",
-          androidJar.get().asFile.absolutePath,
-          appTargetJar.get().asFile.absolutePath,
-          androidTestSourceJar.get().asFile.absolutePath
-      ).also {
-        // print-uses is using its output to print rules
-        standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
-      }
+    listOf(
+      "--keeprules",
+      androidJar.get().asFile.absolutePath,
+      appTargetJar.get().asFile.absolutePath,
+      androidTestSourceJar.get().asFile.absolutePath
+    ).also {
+      // print-uses is using its output to print rules
+      standardOutput = outputProguardRules.asFile.get().outputStream().buffered()
+    }
 
   private fun genTraceReferencesArgs(): List<String?> =
-      listOf(
-          "--keep-rules" to "",
-          "--lib" to androidJar.get().asFile.absolutePath,
-          "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
-          "--target" to appTargetJar.get().asFile.absolutePath,
-          "--source" to androidTestSourceJar.get().asFile.absolutePath,
-          "--output" to outputProguardRules.get().asFile.absolutePath
-      ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
-          .reduce { acc, any -> acc + any }
-          // Add user provided args coming from TraceReferences.arguments after generated ones.
-          .plus(traceReferencesArgs.getOrElse(listOf()))
+    listOf(
+      "--keep-rules" to "",
+      "--lib" to androidJar.get().asFile.absolutePath,
+      "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
+      "--target" to appTargetJar.get().asFile.absolutePath,
+      "--source" to androidTestSourceJar.get().asFile.absolutePath,
+      "--output" to outputProguardRules.get().asFile.absolutePath
+    ).map { if (it.second != null) listOf(it.first, it.second) else listOf() }
+      .reduce { acc, any -> acc + any }
+      // Add user provided args coming from TraceReferences.arguments after generated ones.
+      .plus(traceReferencesArgs.getOrElse(listOf()))
 
   public companion object {
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
     public operator fun invoke(
-        variantName: String,
-        androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
-        releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
-        androidJar: Provider<RegularFile>,
-        androidTestJar: Provider<RegularFile>,
-        automaticallyAddR8Repo: Property<Boolean>,
-        enableAssertions: Property<Boolean>,
-        extensionJvmArgs: ListProperty<String>,
-        traceReferencesEnabled: Property<Boolean>,
-        traceReferencesArgs: ListProperty<String>,
-        r8Configuration: Configuration
+      variantName: String,
+      androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
+      releaseClassesJarProvider: TaskProvider<out VariantClasspathJar>,
+      androidJar: Provider<RegularFile>,
+      androidTestJar: Provider<RegularFile>,
+      automaticallyAddR8Repo: Property<Boolean>,
+      enableAssertions: Property<Boolean>,
+      extensionJvmArgs: ListProperty<String>,
+      traceReferencesEnabled: Property<Boolean>,
+      traceReferencesArgs: ListProperty<String>,
+      r8Configuration: Configuration
     ): InferAndroidTestKeepRules.() -> Unit = {
       if (automaticallyAddR8Repo.get()) {
         // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is
@@ -174,17 +175,21 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       this.traceReferencesEnabled.set(traceReferencesEnabled)
       this.traceReferencesArgs.set(traceReferencesArgs)
       outputProguardRules.set(
-          project.layout.buildDirectory.file(
-              "${KeeperPlugin.INTERMEDIATES_DIR}/${
-                variantName.capitalize(Locale.US)
-              }/inferredKeepRules.pro"))
+        project.layout.buildDirectory.file(
+          "${KeeperPlugin.INTERMEDIATES_DIR}/${
+          variantName.capitalize(Locale.US)
+          }/inferredKeepRules.pro"
+        )
+      )
       classpath(r8Configuration)
-      mainClass.set(this.traceReferencesEnabled.map { enabled ->
-        when (enabled) {
-          false -> "com.android.tools.r8.PrintUses"
-          true -> "com.android.tools.r8.tracereferences.TraceReferences"
+      mainClass.set(
+        this.traceReferencesEnabled.map { enabled ->
+          when (enabled) {
+            false -> "com.android.tools.r8.PrintUses"
+            true -> "com.android.tools.r8.tracereferences.TraceReferences"
+          }
         }
-      })
+      )
 
       enableAssertionsProperty.set(enableAssertions)
     }

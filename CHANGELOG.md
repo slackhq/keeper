@@ -210,7 +210,7 @@ Perf comparisons on the slack app:
 | inferExternalStagingAndroidTestKeepRulesForKeeper | 14.126s | 11.138s |
 | jarExternalStagingClassesForKeeper | 10.364s | 6.347s |
 | jarExternalStagingAndroidTestClassesForKeeper | 4.504s | 2.609s |
- 
+
 * Keeper now only supports AGP 3.6 or higher. If you still need AGP 3.5.x support, please continue
 using Keeper 0.2.0 or lower.
 * Update Kotlin to 1.3.71.
@@ -221,7 +221,7 @@ using Keeper 0.2.0 or lower.
 _2020-02-12_
 
 ### New Variant Filter API [#14](https://github.com/slackhq/keeper/pull/14)
-You can specify a variantFilter on the keeper extension to dynamically configure which variants Keeper 
+You can specify a variantFilter on the keeper extension to dynamically configure which variants Keeper
 operates on (similar to the Android Gradle Plugin's VariantFilter API).
 
 ```groovy
@@ -235,8 +235,8 @@ keeper {
 ```
 
 ### R8 Repository Management Opt-Out [#17](https://github.com/slackhq/keeper/pull/17)
-If you don't want Keeper to automatically manage adding R8's maven repo, you can set disable it via 
-`automaticR8RepoManagement`. Note that you'll need to manually add your own repo that the `keeperR8` 
+If you don't want Keeper to automatically manage adding R8's maven repo, you can set disable it via
+`automaticR8RepoManagement`. Note that you'll need to manually add your own repo that the `keeperR8`
 configuration can resolve from.
 
 ```groovy

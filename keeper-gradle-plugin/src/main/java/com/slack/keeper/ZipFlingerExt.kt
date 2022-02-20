@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2022. Slack Technologies, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.slack.keeper
 
 import com.android.zipflinger.ZipArchive
@@ -12,9 +27,9 @@ import java.nio.file.Path
 internal fun File.classesSequence(): Sequence<Pair<String, File>> {
   val prefix = absolutePath
   return walkTopDown()
-      .filter { it.extension == "class" }
-      .filterNot { "META-INF" in it.name }
-      .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
+    .filter { it.extension == "class" }
+    .filterNot { "META-INF" in it.name }
+    .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
 }
 
 /**
@@ -23,15 +38,15 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
 internal fun ZipArchive.extractClassesFrom(jar: File, callback: (String) -> Unit) {
   val jarSource = newZipSource(jar)
   jarSource.entries()
-      .filterNot { "META-INF" in it.key }
-      .forEach { (name, entry) ->
-        if (!entry.isDirectory && entry.name.endsWith(".class")) {
-          val entryName = name.removePrefix(".")
-          callback(entryName)
-          delete(entryName)
-          jarSource.select(entryName, name)
-        }
+    .filterNot { "META-INF" in it.key }
+    .forEach { (name, entry) ->
+      if (!entry.isDirectory && entry.name.endsWith(".class")) {
+        val entryName = name.removePrefix(".")
+        callback(entryName)
+        delete(entryName)
+        jarSource.select(entryName, name)
       }
+    }
   add(jarSource)
 }
 
@@ -39,12 +54,12 @@ private fun newZipSource(jar: File): ZipSource {
   return try {
     // AGP 4.1/4.2
     ZipSource::class.java
-        .getDeclaredConstructor(File::class.java)
-        .newInstance(jar)
+      .getDeclaredConstructor(File::class.java)
+      .newInstance(jar)
   } catch (e: NoSuchMethodException) {
     // AGP/ZipFlinger 7+
     ZipSource::class.java
-        .getDeclaredConstructor(Path::class.java)
-        .newInstance(jar.toPath())
+      .getDeclaredConstructor(Path::class.java)
+      .newInstance(jar.toPath())
   }
 }

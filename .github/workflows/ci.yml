@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['11']
-        agp: ['7.1.0', '7.2.0-beta01']
+        agp: ['7.1.0', '7.2.0-beta02']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
     steps:
@@ -46,6 +46,9 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java }}
+
+      - name: Spot check
+        run: ./gradlew spotlessCheck
 
       - name: Test plugin
         if: matrix.job == 'plugin'
