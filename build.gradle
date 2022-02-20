@@ -31,6 +31,41 @@ buildscript {
     }
 }
 
+plugins {
+    id("com.diffplug.spotless") version "6.3.0"
+}
+
+spotless {
+    format("misc") {
+        target("**/*.md", ".gitignore")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    String ktlintVersion = "0.44.0"
+    String ktlintUserData = ["indent_size": "2", "continuation_indent_size": "2"]
+    kotlin {
+        ktlint(ktlintVersion).userData(ktlintUserData)
+        trimTrailingWhitespace()
+        endWithNewline()
+        licenseHeaderFile("spotless/spotless.kt")
+        targetExclude("**/spotless.kt")
+    }
+    kotlinGradle {
+        ktlint(ktlintVersion).userData(ktlintUserData)
+        trimTrailingWhitespace()
+        endWithNewline()
+        licenseHeaderFile("spotless/spotless.kt", "(import|plugins|buildscript|dependencies|pluginManagement|rootProject)")
+    }
+    java {
+        target("**/*.java")
+        googleJavaFormat('1.14.0').reflowLongStrings()
+        trimTrailingWhitespace()
+        endWithNewline()
+        licenseHeaderFile("spotless/spotless.java")
+        targetExclude("**/spotless.java")
+    }
+}
+
 String resolvedJvmTarget = System.getenv().getOrDefault("ci_java_version", "1.8")
 allprojects {
     repositories {
