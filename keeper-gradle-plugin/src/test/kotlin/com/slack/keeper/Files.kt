@@ -50,8 +50,10 @@ internal fun File.newDir(path: String): File {
 }
 
 internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", *path.split("/").toTypedArray())
-internal fun File.child(vararg path: String) = File(this,
-    path.toList().joinToString(File.separator)).apply {
+internal fun File.child(vararg path: String) = File(
+  this,
+  path.toList().joinToString(File.separator)
+).apply {
   check(exists()) {
     "Child doesn't exist! Expected $this. Other files in this dir: ${parentFile.listFiles()}"
   }
@@ -65,7 +67,7 @@ internal sealed class SourceFile(val name: String) {
   }
 
   data class KotlinSourceFile(
-      val fileSpec: FileSpec
+    val fileSpec: FileSpec
   ) : SourceFile(fileSpec.members.filterIsInstance<TypeSpec>().first().name!!) {
     override fun writeTo(file: File) = fileSpec.writeTo(file)
   }

@@ -87,5 +87,5 @@ public abstract class TraceReferences @Inject constructor(objects: ObjectFactory
    * with the R8 team.
    */
   public val arguments: ListProperty<String> = objects.listProperty<String>()
-          .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
+    .convention(listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"))
 }

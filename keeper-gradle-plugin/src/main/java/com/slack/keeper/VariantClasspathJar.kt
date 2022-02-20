@@ -72,7 +72,7 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
-      diagnosticsOutputDir.get().file("${fileName}.txt").asFile.apply {
+      diagnosticsOutputDir.get().file("$fileName.txt").asFile.apply {
         writeText(body())
       }
     } else {
@@ -113,28 +113,28 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       getArtifactFiles()
-          .forEach { jar ->
-            appJars.add(jar.canonicalPath)
-            archive.extractClassesFrom(jar) {
-              appClasses += it
-            }
+        .forEach { jar ->
+          appJars.add(jar.canonicalPath)
+          archive.extractClassesFrom(jar) {
+            appClasses += it
           }
+        }
 
       // Take the compiled classes
       classpath.asSequence()
-          .flatMap { it.classesSequence() }
-          .forEach { (name, file) ->
-            appClasses.add(name)
-            archive.delete(name)
-            archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
-          }
+        .flatMap { it.classesSequence() }
+        .forEach { (name, file) ->
+          appClasses.add(name)
+          archive.delete(name)
+          archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
+        }
     }
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
 
     diagnostic("classes") {
       appClasses.sorted()
-          .joinToString("\n")
+        .joinToString("\n")
     }
   }
 }
@@ -175,9 +175,9 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     val androidTestClasspath = getArtifactFiles()
     diagnostic("jars") {
       androidTestClasspath.sortedBy { it.canonicalPath }
-          .joinToString("\n") {
-            it.canonicalPath
-          }
+        .joinToString("\n") {
+          it.canonicalPath
+        }
     }
 
     val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
@@ -186,30 +186,30 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
     diagnostic("distinctJars") {
       distinctAndroidTestClasspath.sortedBy { it.canonicalPath }
-          .joinToString("\n") {
-            it.canonicalPath
-          }
+        .joinToString("\n") {
+          it.canonicalPath
+        }
     }
 
     val androidTestClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
       distinctAndroidTestClasspath
-          .filter { it.exists() && it.extension == "jar" }
-          .forEach { jar ->
-            archive.extractClassesFrom(jar) {
-              androidTestClasses += it
-            }
+        .filter { it.exists() && it.extension == "jar" }
+        .forEach { jar ->
+          archive.extractClassesFrom(jar) {
+            androidTestClasses += it
           }
+        }
 
       // Take the compiled classes
       classpath.asSequence()
-          .flatMap { it.classesSequence() }
-          .forEach { (name, file) ->
-            androidTestClasses += name
-            archive.delete(name)
-            archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
-          }
+        .flatMap { it.classesSequence() }
+        .forEach { (name, file) ->
+          androidTestClasses += name
+          archive.delete(name)
+          archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
+        }
     }
 
     diagnostic("androidTestClasses") {
@@ -219,10 +219,10 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     // See https://issuetracker.google.com/issues/157583077 for why we do this
     if (emitDebugInfo.get()) {
       val duplicateClasses = appJars.asSequence()
-          .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
-          .map { it.name }
-          .distinct()
-          .filterTo(LinkedHashSet()) { it in androidTestClasses }
+        .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
+        .map { it.name }
+        .distinct()
+        .filterTo(LinkedHashSet()) { it in androidTestClasses }
 
       // https://github.com/slackhq/keeper/issues/82
       duplicateClasses.remove("module-info.class")
@@ -231,13 +231,15 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
         val output = diagnostic("duplicateClasses") {
           duplicateClasses.sorted().joinToString("\n")
         }
-        logger.warn("Duplicate classes found in androidTest APK and app APK! This" +
+        logger.warn(
+          "Duplicate classes found in androidTest APK and app APK! This" +
             " can cause obscure runtime errors during tests due to the app" +
             " classes being optimized while the androidTest copies of them that are actually used" +
             " at runtime are not. This usually happens when two different dependencies " +
             "contribute the same classes and the app configuration only depends on one of them " +
             "while the androidTest configuration depends on only on the other. " +
-            "The list of all duplicate classes can be found at file://$output")
+            "The list of all duplicate classes can be found at file://$output"
+        )
       }
     }
   }

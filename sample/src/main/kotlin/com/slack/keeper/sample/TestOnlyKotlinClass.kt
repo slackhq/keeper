@@ -19,6 +19,5 @@ package com.slack.keeper.sample
 /** Class that's only accessed from androidTest. */
 object TestOnlyKotlinClass {
   fun testOnlyMethod() {
-
   }
 }

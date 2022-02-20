@@ -56,9 +56,11 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.withType<Test>().configureEach {
-  beforeTest(closureOf<TestDescriptor> {
-    logger.lifecycle("Running test: $this")
-  })
+  beforeTest(
+    closureOf<TestDescriptor> {
+      logger.lifecycle("Running test: $this")
+    }
+  )
 }
 
 sourceSets {

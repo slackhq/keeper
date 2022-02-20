@@ -18,7 +18,5 @@ package com.slack.keeper.sample;
 
 /** Class that's accessed from the application but not test sources. */
 public class ApplicationUsedClass {
-  public static void applicationCalledMethod() {
-
-  }
+  public static void applicationCalledMethod() {}
 }

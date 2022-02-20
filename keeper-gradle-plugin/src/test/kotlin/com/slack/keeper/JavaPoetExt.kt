@@ -21,15 +21,20 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import javax.lang.model.element.Modifier.PUBLIC
 
-internal fun javaFile(packageName: String, className: String,
-    body: TypeSpec.Builder.() -> Unit): SourceFile {
-  return JavaFile.builder(packageName,
-      TypeSpec.classBuilder(className)
-          .addModifiers(PUBLIC)
-          .apply(body)
-          .build())
+internal fun javaFile(
+  packageName: String,
+  className: String,
+  body: TypeSpec.Builder.() -> Unit
+): SourceFile {
+  return JavaFile.builder(
+    packageName,
+    TypeSpec.classBuilder(className)
+      .addModifiers(PUBLIC)
+      .apply(body)
       .build()
-      .asSourceFile()
+  )
+    .build()
+    .asSourceFile()
 }
 
 internal fun TypeSpec.Builder.methodSpec(name: String, body: MethodSpec.Builder.() -> Unit) {

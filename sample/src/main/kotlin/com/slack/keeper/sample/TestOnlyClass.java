@@ -18,7 +18,5 @@ package com.slack.keeper.sample;
 
 /** Class that's only accessed from androidTest. */
 public class TestOnlyClass {
-  public static void testOnlyMethod() {
-
-  }
+  public static void testOnlyMethod() {}
 }

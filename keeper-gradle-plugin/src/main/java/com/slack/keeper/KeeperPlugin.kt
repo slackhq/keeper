@@ -150,7 +150,8 @@ public class KeeperPlugin : Plugin<Project> {
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
   ) {
-    appComponentsExtension.onApplicableVariants(project,
+    appComponentsExtension.onApplicableVariants(
+      project,
       appExtension,
       verifyMinification = false
     ) { testVariant, appVariant ->
@@ -197,7 +198,6 @@ public class KeeperPlugin : Plugin<Project> {
                         "\n",
                         prefix = "# Source: extra configurations\n"
                       )
-
 
                     File(diagnosticOutputDir, "patchedL8Rules.pro")
                       .apply {
@@ -247,19 +247,24 @@ public class KeeperPlugin : Plugin<Project> {
       }
     }
 
-    val androidJarRegularFileProvider = layout.file(provider {
-      resolveAndroidEmbeddedJar(appExtension, appComponentsExtension, "android.jar",
-        checkIfExisting = true)
-    })
-    val androidTestJarRegularFileProvider = layout.file(provider {
-      resolveAndroidEmbeddedJar(
-        appExtension,
-        appComponentsExtension,
-        "optional/android.test.base.jar",
-        checkIfExisting = false
-      )
-    })
-
+    val androidJarRegularFileProvider = layout.file(
+      provider {
+        resolveAndroidEmbeddedJar(
+          appExtension, appComponentsExtension, "android.jar",
+          checkIfExisting = true
+        )
+      }
+    )
+    val androidTestJarRegularFileProvider = layout.file(
+      provider {
+        resolveAndroidEmbeddedJar(
+          appExtension,
+          appComponentsExtension,
+          "optional/android.test.base.jar",
+          checkIfExisting = false
+        )
+      }
+    )
 
     appComponentsExtension.onApplicableVariants(
       project,
@@ -293,7 +298,8 @@ public class KeeperPlugin : Plugin<Project> {
       )
 
       val prop = layout.dir(
-        inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+        inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile }
+      )
       val testProguardFiles = runtimeConfigurationFor(testVariant.name)
         .proguardFiles()
       applyGeneratedRules(appVariant.name, prop, testProguardFiles)
@@ -309,7 +315,8 @@ public class KeeperPlugin : Plugin<Project> {
     val compileSdkVersion = appExtension.compileSdkVersion
       ?: error("No compileSdkVersion found")
     val file = File(
-      "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/${compileSdkVersion}/${path}")
+      "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/$compileSdkVersion/$path"
+    )
     check(!checkIfExisting || file.exists()) {
       "No $path found! Expected to find it at: ${file.absolutePath}"
     }
@@ -331,8 +338,8 @@ public class KeeperPlugin : Plugin<Project> {
         if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
           project.logger.error(
             """
-            Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't 
-            have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying 
+            Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't
+            have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying
             the Keeper plugin when android.testBuildType = $buildType or enable minification on this variant.
             """.trimIndent()
           )
@@ -394,9 +401,11 @@ public class KeeperPlugin : Plugin<Project> {
         "$INTERMEDIATES_DIR/${testVariant.name}/diagnostics"
       )
       this.diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map {
-        it.file("classes.jar")
-      })
+      archiveFile.set(
+        outputDir.map {
+          it.file("classes.jar")
+        }
+      )
     }
   }
 

@@ -21,13 +21,16 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.TypeSpec
 import java.io.File
 
-internal fun kotlinFile(packageName: String, className: String,
-    body: TypeSpec.Builder.() -> Unit): SourceFile {
+internal fun kotlinFile(
+  packageName: String,
+  className: String,
+  body: TypeSpec.Builder.() -> Unit
+): SourceFile {
   return FileSpec.get(
-      packageName = packageName,
-      typeSpec = TypeSpec.objectBuilder(className)
-          .apply(body)
-          .build()
+    packageName = packageName,
+    typeSpec = TypeSpec.objectBuilder(className)
+      .apply(body)
+      .build()
   ).asSourceFile()
 }
 

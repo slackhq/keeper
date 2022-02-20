@@ -23,7 +23,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
 
 public class SampleApplication extends Application {
-  @Override public void onCreate() {
+  @Override
+  public void onCreate() {
     super.onCreate();
     ApplicationUsedClass.applicationCalledMethod();
 
@@ -32,10 +33,11 @@ public class SampleApplication extends Application {
 
     // Regression test for https://github.com/slackhq/keeper/issues/67
     @SuppressWarnings("unused")
-    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-        .parseCaseInsensitive()
-        .appendInstant(9)
-        .toFormatter()
-        .withResolverStyle(ResolverStyle.STRICT);
+    DateTimeFormatter formatter =
+        new DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .appendInstant(9)
+            .toFormatter()
+            .withResolverStyle(ResolverStyle.STRICT);
   }
 }

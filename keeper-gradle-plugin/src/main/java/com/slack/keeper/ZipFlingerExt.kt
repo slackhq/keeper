@@ -12,9 +12,9 @@ import java.nio.file.Path
 internal fun File.classesSequence(): Sequence<Pair<String, File>> {
   val prefix = absolutePath
   return walkTopDown()
-      .filter { it.extension == "class" }
-      .filterNot { "META-INF" in it.name }
-      .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
+    .filter { it.extension == "class" }
+    .filterNot { "META-INF" in it.name }
+    .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
 }
 
 /**
@@ -23,15 +23,15 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
 internal fun ZipArchive.extractClassesFrom(jar: File, callback: (String) -> Unit) {
   val jarSource = newZipSource(jar)
   jarSource.entries()
-      .filterNot { "META-INF" in it.key }
-      .forEach { (name, entry) ->
-        if (!entry.isDirectory && entry.name.endsWith(".class")) {
-          val entryName = name.removePrefix(".")
-          callback(entryName)
-          delete(entryName)
-          jarSource.select(entryName, name)
-        }
+    .filterNot { "META-INF" in it.key }
+    .forEach { (name, entry) ->
+      if (!entry.isDirectory && entry.name.endsWith(".class")) {
+        val entryName = name.removePrefix(".")
+        callback(entryName)
+        delete(entryName)
+        jarSource.select(entryName, name)
       }
+    }
   add(jarSource)
 }
 
@@ -39,12 +39,12 @@ private fun newZipSource(jar: File): ZipSource {
   return try {
     // AGP 4.1/4.2
     ZipSource::class.java
-        .getDeclaredConstructor(File::class.java)
-        .newInstance(jar)
+      .getDeclaredConstructor(File::class.java)
+      .newInstance(jar)
   } catch (e: NoSuchMethodException) {
     // AGP/ZipFlinger 7+
     ZipSource::class.java
-        .getDeclaredConstructor(Path::class.java)
-        .newInstance(jar.toPath())
+      .getDeclaredConstructor(Path::class.java)
+      .newInstance(jar.toPath())
   }
 }
