@@ -83,4 +83,4 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SonatypePassword }}
         run: |
           ./publish.sh --snapshot
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '11' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'
