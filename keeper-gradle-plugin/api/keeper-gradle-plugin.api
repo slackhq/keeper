@@ -10,10 +10,9 @@ public abstract class com/slack/keeper/AndroidTestVariantClasspathJar : com/slac
 public abstract class com/slack/keeper/BaseKeeperJarTask : org/gradle/api/DefaultTask {
 	public fun <init> ()V
 	protected final fun diagnostic (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/io/File;
-	public final fun getArtifactFiles ()Lorg/gradle/api/file/FileCollection;
+	public abstract fun getAllJars ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getDiagnosticsOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getEmitDebugInfo ()Lorg/gradle/api/provider/Property;
-	public final fun setArtifacts (Lorg/gradle/api/artifacts/ArtifactCollection;)V
 }
 
 public abstract class com/slack/keeper/InferAndroidTestKeepRules : org/gradle/api/tasks/JavaExec {
