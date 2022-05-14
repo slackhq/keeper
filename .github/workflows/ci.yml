@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['11']
-        agp: ['7.1.0', '7.2.0-beta02']
+        agp: ['7.2.0']
         tracerefs: [true, false]
         job: ['instrumentation', 'plugin']
     steps:
@@ -52,7 +52,9 @@ jobs:
 
       - name: Test plugin
         if: matrix.job == 'plugin'
-        run: ./gradlew -p keeper-gradle-plugin clean check --stacktrace -PkeeperTest.agpVersion=${{ matrix.agp }}
+        env:
+          DEP_OVERRIDE_agp: ${{ matrix.agp }}
+        run: ./gradlew -p keeper-gradle-plugin clean check --stacktrace
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -73,14 +75,12 @@ jobs:
           name: error-report
           path: build-reports.zip
 
-      - name: Reclaim memory
-        run: ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '8' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'
-
       - name: Upload snapshot (main only)
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SonatypeUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SonatypePassword }}
         run: |
+          # Reclaime memory
+          ./gradlew --stop && jps|grep -E 'KotlinCompileDaemon|GradleDaemon'| awk '{print $1}'| xargs kill -9 || true
           ./publish.sh --snapshot
-        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '11' && matrix.agp == '4.2.1' && matrix.tracerefs && matrix.job == 'plugin'
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.java == '11' && matrix.agp == '7.2.0' && matrix.tracerefs && matrix.job == 'plugin'

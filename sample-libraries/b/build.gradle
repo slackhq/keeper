@@ -34,5 +34,5 @@ android {
 
 dependencies {
   implementation project(":sample-libraries:c")
-  implementation "com.squareup.okio:okio:3.0.0"
+  implementation libs.okio
 }

@@ -84,7 +84,6 @@ android {
 
 // Controlled by Keeper CI for testing
 boolean useTraceReferences = providers.gradleProperty("keeperTest.enableTraceReferences")
-    .forUseAtConfigurationTime()
     .map { Boolean.parseBoolean(it) }
     .orElse(false)
 
@@ -118,10 +117,10 @@ keeper {
 
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.
 // This is _solely_ for CI use with Keeper!
-boolean isCi = providers.environmentVariable("CI").forUseAtConfigurationTime()
+boolean isCi = providers.environmentVariable("CI")
     .orElse("false")
     .get() == "true"
-boolean verifyL8 = providers.environmentVariable("keeper.verifyL8").forUseAtConfigurationTime()
+boolean verifyL8 = providers.environmentVariable("keeper.verifyL8")
     .orElse("false")
     .get() == "true"
 if (isCi) {
@@ -195,17 +194,17 @@ repositories {
 dependencies {
   implementation project(":sample-libraries:a")
 
-  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+  coreLibraryDesugaring libs.desugarJdkLibs
 
   androidTestImplementation project(":sample-libraries:c")
-  androidTestImplementation "com.squareup.okio:okio:3.0.0"
-  androidTestImplementation "androidx.annotation:annotation:1.3.0"
-  androidTestImplementation "androidx.test:rules:1.4.0"
-  androidTestImplementation "androidx.test:runner:1.4.0"
-  androidTestUtil "androidx.test:orchestrator:1.4.1"
-  androidTestImplementation "androidx.test.ext:junit:1.1.3"
-  androidTestImplementation "junit:junit:4.13.2"
-  androidTestImplementation "com.google.truth:truth:1.1.3"
+  androidTestImplementation libs.okio
+  androidTestImplementation libs.androidx.annotation
+  androidTestImplementation libs.androidx.test.rules
+  androidTestImplementation libs.androidx.test.runner
+  androidTestUtil libs.androidx.test.orchestrator
+  androidTestImplementation libs.androidx.test.truth
+  androidTestImplementation libs.junit
+  androidTestImplementation libs.truth
   androidTestImplementation project(":sample-libraries:test-only-android")
   androidTestImplementation project(":sample-libraries:test-only-jvm")
 }

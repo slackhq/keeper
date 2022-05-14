@@ -20,10 +20,10 @@ import java.net.URL
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  kotlin("jvm") version "1.6.10"
-  id("org.jetbrains.dokka") version "1.6.10"
-  id("com.vanniktech.maven.publish") version "0.18.0"
-  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
+  kotlin("jvm") version libs.versions.kotlin.get()
+  id("org.jetbrains.dokka") version libs.versions.kotlin.get()
+  alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.binaryCompatibilityValidator)
 }
 
 buildscript {
@@ -41,10 +41,10 @@ repositories {
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.5"
-    languageVersion = "1.5"
+    apiVersion = "1.6"
+    languageVersion = "1.6"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
@@ -74,7 +74,7 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-  options.release.set(8)
+  options.release.set(11)
 }
 
 gradlePlugin {
@@ -105,24 +105,21 @@ tasks.withType<DokkaTask>().configureEach {
   }
 }
 
-val defaultAgpVersion = "7.1.0"
-val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
-
 // See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
 val releaseMode = hasProperty("keeper.releaseMode")
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.6.10")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
-  compileOnly("com.android:zipflinger:7.1.0")
+  implementation(libs.kgp.api)
+  implementation(libs.kgp)
+  compileOnly(libs.zipflinger)
 
   if (releaseMode) {
-    compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
+    compileOnly(libs.agp)
   } else {
-    implementation("com.android.tools.build:gradle:$agpVersion")
+    implementation(libs.agp)
   }
 
-  testImplementation("com.squareup:javapoet:1.13.0")
-  testImplementation("com.squareup:kotlinpoet:1.9.0")
-  testImplementation("com.google.truth:truth:1.1.3")
-  testImplementation("junit:junit:4.13.2")
+  testImplementation(libs.javapoet)
+  testImplementation(libs.kotlinpoet)
+  testImplementation(libs.truth)
+  testImplementation(libs.junit)
 }
