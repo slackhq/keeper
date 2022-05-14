@@ -174,7 +174,6 @@ public class KeeperPlugin : Plugin<Project> {
                 val diagnosticOutputDir = layout.buildDirectory.dir(
                   "$INTERMEDIATES_DIR/l8-diagnostics/$taskName"
                 )
-                  .forUseAtConfigurationTime()
                   .get()
                   .asFile
 
