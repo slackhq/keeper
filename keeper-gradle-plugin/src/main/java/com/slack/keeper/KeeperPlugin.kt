@@ -33,6 +33,7 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -352,7 +353,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
     appVariant: String,
     prop: Provider<Directory>,
-    testProguardFiles: ArtifactCollection
+    testProguardFiles: Provider<Set<File>>
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
@@ -363,7 +364,7 @@ public class KeeperPlugin : Plugin<Project> {
           "$TAG: Patching task '$name' with inferred androidTest proguard rules"
         )
         configurationFiles.from(prop)
-        configurationFiles.from(testProguardFiles.artifactFiles)
+        configurationFiles.from(testProguardFiles)
       }
   }
 
@@ -391,7 +392,7 @@ public class KeeperPlugin : Plugin<Project> {
 
       with(testVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        setArtifacts(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfigurationFor(name).classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
@@ -422,7 +423,7 @@ public class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        setArtifacts(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfigurationFor(name).classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
@@ -436,15 +437,15 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.classesJars(): ArtifactCollection {
+private fun Configuration.classesJars(): Provider<Set<File>> {
   return artifactView(ArtifactType.CLASSES_JAR)
 }
 
-private fun Configuration.proguardFiles(): ArtifactCollection {
+private fun Configuration.proguardFiles(): Provider<Set<File>> {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
-private fun Configuration.artifactView(artifactType: ArtifactType): ArtifactCollection {
+private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
   return incoming
     .artifactView {
       attributes {
@@ -455,6 +456,8 @@ private fun Configuration.artifactView(artifactType: ArtifactType): ArtifactColl
       }
     }
     .artifacts
+    .resolvedArtifacts
+    .map { it.asSequence().map { it.file }.toSet() }
 }
 
 /** Copy of the stdlib version until it's stable. */
