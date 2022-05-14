@@ -74,7 +74,7 @@ spotless {
         ktlint(ktlintVersion).userData(ktlintUserData)
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeaderFile("spotless/copyright.kt", "(import|plugins|buildscript|dependencies|pluginManagement|rootProject)")
+        licenseHeaderFile("spotless/copyright.kt", "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)")
     }
     java {
         target("**/*.java")
