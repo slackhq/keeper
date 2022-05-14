@@ -31,9 +31,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider

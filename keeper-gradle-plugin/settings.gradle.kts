@@ -13,22 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencyResolutionManagement {
-  versionCatalogs {
-    maybeCreate("libs").apply {
-      from(files("../gradle/libs.versions.toml"))
-      if (System.getenv("DEP_OVERRIDES") == "true") {
-        val overrides = System.getenv().filterKeys { it.startsWith("DEP_OVERRIDE_") }
-        for ((key, value) in overrides) {
-          val catalogKey = key.removePrefix("DEP_OVERRIDE_").toLowerCase()
-          println("Overriding $catalogKey with $value")
-          version(catalogKey, value)
-        }
-      }
-    }
-  }
-}
-
 pluginManagement {
   repositories {
     google()
