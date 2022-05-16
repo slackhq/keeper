@@ -120,7 +120,7 @@ keeper {
 boolean isCi = providers.environmentVariable("CI")
     .orElse("false")
     .get() == "true"
-boolean verifyL8 = providers.environmentVariable("keeper.verifyL8")
+boolean verifyL8 = providers.gradleProperty("keeper.verifyL8")
     .orElse("false")
     .get() == "true"
 if (isCi) {
