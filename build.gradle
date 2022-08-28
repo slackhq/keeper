@@ -22,10 +22,10 @@ buildscript {
         mavenCentral()
     }
 
-    String defaultAgpVersion = "7.1.0"
+    String defaultAgpVersion = "7.2.2"
     String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10"
         classpath "com.android.tools.build:gradle:$agpVersion"
         classpath "com.slack.keeper:keeper"
     }
@@ -35,7 +35,7 @@ plugins {
     id("com.diffplug.spotless") version "6.3.0" apply false
 }
 
-String resolvedJvmTarget = System.getenv().getOrDefault("ci_java_version", "1.8")
+String resolvedJvmTarget = System.getenv().getOrDefault("ci_java_version", "11")
 allprojects {
     repositories {
         google()
