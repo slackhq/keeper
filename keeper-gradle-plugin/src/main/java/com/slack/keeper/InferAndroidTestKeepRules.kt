@@ -93,7 +93,8 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         logger.lifecycle(
           "Starting infer exec with jvmArgs ${
           inputJvmArgs.joinToString(
-            ", ", prefix = "[",
+            ", ",
+            prefix = "[",
             postfix = "]"
           )
           }. If debugging, attach the debugger now."

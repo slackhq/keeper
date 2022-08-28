@@ -97,7 +97,8 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
   ) {
     R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
     R8_TRACE_REFERENCES(
-      "R8", EXPECTED_TRACE_REFERENCES_CONFIG,
+      "R8",
+      EXPECTED_TRACE_REFERENCES_CONFIG,
       keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED
     )
   }
@@ -171,8 +172,13 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
     )
 
     val result = runGradle(
-      projectDir, "assembleExternalRelease", "assembleInternalRelease", "-x",
-      "lintVitalExternalRelease", "-x", "lintVitalInternalRelease"
+      projectDir,
+      "assembleExternalRelease",
+      "assembleInternalRelease",
+      "-x",
+      "lintVitalExternalRelease",
+      "-x",
+      "lintVitalInternalRelease"
     )
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
@@ -305,8 +311,9 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> = mapOf
 private val EXPECTED_PRINT_RULES_CONFIG = EXPECTED_TRACE_REFERENCES_CONFIG
 
 private fun indentRules(header: String, content: List<String>?) =
-  if (content == null) header else
+  if (content == null) header else {
     "$header {\n${content.joinToString("\n") { "  $it" }}\n}"
+  }
 
 @Language("PROGUARD")
 private val TEST_PROGUARD_RULES = """

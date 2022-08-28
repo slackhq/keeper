@@ -247,7 +247,9 @@ public class KeeperPlugin : Plugin<Project> {
     val androidJarRegularFileProvider = layout.file(
       provider {
         resolveAndroidEmbeddedJar(
-          appExtension, appComponentsExtension, "android.jar",
+          appExtension,
+          appComponentsExtension,
+          "android.jar",
           checkIfExisting = true
         )
       }
