@@ -166,12 +166,13 @@ if (isCi) {
             } else {
               allConfigurations = output.text
             }
-            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Android { *; }") {
-              "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
-            })
-            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Embedded { *; }") {
-              "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
-            })
+            logger.lifecycle("Verifying R8 configuration contents")
+            if (!allConfigurations.contains("-keep class slack.test.only.Android { *; }")) {
+              throw new IllegalStateException("R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations")
+            }
+            if (!allConfigurations.contains("-keep class slack.test.only.Embedded { *; }")) {
+              throw new IllegalStateException("R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations")
+            }
           }
         }
 }

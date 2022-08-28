@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['11']
-        agp: ['7.2.0']
+        agp: ['7.2.2']
         tracerefs: [true]
         job: ['instrumentation', 'plugin']
     steps:
