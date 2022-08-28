@@ -1,11 +1,11 @@
 [versions]
-agp = "7.2.0"
+agp = "7.2.2"
 androidx-test = "1.4.0"
-kotlin = "1.6.21"
+kotlin = "1.7.10"
 
 [plugins]
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.19.0" }
-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.9.0" }
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.11.0" }
 
 [libraries]
 androidx-annotation = "androidx.annotation:annotation:1.3.0"
@@ -20,6 +20,6 @@ junit = "junit:junit:4.13.2"
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kgp-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
 kotlinpoet = "com.squareup:kotlinpoet:1.11.0"
-okio = "com.squareup.okio:okio:3.1.0"
+okio = "com.squareup.okio:okio:3.2.0"
 truth = "com.google.truth:truth:1.1.3"
 zipflinger = { module = "com.android:zipflinger", version.ref = "agp" }
