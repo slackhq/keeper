@@ -75,7 +75,7 @@ public abstract class TraceReferences @Inject constructor(objects: ObjectFactory
    * Controls whether or not to use the new experimental TraceReferences entry-point.
    * Default is false but it's automatically enabled if the traceReferences block was invoked.
    */
-  internal val enabled: Property<Boolean> = objects.property<Boolean>().convention(false)
+  internal val enabled: Property<Boolean> = objects.property<Boolean>().convention(true)
 
   /**
    * Optional arguments during the trace-references invocation,
