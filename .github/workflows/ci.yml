@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.job }} / JDK ${{ matrix.java }} / AGP ${{ matrix.agp }} / TraceRefs ${{ matrix.tracerefs }}
+    name: ${{ matrix.job }} / JDK ${{ matrix.java }} / AGP ${{ matrix.agp }}
     # Use macOS for emulator hardware acceleration
     runs-on: 'macOS-latest'
     timeout-minutes: 30
@@ -22,7 +22,7 @@ jobs:
       matrix:
         java: ['11']
         agp: ['7.2.0']
-        tracerefs: [true, false]
+        tracerefs: [true]
         job: ['instrumentation', 'plugin']
     steps:
       - name: Checkout
