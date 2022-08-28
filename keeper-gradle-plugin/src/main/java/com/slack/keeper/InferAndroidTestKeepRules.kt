@@ -74,7 +74,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   @get:Input
   public abstract val enableAssertionsProperty: Property<Boolean>
 
-  /** @see TraceReferences.isEnabled */
+  /** @see TraceReferences.enabled */
   @get:Input
   public abstract val traceReferencesEnabled: Property<Boolean>
 
