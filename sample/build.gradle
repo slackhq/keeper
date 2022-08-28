@@ -26,12 +26,12 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.slack.keeper'
 
 android {
-  compileSdk 31
+  compileSdk 33
 
   defaultConfig {
     applicationId "com.slack.keeper.example"
     minSdkVersion 21
-    targetSdkVersion 31
+    targetSdkVersion 33
     versionCode 1
     versionName "1"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -51,14 +51,14 @@ android {
 
   buildTypes {
     debug {
-      matchingFallbacks = ['release']
+      matchingFallbacks += ['release']
     }
     release {
       minifyEnabled = true
       signingConfig = signingConfigs.debug
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.pro'
       testProguardFile('test-rules.pro')
-      matchingFallbacks = ['release']
+      matchingFallbacks += ['release']
     }
     staging {
       initWith release
@@ -66,7 +66,7 @@ android {
     }
   }
 
-  flavorDimensions "environment"
+  flavorDimensionList.add("environment")
   productFlavors {
     internal {
       dimension "environment"
@@ -166,8 +166,12 @@ if (isCi) {
             } else {
               allConfigurations = output.text
             }
-            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Android { *; }"))
-            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Embedded { *; }"))
+            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Android { *; }") {
+              "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
+            })
+            PreconditionsKt.check(allConfigurations.contains("-keep class slack.test.only.Embedded { *; }") {
+              "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
+            })
           }
         }
 }

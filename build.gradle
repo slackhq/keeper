@@ -15,6 +15,7 @@
  */
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 
 buildscript {
     repositories {
@@ -42,7 +43,7 @@ allprojects {
         mavenCentral()
     }
 
-    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+    plugins.withType(KotlinBasePlugin.class).configureEach {
         project.tasks.withType(KotlinCompile).configureEach {
             kotlinOptions {
                 jvmTarget = resolvedJvmTarget

@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright (C) 2020 Slack Technologies, LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +15,4 @@
   ~ limitations under the License.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.slack.keeper.sample">
-
-  <uses-sdk
-      android:minSdkVersion="14" />
-</manifest>
+<manifest package="com.slack.keeper.sample" />
