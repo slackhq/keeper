@@ -442,7 +442,7 @@ private fun Configuration.classesJars(): Provider<Set<File>> {
 }
 
 private fun Configuration.proguardFiles(): Provider<Set<File>> {
-  return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
+  return artifactView(ArtifactType.UNFILTERED_PROGUARD_RULES)
 }
 
 private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
