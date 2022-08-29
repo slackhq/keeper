@@ -18,17 +18,20 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-  compileSdkVersion 30
+  compileSdk 30
   defaultConfig {
-    minSdkVersion 21
-    consumerProguardFiles 'consumer-rules.pro'
+    consumerProguardFiles('consumer-rules.pro')
   }
 
   sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
   }
+}
 
-  variantFilter {
-    setIgnore(it.name != "release")
+androidComponents {
+  beforeVariants(selector().all()) { variant ->
+    if (variant.name == "release") {
+      enable = true
+    }
   }
 }
