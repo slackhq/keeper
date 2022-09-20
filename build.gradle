@@ -23,7 +23,7 @@ buildscript {
         mavenCentral()
     }
 
-    String defaultAgpVersion = "7.2.2"
+    String defaultAgpVersion = "7.3.0"
     String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10"
