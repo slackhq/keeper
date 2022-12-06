@@ -28,8 +28,6 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.maven
-import org.gradle.kotlin.dsl.repositories
 import java.util.Locale
 
 /**
@@ -137,7 +135,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
       .plus(traceReferencesArgs.getOrElse(listOf()))
 
   public companion object {
-    @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
+    @Suppress("UNCHECKED_CAST", "UnstableApiUsage", "LongParameterList")
     public operator fun invoke(
       variantName: String,
       androidTestJarProvider: TaskProvider<out AndroidTestVariantClasspathJar>,
@@ -156,15 +154,16 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         // allowed to be fetched from this.
         // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't
         // support this yet.
-        project.repositories {
-          // Limit this repo to only the R8 dependency
-          maven("https://storage.googleapis.com/r8-releases/raw") {
-            name = "R8 releases repository for use with Keeper"
-            content {
-              includeModule("com.android.tools", "r8")
-            }
-          }
-        }
+//        with(project.repositories) {
+//          // Limit this repo to only the R8 dependency
+//          maven {
+//            setName("R8 releases repository for use with Keeper")
+//            setUrl("https://storage.googleapis.com/r8-releases/raw")
+//            content {
+//              includeModule("com.android.tools", "r8")
+//            }
+//          }
+//        }
       }
 
       group = KEEPER_TASK_GROUP
