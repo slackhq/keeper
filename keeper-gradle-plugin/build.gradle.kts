@@ -105,8 +105,11 @@ tasks.withType<DokkaTask>().configureEach {
   }
 }
 
-// See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
-val releaseMode = hasProperty("keeper.releaseMode")
+mavenPublishing {
+  publishToMavenCentral(automaticRelease = true)
+  signAllPublications()
+}
+
 dependencies {
   implementation(libs.kgp.api)
   implementation(libs.kgp)
