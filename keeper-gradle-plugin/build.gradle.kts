@@ -18,12 +18,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URL
 
 plugins {
-  `kotlin-dsl`
-  `java-gradle-plugin`
   kotlin("jvm") version libs.versions.kotlin.get()
-  id("org.jetbrains.dokka") version libs.versions.kotlin.get()
+  `java-gradle-plugin`
+  id("org.jetbrains.dokka") version "1.7.20"
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
+  id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
 }
 
 buildscript {
@@ -39,12 +39,17 @@ repositories {
   gradlePluginPortal()
 }
 
+// Reimplement kotlin-dsl's application of this function for nice DSLs
+samWithReceiver {
+  annotation("org.gradle.api.HasImplicitReceiver")
+}
+
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
     jvmTarget = "11"
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.6"
-    languageVersion = "1.6"
+    apiVersion = "1.7"
+    languageVersion = "1.7"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
@@ -114,13 +119,9 @@ dependencies {
   implementation(libs.kgp.api)
   implementation(libs.kgp)
   compileOnly(libs.zipflinger)
+  compileOnly(libs.agp)
 
-  if (releaseMode) {
-    compileOnly(libs.agp)
-  } else {
-    implementation(libs.agp)
-  }
-
+  testImplementation(libs.agp)
   testImplementation(libs.javapoet)
   testImplementation(libs.kotlinpoet)
   testImplementation(libs.truth)
