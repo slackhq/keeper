@@ -53,7 +53,7 @@ jobs:
         if: matrix.job == 'plugin'
         env:
           DEP_OVERRIDE_agp: ${{ matrix.agp }}
-        run: ./gradlew -p keeper-gradle-plugin clean check --stacktrace
+        run: ./gradlew -p keeper-gradle-plugin check
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
