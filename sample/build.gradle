@@ -33,8 +33,8 @@ android {
 
   defaultConfig {
     applicationId "com.slack.keeper.example"
-    minSdkVersion 21
-    targetSdkVersion 33
+    minSdk 21
+    targetSdk 33
     versionCode 1
     versionName "1"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

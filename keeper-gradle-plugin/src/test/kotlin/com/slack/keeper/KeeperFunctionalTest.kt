@@ -407,8 +407,8 @@ private fun buildGradleFile(
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
-      minSdkVersion 21
-      targetSdkVersion 33
+      minSdk 21
+      targetSdk 33
     }
 
     buildTypes {

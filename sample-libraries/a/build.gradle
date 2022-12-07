@@ -24,7 +24,7 @@ android {
   namespace = "com.slack.keeper.sample.a"
 
   defaultConfig {
-    minSdkVersion 21
+    minSdk 21
   }
 
   sourceSets {
