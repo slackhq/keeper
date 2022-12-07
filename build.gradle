@@ -17,25 +17,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: libs.versions.agp.get()
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}"
-        classpath "com.android.tools.build:gradle:$agpVersion"
-        classpath "com.slack.keeper:keeper"
-    }
-}
-
 plugins {
-    id("com.diffplug.spotless") version "6.12.0"
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.agp.library) apply false
+    // Version just here to make gradle happy. It's always substituted as an included build
+    id("com.slack.keeper") version "0.12.0" apply false
+    alias(libs.plugins.spotless)
 }
 
-String resolvedJvmTarget = System.getenv().getOrDefault("ci_java_version", "11")
 allprojects {
     repositories {
         google()
@@ -45,7 +34,7 @@ allprojects {
     plugins.withType(KotlinBasePlugin.class).configureEach {
         project.tasks.withType(KotlinCompile).configureEach {
             kotlinOptions {
-                jvmTarget = resolvedJvmTarget
+                jvmTarget = "11"
                 freeCompilerArgs += ['-progressive']
             }
         }
@@ -62,6 +51,7 @@ spotless {
     Map<String, String> ktlintUserData = ["indent_size": "2", "continuation_indent_size": "2"]
     kotlin {
         target("**/*.kt")
+        targetExclude("**/.gradle/**", "**/build/**")
         ktlint(ktlintVersion).editorConfigOverride(ktlintUserData)
         trimTrailingWhitespace()
         endWithNewline()
