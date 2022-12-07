@@ -265,6 +265,14 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
   }
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
+    // Run twice to properly ensure config cache worked
+    val result = runGradleInternal(projectDir, *args)
+    val cachedResult = runGradleInternal(projectDir, *args)
+    require(cachedResult.output.contains("Reusing configuration cache."))
+    return result
+  }
+
+  private fun runGradleInternal(projectDir: File, vararg args: String): BuildResult {
     val extraArgs = args.toMutableList()
     extraArgs += "--stacktrace"
     extraArgs += "--configuration-cache"
