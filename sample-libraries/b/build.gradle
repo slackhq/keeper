@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.library'
-apply plugin: 'org.jetbrains.kotlin.android'
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
 
 android {
-  compileSdk 31
+  compileSdk 33
+  namespace = "com.slack.keeper.sample.b"
+
   defaultConfig {
     minSdkVersion 21
   }
+}
 
-  sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
-  }
-
-  variantFilter {
-    setIgnore(it.name != "release")
+androidComponents {
+  beforeVariants(selector().all()) { variant ->
+    enable = variant.name == "release"
   }
 }
 

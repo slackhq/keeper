@@ -21,12 +21,15 @@ import com.slack.keeper.InferAndroidTestKeepRules
 import com.slack.keeper.KeeperVariantMarker
 import kotlin.PreconditionsKt
 
-apply plugin: 'com.android.application'
-apply plugin: 'org.jetbrains.kotlin.android'
-apply plugin: 'com.slack.keeper'
+plugins {
+  id 'com.android.application'
+  id 'org.jetbrains.kotlin.android'
+  id 'com.slack.keeper'
+}
 
 android {
   compileSdk 33
+  namespace = "com.slack.keeper.sample"
 
   defaultConfig {
     applicationId "com.slack.keeper.example"
@@ -36,11 +39,6 @@ android {
     versionName "1"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     testApplicationId "com.slack.keeper.sample.androidTest"
-  }
-
-  sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
-    androidTest.java.srcDirs += 'src/androidTest/kotlin'
   }
 
   compileOptions {

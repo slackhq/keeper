@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.library'
-apply plugin: 'org.jetbrains.kotlin.android'
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
 
 android {
-  compileSdk 30
+  compileSdk 33
+  namespace = "com.slack.keeper.sample.testonlyandroid"
+
   defaultConfig {
     consumerProguardFiles('consumer-rules.pro')
-  }
-
-  sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
   }
 }
 
 androidComponents {
   beforeVariants(selector().all()) { variant ->
-    if (variant.name == "release") {
-      enable = true
-    }
+    enable = variant.name == "release"
   }
 }
