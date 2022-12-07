@@ -415,12 +415,13 @@ private fun buildGradleFile(
   apply plugin: 'com.slack.keeper'
 
   android {
-    compileSdkVersion 30
+    compileSdkVersion 33
+    namespace "com.slack.keeper.sample"
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
       minSdkVersion 21
-      targetSdkVersion 30
+      targetSdkVersion 33
     }
 
     buildTypes {
@@ -567,17 +568,9 @@ private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: Stri
     writeText(
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <manifest package="com.slack.keeper.sample">
+      <manifest>
         <application name="com.slack.keeper.sample.SampleApplication" />
       </manifest>
-      """.trimIndent()
-    )
-  }
-  projectDir.newFile("src/androidTest/AndroidManifest.xml") {
-    writeText(
-      """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest package="com.slack.keeper.sample" />
       """.trimIndent()
     )
   }
