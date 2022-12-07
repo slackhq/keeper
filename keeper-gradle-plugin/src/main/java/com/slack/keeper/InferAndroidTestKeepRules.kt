@@ -154,16 +154,16 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         // allowed to be fetched from this.
         // Ideally we would tie the r8Configuration to this, but unfortunately Gradle doesn't
         // support this yet.
-//        with(project.repositories) {
-//          // Limit this repo to only the R8 dependency
-//          maven {
-//            setName("R8 releases repository for use with Keeper")
-//            setUrl("https://storage.googleapis.com/r8-releases/raw")
-//            content {
-//              includeModule("com.android.tools", "r8")
-//            }
-//          }
-//        }
+        with(project.repositories) {
+          // Limit this repo to only the R8 dependency
+          maven {
+            name = "R8 releases repository for use with Keeper"
+            setUrl("https://storage.googleapis.com/r8-releases/raw")
+            content {
+              includeModule("com.android.tools", "r8")
+            }
+          }
+        }
       }
 
       group = KEEPER_TASK_GROUP
