@@ -27,6 +27,10 @@ android {
     minSdkVersion 21
   }
 
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+  }
+
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
