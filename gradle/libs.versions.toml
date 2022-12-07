@@ -14,6 +14,8 @@ androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidx-
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
 androidx-test-truth = "androidx.test.ext:junit:1.1.3"
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+# There's a bug in AGP 7.3.x that breaks our tests: https://issuetracker.google.com/249359878
+agpTestVersion = { module = "com.android.tools.build:gradle", version = "7.4.0-rc01" }
 desugarJdkLibs = "com.android.tools:desugar_jdk_libs:1.1.5"
 javapoet = "com.squareup:javapoet:1.13.0"
 junit = "junit:junit:4.13.2"

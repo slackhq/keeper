@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         java: ['11']
-        agp: ['7.3.1']
+        agpTestVersion: ['7.3.1']
         job: ['instrumentation', 'plugin']
     steps:
       - name: Checkout
@@ -52,7 +52,7 @@ jobs:
       - name: Test plugin
         if: matrix.job == 'plugin'
         env:
-          DEP_OVERRIDE_agp: ${{ matrix.agp }}
+          DEP_OVERRIDE_agpTestVersion: ${{ matrix.agpTestVersion }}
         run: ./gradlew -p keeper-gradle-plugin check
 
       - name: Run instrumentation tests

@@ -129,12 +129,12 @@ dependencies {
 
   // TODO why is this required for tests to properly run?
   if (!isReleasing) {
-    implementation(libs.agp)
+    implementation(libs.agpTestVersion)
     implementation(libs.kgp)
     implementation(libs.kgp.api)
   }
 
-  testImplementation(libs.agp)
+  testImplementation(libs.agpTestVersion)
   testImplementation(libs.kgp)
   testImplementation(libs.kgp.api)
   testImplementation(libs.javapoet)
