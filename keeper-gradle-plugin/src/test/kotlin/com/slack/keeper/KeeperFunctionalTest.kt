@@ -392,22 +392,13 @@ private fun buildGradleFile(
       google()
       mavenCentral()
     }
-
-    dependencies {
-      // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:7.1.0"
-      //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
-    }
   }
 
   plugins {
-    id 'com.slack.keeper' apply false
+    id 'com.android.application' version '7.3.1'
+    id 'org.jetbrains.kotlin.android' version '1.7.22'
+    id 'com.slack.keeper'
   }
-
-  apply plugin: 'com.android.application'
-  apply plugin: 'org.jetbrains.kotlin.android'
-  apply plugin: 'com.slack.keeper'
 
   android {
     compileSdkVersion 33
