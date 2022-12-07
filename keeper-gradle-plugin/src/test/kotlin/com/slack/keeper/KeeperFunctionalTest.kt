@@ -58,7 +58,6 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  *   - proguardConfigOutput.pro
  *   - src
  *     - androidTest
- *       - AndroidManifest.xml
  *       - java/com/slack/keeper/example
  *         - ApplicationUsedClass.java
  *         - SampleApplication.java
@@ -95,7 +94,6 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val expectedRules: Map<String, List<String>?>,
     val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
   ) {
-    R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
     R8_TRACE_REFERENCES(
       "R8",
       EXPECTED_TRACE_REFERENCES_CONFIG,
@@ -306,9 +304,6 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> = mapOf
     "com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;"
   )
 )
-
-@Language("PROGUARD")
-private val EXPECTED_PRINT_RULES_CONFIG = EXPECTED_TRACE_REFERENCES_CONFIG
 
 private fun indentRules(header: String, content: List<String>?) =
   if (content == null) header else {
