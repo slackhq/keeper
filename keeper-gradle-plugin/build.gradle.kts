@@ -115,6 +115,11 @@ mavenPublishing {
   signAllPublications()
 }
 
+// Fix missing implicit task dependency in Gradle's test kit
+tasks.named("processTestResources") {
+  dependsOn("pluginUnderTestMetadata")
+}
+
 dependencies {
   implementation(libs.kgp.api)
   implementation(libs.kgp)
