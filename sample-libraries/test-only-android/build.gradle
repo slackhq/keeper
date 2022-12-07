@@ -26,6 +26,10 @@ android {
   defaultConfig {
     consumerProguardFiles('consumer-rules.pro')
   }
+
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+  }
 }
 
 androidComponents {
