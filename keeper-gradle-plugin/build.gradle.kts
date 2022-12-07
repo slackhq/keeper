@@ -120,13 +120,23 @@ tasks.named("processTestResources") {
   dependsOn("pluginUnderTestMetadata")
 }
 
+val isReleasing = System.getenv("KEEPER_RELEASING") == "true"
 dependencies {
-  implementation(libs.kgp.api)
-  implementation(libs.kgp)
+  compileOnly(libs.kgp.api)
+  compileOnly(libs.kgp)
   compileOnly(libs.zipflinger)
   compileOnly(libs.agp)
 
+  // TODO why is this required for tests to properly run?
+  if (!isReleasing) {
+    implementation(libs.agp)
+    implementation(libs.kgp)
+    implementation(libs.kgp.api)
+  }
+
   testImplementation(libs.agp)
+  testImplementation(libs.kgp)
+  testImplementation(libs.kgp.api)
   testImplementation(libs.javapoet)
   testImplementation(libs.kotlinpoet)
   testImplementation(libs.truth)
