@@ -15,55 +15,44 @@
  */
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    String defaultAgpVersion = "7.1.0"
-    String agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
-        classpath "com.android.tools.build:gradle:$agpVersion"
-        classpath "com.slack.keeper:keeper"
-    }
-}
+import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 
 plugins {
-    id("com.diffplug.spotless") version "6.3.0" apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.agp.library) apply false
+    // Version just here to make gradle happy. It's always substituted as an included build
+    id("com.slack.keeper") version "0.12.0" apply false
+    alias(libs.plugins.spotless)
 }
 
-String resolvedJvmTarget = System.getenv().getOrDefault("ci_java_version", "1.8")
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
 
-    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+    plugins.withType(KotlinBasePlugin.class).configureEach {
         project.tasks.withType(KotlinCompile).configureEach {
             kotlinOptions {
-                jvmTarget = resolvedJvmTarget
+                jvmTarget = "11"
                 freeCompilerArgs += ['-progressive']
             }
         }
     }
 }
 
-apply plugin: "com.diffplug.spotless"
 spotless {
     format("misc") {
         target("**/*.md", ".gitignore")
         trimTrailingWhitespace()
         endWithNewline()
     }
-    String ktlintVersion = "0.44.0"
+    String ktlintVersion = "0.46.0"
     Map<String, String> ktlintUserData = ["indent_size": "2", "continuation_indent_size": "2"]
     kotlin {
         target("**/*.kt")
-        ktlint(ktlintVersion).userData(ktlintUserData)
+        targetExclude("**/.gradle/**", "**/build/**")
+        ktlint(ktlintVersion).editorConfigOverride(ktlintUserData)
         trimTrailingWhitespace()
         endWithNewline()
         licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
@@ -71,10 +60,10 @@ spotless {
     }
     kotlinGradle {
         target("**/*.kts")
-        ktlint(ktlintVersion).userData(ktlintUserData)
+        ktlint(ktlintVersion).editorConfigOverride(ktlintUserData)
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeaderFile("spotless/copyright.kt", "(import|plugins|buildscript|dependencies|pluginManagement|rootProject)")
+        licenseHeaderFile("spotless/copyright.kt", "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)")
     }
     java {
         target("**/*.java")

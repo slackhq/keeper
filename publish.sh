@@ -1,13 +1,9 @@
 #!/bin/bash
 
-if [[ "$1" = "--snapshot" ]]; then snapshot=true; fi
 if [[ "$1" = "--local" ]]; then local=true; fi
 
 if ! [[ ${local} ]]; then
-  ./gradlew -p keeper-gradle-plugin clean publish --no-daemon --no-parallel --no-configuration-cache -Pkeeper.releaseMode=true
-  if ! [[ ${snapshot} ]]; then
-    ./gradlew -p keeper-gradle-plugin closeAndReleaseRepository
-  fi
+  ./gradlew -p keeper-gradle-plugin publish
 else
-  ./gradlew -p keeper-gradle-plugin clean install --no-daemon --no-parallel --no-configuration-cache -Pkeeper.releaseMode=true
+  ./gradlew -p keeper-gradle-plugin publishToMavenLocal
 fi

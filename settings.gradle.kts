@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+pluginManagement {
+  repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+
 dependencyResolutionManagement {
   versionCatalogs {
-    maybeCreate("libs").apply {
-      from(files("../gradle/libs.versions.toml"))
-      if (System.getenv("DEP_OVERRIDES") == "true") {
-        val overrides = System.getenv().filterKeys { it.startsWith("DEP_OVERRIDE_") }
+    if (System.getenv("DEP_OVERRIDES") == "true") {
+      val overrides = System.getenv().filterKeys { it.startsWith("DEP_OVERRIDE_") }
+      maybeCreate("libs").apply {
         for ((key, value) in overrides) {
           val catalogKey = key.removePrefix("DEP_OVERRIDE_").toLowerCase()
           println("Overriding $catalogKey with $value")
@@ -29,12 +36,16 @@ dependencyResolutionManagement {
   }
 }
 
-pluginManagement {
-  repositories {
-    google()
-    mavenCentral()
-    gradlePluginPortal()
+rootProject.name = "keeper-root"
+include(":sample")
+include(":sample-libraries:a")
+include(":sample-libraries:b")
+include(":sample-libraries:c")
+include(":sample-libraries:test-only-android")
+include(":sample-libraries:test-only-jvm")
+
+includeBuild("keeper-gradle-plugin") {
+  dependencySubstitution {
+    substitute(module("com.slack.keeper:keeper")).using(project(":"))
   }
 }
-
-rootProject.name = "keeper-gradle-plugin"

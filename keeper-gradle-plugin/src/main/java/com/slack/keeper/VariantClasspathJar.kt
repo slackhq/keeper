@@ -20,10 +20,8 @@ package com.slack.keeper
 import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -47,17 +45,8 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
   @get:Input
   public abstract val emitDebugInfo: Property<Boolean>
 
-  private lateinit var artifacts: ArtifactCollection
-
   @get:OutputDirectory
   public abstract val diagnosticsOutputDir: DirectoryProperty
-
-  /**
-   * This artifact collection is the result of resolving the compilation classpath.
-   */
-  public fun setArtifacts(artifacts: ArtifactCollection) {
-    this.artifacts = artifacts
-  }
 
   /**
    * This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the
@@ -65,9 +54,9 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
    * not name or path, and we really do need to know the actual path to the artifact, even if its
    * contents haven't changed.
    */
-  @PathSensitive(PathSensitivity.ABSOLUTE)
-  @InputFiles
-  public fun getArtifactFiles(): FileCollection = artifacts.artifactFiles
+  @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  @get:InputFiles
+  public abstract val allJars: ConfigurableFileCollection
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
@@ -111,7 +100,8 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      getArtifactFiles()
+      allJars
+        .files
         .forEach { jar ->
           appJars.add(jar.canonicalPath)
           archive.extractClassesFrom(jar) {
@@ -151,7 +141,8 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
-  @get:PathSensitive(NONE) // Only care about the contents
+  // Only care about the contents
+  @get:PathSensitive(NONE)
   @get:InputFile
   public abstract val appJarsFile: RegularFileProperty
 
@@ -171,7 +162,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
-    val androidTestClasspath = getArtifactFiles()
+    val androidTestClasspath = allJars.files
     diagnostic("jars") {
       androidTestClasspath.sortedBy { it.canonicalPath }
         .joinToString("\n") {

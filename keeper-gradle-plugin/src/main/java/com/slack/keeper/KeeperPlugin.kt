@@ -31,7 +31,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
@@ -39,11 +38,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
@@ -91,9 +85,9 @@ public class KeeperPlugin : Plugin<Project> {
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
     const val PRINTUSES_DEFAULT_VERSION = "1.6.53"
-    const val TRACE_REFERENCES_DEFAULT_VERSION = "3.0.9-dev"
+    const val TRACE_REFERENCES_DEFAULT_VERSION = "3.2.78"
     const val CONFIGURATION_NAME = "keeperR8"
-    private val MIN_GRADLE_VERSION = GradleVersion.version("7.2")
+    private val MIN_GRADLE_VERSION = GradleVersion.version("7.5")
 
     fun interpolateR8TaskName(variantName: String): String {
       return "minify${variantName.capitalize(Locale.US)}WithR8"
@@ -110,10 +104,10 @@ public class KeeperPlugin : Plugin<Project> {
       "Keeper requires Gradle ${MIN_GRADLE_VERSION.version} or later."
     }
     project.pluginManager.withPlugin("com.android.application") {
-      val appExtension = project.extensions.getByType<AppExtension>()
+      val appExtension = project.extensions.getByType(AppExtension::class.java)
       val appComponentsExtension =
-        project.extensions.getByType<ApplicationAndroidComponentsExtension>()
-      val extension = project.extensions.create<KeeperExtension>("keeper")
+        project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
+      val extension = project.extensions.create("keeper", KeeperExtension::class.java)
       project.configureKeepRulesGeneration(appExtension, appComponentsExtension, extension)
       project.configureL8(appExtension, appComponentsExtension, extension)
     }
@@ -174,7 +168,6 @@ public class KeeperPlugin : Plugin<Project> {
                 val diagnosticOutputDir = layout.buildDirectory.dir(
                   "$INTERMEDIATES_DIR/l8-diagnostics/$taskName"
                 )
-                  .forUseAtConfigurationTime()
                   .get()
                   .asFile
 
@@ -249,7 +242,9 @@ public class KeeperPlugin : Plugin<Project> {
     val androidJarRegularFileProvider = layout.file(
       provider {
         resolveAndroidEmbeddedJar(
-          appExtension, appComponentsExtension, "android.jar",
+          appExtension,
+          appComponentsExtension,
+          "android.jar",
           checkIfExisting = true
         )
       }
@@ -281,6 +276,7 @@ public class KeeperPlugin : Plugin<Project> {
       )
       val inferAndroidTestUsageProvider = tasks.register(
         "infer${testVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
+        InferAndroidTestKeepRules::class.java,
         InferAndroidTestKeepRules(
           variantName = testVariant.name,
           androidTestJarProvider = intermediateAndroidTestJar,
@@ -353,18 +349,18 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
     appVariant: String,
     prop: Provider<Directory>,
-    testProguardFiles: ArtifactCollection
+    testProguardFiles: Provider<Set<File>>
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks.withType<R8Task>()
+    tasks.withType(R8Task::class.java)
       .matching { it.name == targetName }
       .configureEach {
         logger.debug(
           "$TAG: Patching task '$name' with inferred androidTest proguard rules"
         )
         configurationFiles.from(prop)
-        configurationFiles.from(testProguardFiles.artifactFiles)
+        configurationFiles.from(testProguardFiles)
       }
   }
 
@@ -383,8 +379,9 @@ public class KeeperPlugin : Plugin<Project> {
     testVariant: AndroidTest,
     appJarsProvider: Provider<RegularFile>
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
-    return tasks.register<AndroidTestVariantClasspathJar>(
-      "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper"
+    return tasks.register(
+      "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+      AndroidTestVariantClasspathJar::class.java
     ) {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.value(emitDebugInfo)
@@ -392,7 +389,7 @@ public class KeeperPlugin : Plugin<Project> {
 
       with(testVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        setArtifacts(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfigurationFor(name).classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
@@ -416,14 +413,15 @@ public class KeeperPlugin : Plugin<Project> {
     appVariant: ApplicationVariant,
     emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
-    return tasks.register<VariantClasspathJar>(
-      "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper"
+    return tasks.register(
+      "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+      VariantClasspathJar::class.java
     ) {
       group = KEEPER_TASK_GROUP
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        setArtifacts(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfigurationFor(name).classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
@@ -437,15 +435,15 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.classesJars(): ArtifactCollection {
+private fun Configuration.classesJars(): Provider<Set<File>> {
   return artifactView(ArtifactType.CLASSES_JAR)
 }
 
-private fun Configuration.proguardFiles(): ArtifactCollection {
+private fun Configuration.proguardFiles(): Provider<Set<File>> {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
-private fun Configuration.artifactView(artifactType: ArtifactType): ArtifactCollection {
+private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
   return incoming
     .artifactView {
       attributes {
@@ -456,6 +454,8 @@ private fun Configuration.artifactView(artifactType: ArtifactType): ArtifactColl
       }
     }
     .artifacts
+    .resolvedArtifacts
+    .map { it.asSequence().map { it.file }.toSet() }
 }
 
 /** Copy of the stdlib version until it's stable. */
@@ -487,16 +487,16 @@ private inline fun <reified T : Task> Project.namedLazy(
   crossinline action: (TaskProvider<T>) -> Unit
 ) {
   try {
-    action(tasks.named<T>(targetName))
+    action(tasks.named(targetName, T::class.java))
     return
   } catch (ignored: UnknownTaskException) {
   }
 
   var didRun = false
 
-  tasks.withType<T> {
+  tasks.withType(T::class.java) {
     if (name == targetName) {
-      action(tasks.named<T>(name))
+      action(tasks.named(name, T::class.java))
       didRun = true
     }
   }

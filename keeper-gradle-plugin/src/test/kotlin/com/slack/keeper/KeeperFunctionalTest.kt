@@ -58,7 +58,6 @@ import com.squareup.kotlinpoet.ClassName as KpClassName
  *   - proguardConfigOutput.pro
  *   - src
  *     - androidTest
- *       - AndroidManifest.xml
  *       - java/com/slack/keeper/example
  *         - ApplicationUsedClass.java
  *         - SampleApplication.java
@@ -95,9 +94,9 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
     val expectedRules: Map<String, List<String>?>,
     val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
   ) {
-    R8_PRINT_USES("R8", EXPECTED_PRINT_RULES_CONFIG),
     R8_TRACE_REFERENCES(
-      "R8", EXPECTED_TRACE_REFERENCES_CONFIG,
+      "R8",
+      EXPECTED_TRACE_REFERENCES_CONFIG,
       keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED
     )
   }
@@ -171,8 +170,13 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
     )
 
     val result = runGradle(
-      projectDir, "assembleExternalRelease", "assembleInternalRelease", "-x",
-      "lintVitalExternalRelease", "-x", "lintVitalInternalRelease"
+      projectDir,
+      "assembleExternalRelease",
+      "assembleInternalRelease",
+      "-x",
+      "lintVitalExternalRelease",
+      "-x",
+      "lintVitalInternalRelease"
     )
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
@@ -261,8 +265,17 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
   }
 
   private fun runGradle(projectDir: File, vararg args: String): BuildResult {
+    // Run twice to properly ensure config cache worked
+    val result = runGradleInternal(projectDir, *args)
+    val cachedResult = runGradleInternal(projectDir, *args)
+    require(cachedResult.output.contains("Reusing configuration cache."))
+    return result
+  }
+
+  private fun runGradleInternal(projectDir: File, vararg args: String): BuildResult {
     val extraArgs = args.toMutableList()
     extraArgs += "--stacktrace"
+    extraArgs += "--configuration-cache"
     return GradleRunner.create()
       .forwardStdOutput(System.out.writer())
       .forwardStdError(System.err.writer())
@@ -301,12 +314,10 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> = mapOf
   )
 )
 
-@Language("PROGUARD")
-private val EXPECTED_PRINT_RULES_CONFIG = EXPECTED_TRACE_REFERENCES_CONFIG
-
 private fun indentRules(header: String, content: List<String>?) =
-  if (content == null) header else
+  if (content == null) header else {
     "$header {\n${content.joinToString("\n") { "  $it" }}\n}"
+  }
 
 @Language("PROGUARD")
 private val TEST_PROGUARD_RULES = """
@@ -390,30 +401,22 @@ private fun buildGradleFile(
       google()
       mavenCentral()
     }
-
-    dependencies {
-      // Note: this version doesn't really matter, the plugin's version will override it in the test
-      classpath "com.android.tools.build:gradle:7.1.0"
-      //noinspection DifferentKotlinGradleVersion
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
-    }
   }
 
   plugins {
-    id 'com.slack.keeper' apply false
+    id 'com.android.application' version '7.3.1'
+    id 'org.jetbrains.kotlin.android' version '1.7.22'
+    id 'com.slack.keeper'
   }
 
-  apply plugin: 'com.android.application'
-  apply plugin: 'org.jetbrains.kotlin.android'
-  apply plugin: 'com.slack.keeper'
-
   android {
-    compileSdkVersion 30
+    compileSdkVersion 33
+    namespace "com.slack.keeper.sample"
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
-      minSdkVersion 21
-      targetSdkVersion 30
+      minSdk 21
+      targetSdk 33
     }
 
     buildTypes {
@@ -560,17 +563,9 @@ private fun prepareProject(temporaryFolder: TemporaryFolder, buildFileText: Stri
     writeText(
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <manifest package="com.slack.keeper.sample">
+      <manifest>
         <application name="com.slack.keeper.sample.SampleApplication" />
       </manifest>
-      """.trimIndent()
-    )
-  }
-  projectDir.newFile("src/androidTest/AndroidManifest.xml") {
-    writeText(
-      """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest package="com.slack.keeper.sample" />
       """.trimIndent()
     )
   }

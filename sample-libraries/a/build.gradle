@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.library'
-apply plugin: 'org.jetbrains.kotlin.android'
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
 
 android {
-  compileSdk 31
+  compileSdk 33
+  namespace = "com.slack.keeper.sample.a"
+
   defaultConfig {
-    minSdkVersion 21
+    minSdk 21
+  }
+
+  sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
   }
 
   compileOptions {
@@ -28,17 +36,15 @@ android {
     targetCompatibility = JavaVersion.VERSION_11
     coreLibraryDesugaringEnabled = true
   }
+}
 
-  sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
-  }
-
-  variantFilter {
-    setIgnore(it.name != "release")
+androidComponents {
+  beforeVariants(selector().all()) { variant ->
+    enable = variant.name == "release"
   }
 }
 
 dependencies {
-  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+  coreLibraryDesugaring libs.desugarJdkLibs
   implementation project(":sample-libraries:b")
 }

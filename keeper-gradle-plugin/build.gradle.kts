@@ -18,12 +18,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URL
 
 plugins {
-  `kotlin-dsl`
+  kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  kotlin("jvm") version "1.6.10"
-  id("org.jetbrains.dokka") version "1.6.10"
-  id("com.vanniktech.maven.publish") version "0.18.0"
-  id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.8.0"
+  id("org.jetbrains.dokka") version "1.7.20"
+  alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.binaryCompatibilityValidator)
+  id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
 }
 
 buildscript {
@@ -39,12 +39,17 @@ repositories {
   gradlePluginPortal()
 }
 
+// Reimplement kotlin-dsl's application of this function for nice DSLs
+samWithReceiver {
+  annotation("org.gradle.api.HasImplicitReceiver")
+}
+
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.5"
-    languageVersion = "1.5"
+    apiVersion = "1.7"
+    languageVersion = "1.7"
 //    @Suppress("SuspiciousCollectionReassignment")
 //    freeCompilerArgs += listOf("-progressive")
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
@@ -74,7 +79,7 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-  options.release.set(8)
+  options.release.set(11)
 }
 
 gradlePlugin {
@@ -105,24 +110,37 @@ tasks.withType<DokkaTask>().configureEach {
   }
 }
 
-val defaultAgpVersion = "7.1.0"
-val agpVersion = findProperty("keeperTest.agpVersion")?.toString() ?: defaultAgpVersion
+mavenPublishing {
+  publishToMavenCentral(automaticRelease = true)
+  signAllPublications()
+}
 
-// See https://github.com/slackhq/keeper/pull/11#issuecomment-579544375 for context
-val releaseMode = hasProperty("keeper.releaseMode")
+// Fix missing implicit task dependency in Gradle's test kit
+tasks.named("processTestResources") {
+  dependsOn("pluginUnderTestMetadata")
+}
+
+val addTestPlugin: Configuration = configurations.create("addTestPlugin")
+configurations {
+  testImplementation.get().extendsFrom(addTestPlugin)
+}
+
+tasks.pluginUnderTestMetadata {
+  // make sure the test can access plugins for coordination.
+  pluginClasspath.from(addTestPlugin)
+}
+
 dependencies {
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.6.10")
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
-  compileOnly("com.android:zipflinger:7.1.0")
+  compileOnly(libs.kgp.api)
+  compileOnly(libs.kgp)
+  compileOnly(libs.zipflinger)
+  compileOnly(libs.agp)
 
-  if (releaseMode) {
-    compileOnly("com.android.tools.build:gradle:$defaultAgpVersion")
-  } else {
-    implementation("com.android.tools.build:gradle:$agpVersion")
-  }
-
-  testImplementation("com.squareup:javapoet:1.13.0")
-  testImplementation("com.squareup:kotlinpoet:1.9.0")
-  testImplementation("com.google.truth:truth:1.1.3")
-  testImplementation("junit:junit:4.13.2")
+  addTestPlugin(libs.agpTestVersion)
+  addTestPlugin(libs.kgp)
+  addTestPlugin(libs.kgp.api)
+  testImplementation(libs.javapoet)
+  testImplementation(libs.kotlinpoet)
+  testImplementation(libs.truth)
+  testImplementation(libs.junit)
 }
