@@ -21,6 +21,7 @@ import com.android.build.api.artifact.MultipleArtifact
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
+import com.android.build.api.variant.CanMinifyCode
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
@@ -145,7 +146,6 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     appComponentsExtension.onApplicableVariants(
       project,
-      appExtension,
       verifyMinification = false
     ) { testVariant, appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
@@ -262,7 +262,6 @@ public class KeeperPlugin : Plugin<Project> {
 
     appComponentsExtension.onApplicableVariants(
       project,
-      appExtension,
       verifyMinification = true
     ) { testVariant, appVariant ->
       val intermediateAppJar = createIntermediateAppJar(
@@ -320,17 +319,15 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
-    appExtension: AppExtension,
     verifyMinification: Boolean,
     body: (AndroidTest, ApplicationVariant) -> Unit
   ) {
-    onVariants { appVariant ->
+    onVariants { appVariant: ApplicationVariant ->
       val buildType = appVariant.buildType ?: return@onVariants
       // Look for our marker extension
       appVariant.getExtension(KeeperVariantMarker::class.java) ?: return@onVariants
       appVariant.androidTest?.let { testVariant ->
-        // TODO use only components after https://issuetracker.google.com/issues/199411018
-        if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
+        if (verifyMinification && !appVariant.isMinifyEnabled) {
           project.logger.error(
             """
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't

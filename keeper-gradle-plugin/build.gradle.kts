@@ -136,7 +136,7 @@ dependencies {
   compileOnly(libs.zipflinger)
   compileOnly(libs.agp)
 
-  addTestPlugin(libs.agpTestVersion)
+  addTestPlugin(libs.agp)
   addTestPlugin(libs.kgp)
   addTestPlugin(libs.kgp.api)
   testImplementation(libs.javapoet)
