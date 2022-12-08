@@ -295,7 +295,7 @@ public class KeeperPlugin : Plugin<Project> {
       val prop = layout.dir(
         inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile }
       )
-      val testProguardFiles = runtimeConfigurationFor(testVariant.name)
+      val testProguardFiles = testVariant.runtimeConfiguration
         .proguardFiles()
       applyGeneratedRules(appVariant.name, prop, testProguardFiles)
     }
@@ -364,12 +364,6 @@ public class KeeperPlugin : Plugin<Project> {
       }
   }
 
-  // TODO can this return a provider?
-  // TODO hopefully can be removed with https://issuetracker.google.com/issues/199436586
-  private fun Project.runtimeConfigurationFor(variantName: String): Configuration {
-    return configurations.getByName("${variantName}RuntimeClasspath")
-  }
-
   /**
    * Creates an intermediate androidTest.jar consisting of all the classes compiled for the androidTest source set.
    * This output is used in the inferAndroidTestUsage task.
@@ -389,7 +383,7 @@ public class KeeperPlugin : Plugin<Project> {
 
       with(testVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfiguration.classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
@@ -421,7 +415,7 @@ public class KeeperPlugin : Plugin<Project> {
       this.emitDebugInfo.set(emitDebugInfo)
       with(appVariant) {
         from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfigurationFor(name).classesJars())
+        allJars.from(runtimeConfiguration.classesJars())
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
