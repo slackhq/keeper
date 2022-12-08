@@ -141,8 +141,8 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
   }
 
-  @get:PathSensitive(NONE)
   // Only care about the contents
+  @get:PathSensitive(NONE)
   @get:InputFile
   public abstract val appJarsFile: RegularFileProperty
 
