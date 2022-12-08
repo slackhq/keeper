@@ -17,6 +17,7 @@ package com.slack.keeper.sample
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.slack.keeper.example.a.AClass
+import com.slack.keeper.example.android.test.SomeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith
 class KeeperSampleTest {
   @Test
   fun testFunctionKept() {
+    SomeClass().test()
     AClass.sampleMethod()
     TestOnlyCClassCaller.callCClass()
     TestOnlyClassCaller.callTestOnlyMethod()

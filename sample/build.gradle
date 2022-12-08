@@ -201,9 +201,11 @@ repositories {
 
 dependencies {
   implementation project(":sample-libraries:a")
+  implementation project(":sample-libraries:main")
 
   coreLibraryDesugaring libs.desugarJdkLibs
 
+  androidTestImplementation project(":sample-libraries:android-test-only")
   androidTestImplementation project(":sample-libraries:c")
   androidTestImplementation libs.okio
   androidTestImplementation libs.androidx.annotation

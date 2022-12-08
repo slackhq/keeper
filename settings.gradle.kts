@@ -43,6 +43,8 @@ include(":sample-libraries:b")
 include(":sample-libraries:c")
 include(":sample-libraries:test-only-android")
 include(":sample-libraries:test-only-jvm")
+include(":sample-libraries:android-test-only")
+include(":sample-libraries:main")
 
 includeBuild("keeper-gradle-plugin") {
   dependencySubstitution {
