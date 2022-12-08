@@ -69,7 +69,7 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  *   the classes in the androidTest variant itself. This will use their variant-provided [JavaCompile]
  *   tasks and [KotlinCompile] tasks if available.
  * - Register a [`infer${androidTestVariant}UsageForKeeper`][InferAndroidTestKeepRules] task that
- *   plugs the two aforementioned jars into R8's `PrintUses` or `TraceReferences` CLI and outputs
+ *   plugs the two aforementioned jars into R8's `TraceReferences` CLI and outputs
  *   the inferred proguard rules into a new intermediate .pro file.
  * - Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting
  *   their `configurationFiles` to include our generated one.
@@ -84,7 +84,6 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val PRINTUSES_DEFAULT_VERSION = "1.6.53"
     const val TRACE_REFERENCES_DEFAULT_VERSION = "3.2.78"
     const val CONFIGURATION_NAME = "keeperR8"
     private val MIN_GRADLE_VERSION = GradleVersion.version("7.5")
@@ -225,17 +224,13 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     // Set up r8 configuration
     val r8Configuration = configurations.create(CONFIGURATION_NAME) {
-      description = "R8 dependencies for Keeper. This is used solely for the PrintUses CLI"
+      description = "R8 dependencies for Keeper. This is used solely for the TraceReferences CLI"
       isVisible = false
       isCanBeConsumed = false
       isCanBeResolved = true
       defaultDependencies {
-        val version = when (extension.traceReferences.enabled.get()) {
-          false -> PRINTUSES_DEFAULT_VERSION
-          true -> TRACE_REFERENCES_DEFAULT_VERSION
-        }
-        logger.debug("keeper r8 default version: $version")
-        add(project.dependencies.create("com.android.tools:r8:$version"))
+        logger.debug("keeper r8 default version: $TRACE_REFERENCES_DEFAULT_VERSION")
+        add(project.dependencies.create("com.android.tools:r8:$TRACE_REFERENCES_DEFAULT_VERSION"))
       }
     }
 
@@ -286,7 +281,6 @@ public class KeeperPlugin : Plugin<Project> {
           automaticallyAddR8Repo = extension.automaticR8RepoManagement,
           enableAssertions = extension.enableAssertions,
           extensionJvmArgs = extension.r8JvmArgs,
-          traceReferencesEnabled = extension.traceReferences.enabled,
           traceReferencesArgs = extension.traceReferences.arguments,
           r8Configuration = r8Configuration
         )

@@ -72,7 +72,7 @@ The general logic flow:
   and one for all the classes in the androidTest variant itself. This will use their variant-provided
   `JavaCompile` tasks and `KotlinCompile` tasks if available.
 * Register a [`infer${androidTestVariant}UsageForKeeper`](https://github.com/slackhq/keeper/blob/main/keeper-gradle-plugin/src/main/kotlin/com/slack/keeper/InferAndroidTestKeepRules.kt)
-  task that plugs the two aforementioned jars into R8's `PrintUses` CLI and outputs the inferred
+  task that plugs the two aforementioned jars into R8's `TraceReferences` CLI and outputs the inferred
   proguard rules into a new intermediate `.pro` file.
 * Finally - the generated file is wired in to R8 via private task APIs and setting their
   `configurationFiles` to include our generated one.

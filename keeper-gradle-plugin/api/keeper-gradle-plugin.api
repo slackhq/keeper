@@ -27,11 +27,10 @@ public abstract class com/slack/keeper/InferAndroidTestKeepRules : org/gradle/ap
 	public abstract fun getJvmArgsProperty ()Lorg/gradle/api/provider/ListProperty;
 	public abstract fun getOutputProguardRules ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getTraceReferencesArgs ()Lorg/gradle/api/provider/ListProperty;
-	public abstract fun getTraceReferencesEnabled ()Lorg/gradle/api/provider/Property;
 }
 
 public final class com/slack/keeper/InferAndroidTestKeepRules$Companion {
-	public final fun invoke (Ljava/lang/String;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/artifacts/Configuration;)Lkotlin/jvm/functions/Function1;
+	public final fun invoke (Ljava/lang/String;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/tasks/TaskProvider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/Property;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/provider/ListProperty;Lorg/gradle/api/artifacts/Configuration;)Lkotlin/jvm/functions/Function1;
 }
 
 public abstract class com/slack/keeper/KeeperExtension {
@@ -39,7 +38,6 @@ public abstract class com/slack/keeper/KeeperExtension {
 	public final fun getAutomaticR8RepoManagement ()Lorg/gradle/api/provider/Property;
 	public final fun getEmitDebugInformation ()Lorg/gradle/api/provider/Property;
 	public final fun getEnableAssertions ()Lorg/gradle/api/provider/Property;
-	public final fun getEnableL8RuleSharing ()Lorg/gradle/api/provider/Property;
 	public final fun getR8JvmArgs ()Lorg/gradle/api/provider/ListProperty;
 	public final fun traceReferences (Lorg/gradle/api/Action;)V
 }
@@ -47,7 +45,6 @@ public abstract class com/slack/keeper/KeeperExtension {
 public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
 	public static final field CONFIGURATION_NAME Ljava/lang/String;
 	public static final field INTERMEDIATES_DIR Ljava/lang/String;
-	public static final field PRINTUSES_DEFAULT_VERSION Ljava/lang/String;
 	public static final field TRACE_REFERENCES_DEFAULT_VERSION Ljava/lang/String;
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V

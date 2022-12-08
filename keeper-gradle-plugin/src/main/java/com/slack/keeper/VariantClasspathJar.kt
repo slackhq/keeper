@@ -130,7 +130,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
 /**
  * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
- * (as compared to the [appJarsFile]). R8's `PrintUses` requires no class overlap between the two jars it's comparing, so
+ * (as compared to the [appJarsFile]). R8's `TraceReferences` requires no class overlap between the two jars it's comparing, so
  * at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be
  * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
  */

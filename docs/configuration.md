@@ -103,8 +103,8 @@ of better ways to support configuration for this, so please do file issues if yo
 
 ## Custom R8 behavior
 
-Keeper uses R8's `PrintUses` CLI under the hood for rules inference. By default it uses R8 version
-`1.6.53`. If you want to customize what version is used, you can specify the dependency via the
+Keeper uses R8's `TraceReferences` CLI under the hood for rules inference. By default it uses R8 version
+`3.2.78`. If you want to customize what version is used, you can specify the dependency via the
 `keeperR8` configuration. Note that these must be tags from R8's
 [`r8-releases/raw`](https://storage.googleapis.com/r8-releases/raw) maven repo.
 
