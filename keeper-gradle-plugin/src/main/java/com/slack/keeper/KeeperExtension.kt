@@ -20,7 +20,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import javax.inject.Inject
-import kotlin.DeprecationLevel.ERROR
 
 /** Configuration for the [InferAndroidTestKeepRules]. */
 public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory) {
@@ -28,11 +27,10 @@ public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory
    * Controls whether or not to automatically add the R8 repository for dependencies. Default is
    * true. Disable if you want to define your own repo for fetching the R8 dependency.
    */
-  @Suppress("UnstableApiUsage")
   public val automaticR8RepoManagement: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
   /**
-   * Optional custom jvm arguments to pass into the R8 `PrintUses` execution. Useful if you want
+   * Optional custom jvm arguments to pass into the R8 `TraceReferences` execution. Useful if you want
    * to enable debugging in R8.
    *
    * Example: `listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y")`
@@ -40,19 +38,10 @@ public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory
   public val r8JvmArgs: ListProperty<String> = objects.listProperty(String::class.java)
 
   /** Emit extra debug information, useful for bug reporting. */
-  @Suppress("UnstableApiUsage")
   public val emitDebugInformation: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
   /** Controls whether or not to enable assertions in the JavaExec run of R8. Default is true. */
-  @Suppress("UnstableApiUsage")
   public val enableAssertions: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
-
-  @Deprecated(
-    message = "Core Library Desugaring (L8) is automatically configured, this does nothing now " +
-      "and will eventually be removed.",
-    level = ERROR
-  )
-  public val enableL8RuleSharing: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
   internal val traceReferences: TraceReferences = objects.newInstance(TraceReferences::class.java)
 
@@ -62,21 +51,14 @@ public abstract class KeeperExtension @Inject constructor(objects: ObjectFactory
    * @see TraceReferences.arguments
    */
   public fun traceReferences(action: Action<TraceReferences>) {
-    traceReferences.enabled.set(true)
     action.execute(traceReferences)
   }
 }
 
 public abstract class TraceReferences @Inject constructor(objects: ObjectFactory) {
-  /**
-   * Controls whether or not to use the new experimental TraceReferences entry-point.
-   * Default is false but it's automatically enabled if the traceReferences block was invoked.
-   */
-  internal val enabled: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
   /**
-   * Optional arguments during the trace-references invocation,
-   * only considered when [enabled] is true.
+   * Optional arguments during the trace-references invocation.
    *
    * Default value: `listOf("--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info")`
    * which is coming from [this discussion](https://issuetracker.google.com/issues/173435379)
