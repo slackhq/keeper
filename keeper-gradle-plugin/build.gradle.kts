@@ -101,11 +101,11 @@ tasks.withType<DokkaTask>().configureEach {
     skipDeprecated.set(true)
     suppressInheritedMembers.set(true)
     externalDocumentationLink {
-      url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/index.html"))
+      url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html"))
     }
     externalDocumentationLink {
-      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/7.0/package-list"))
-      url.set(URL("https://developer.android.com/reference/tools/gradle-api/7.0/classes"))
+      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/7.3/package-list"))
+      url.set(URL("https://developer.android.com/reference/tools/gradle-api/7.3/classes"))
     }
   }
 }
