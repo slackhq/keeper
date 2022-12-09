@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.13.0
+------
+
+_2022-12-09_
+
+- **Enhancement:** Use Gradle 7.5's new `ArtifactCollection` APIs to for better task input wiring. This allows us to remove the previous hack where we used the target `Configuration` as an internal property. This also improves configuration caching support. Gradle 7.5 is now the minimum required Gradle version.
+- **Enhancement:** Use AGP's new `Component.runtimeConfiguration` API. AGP 7.3 is now the minimum required AGP version.
+- **Enhancement:** Removed KGP and kotlin-dsl dependencies. Keeper inappropriately included implementation dependencies on these two and no longer does. This is a breaking change for users who were using these dependencies in their build scripts and you should add them separately if you're using them.
+- **Removed:** `PrintUses` is no longer supported as this API has been removed from R8 and now only `TraceReferences` is used.
+- **Removed**: Removed deprecated `enableL8RuleSharing` and `traceReferences.enabled` properties in the Keeper gradle extension.
+
 0.12.0
 ------
 
