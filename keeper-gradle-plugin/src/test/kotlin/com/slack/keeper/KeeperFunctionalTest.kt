@@ -273,8 +273,6 @@ internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
       .forwardStdOutput(System.out.writer())
       .forwardStdError(System.err.writer())
       .withProjectDir(projectDir)
-      // TODO eventually test with configuration caching enabled
-      // https://docs.gradle.org/nightly/userguide/configuration_cache.html#testkit
       .withArguments(extraArgs)
       .withPluginClasspath()
       .withDebug(true) // Tests run in-process and way faster with this enabled
