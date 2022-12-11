@@ -26,6 +26,9 @@ import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
+import java.io.File
+import java.io.IOException
+import java.util.Locale
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -40,22 +43,19 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.File
-import java.io.IOException
-import java.util.Locale
 
 internal const val TAG = "Keeper"
 internal const val KEEPER_TASK_GROUP = "keeper"
 
 /**
- * A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what androidTest classes use from
- * the target app's sources. This is necessary because AGP does not factor in androidTest usages of target app sources
- * when running the minification step, which can result in runtime errors if APIs used by tests are removed.
+ * A simple Gradle plugin that hooks into Proguard/R8 to add extra keep rules based on what
+ * androidTest classes use from the target app's sources. This is necessary because AGP does not
+ * factor in androidTest usages of target app sources when running the minification step, which can
+ * result in runtime errors if APIs used by tests are removed.
  *
  * This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
  *
  * This is optionally configurable via the [`keeper`][KeeperExtension] extension. For example:
- *
  * ```kotlin
  * keeper {
  *   automaticR8RepoManagement = false
@@ -66,19 +66,20 @@ internal const val KEEPER_TASK_GROUP = "keeper"
  * The general logic flow:
  * - Create a custom `r8` configuration for the R8 dependency.
  * - Register two jar tasks. One for all the classes in its target `testedVariant` and one for all
- *   the classes in the androidTest variant itself. This will use their variant-provided [JavaCompile]
- *   tasks and [KotlinCompile] tasks if available.
+ *   the classes in the androidTest variant itself. This will use their variant-provided
+ *   [JavaCompile] tasks and [KotlinCompile] tasks if available.
  * - Register a [`infer${androidTestVariant}UsageForKeeper`][InferAndroidTestKeepRules] task that
- *   plugs the two aforementioned jars into R8's `TraceReferences` CLI and outputs
- *   the inferred proguard rules into a new intermediate .pro file.
- * - Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting
- *   their `configurationFiles` to include our generated one.
+ *   plugs the two aforementioned jars into R8's `TraceReferences` CLI and outputs the inferred
+ *   proguard rules into a new intermediate .pro file.
+ * - Finally - the generated file is wired in to Proguard/R8 via private task APIs and setting their
+ *   `configurationFiles` to include our generated one.
  *
- * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is automatically run as part
- * of the target app variant's full minified APK.
+ * Appropriate task dependencies (via inputs/outputs, not `dependsOn`) are set up, so this is
+ * automatically run as part of the target app variant's full minified APK.
  *
- * The tasks themselves take roughly ~20 seconds total extra work in the Slack android app, with the infer and app jar
- * tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.
+ * The tasks themselves take roughly ~20 seconds total extra work in the Slack android app, with the
+ * infer and app jar tasks each taking around 8-10 seconds and the androidTest jar taking around 2
+ * seconds.
  */
 public class KeeperPlugin : Plugin<Project> {
 
@@ -116,18 +117,18 @@ public class KeeperPlugin : Plugin<Project> {
    * Configures L8 support via rule sharing and clearing androidTest dex file generation by patching
    * the respective app and test [L8DexDesugarLibTask] tasks.
    *
-   * By default, L8 will generate separate rules for test app and androidTest app L8 rules. This
-   * can cause problems in minified tests for a couple reasons though! This tries to resolve these
-   * via two steps.
+   * By default, L8 will generate separate rules for test app and androidTest app L8 rules. This can
+   * cause problems in minified tests for a couple reasons though! This tries to resolve these via
+   * two steps.
    *
-   * Issue 1: L8 will try to minify the backported APIs otherwise and can result in conflicting class names
-   * between the app and test APKs. This is a little confusing because L8 treats "minified" as
-   * "obfuscated" and tries to match. Since we don't care about obfuscating here, we can just
-   * disable it.
+   * Issue 1: L8 will try to minify the backported APIs otherwise and can result in conflicting
+   * class names between the app and test APKs. This is a little confusing because L8 treats
+   * "minified" as "obfuscated" and tries to match. Since we don't care about obfuscating here, we
+   * can just disable it.
    *
    * Issue 2: L8 packages `j$` classes into androidTest but doesn't match what's in the target app.
-   * This causes confusion when invoking code in the target app from the androidTest classloader
-   * and it then can't find some expected `j$` classes. To solve this, we feed the the test app's
+   * This causes confusion when invoking code in the target app from the androidTest classloader and
+   * it then can't find some expected `j$` classes. To solve this, we feed the the test app's
    * generated `j$` rules in as inputs to the app L8 task's input rules.
    *
    * More details can be found here: https://issuetracker.google.com/issues/158018485
@@ -151,68 +152,55 @@ public class KeeperPlugin : Plugin<Project> {
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
         // exist yet during this callback. https://issuetracker.google.com/issues/199509581
-        project
-          .namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { l8Task ->
-            // First merge the L8 rules into the app's L8 task
-            project.namedLazy<R8Task>(interpolateR8TaskName(testVariant.name)) { provider ->
-              l8Task.configure {
-                keepRulesFiles.from(provider.flatMap { it.projectOutputKeepRules })
+        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { l8Task ->
+          // First merge the L8 rules into the app's L8 task
+          project.namedLazy<R8Task>(interpolateR8TaskName(testVariant.name)) { provider ->
+            l8Task.configure { keepRulesFiles.from(provider.flatMap { it.projectOutputKeepRules }) }
+          }
+
+          l8Task.configure {
+            val taskName = name
+            keepRulesConfigurations.set(listOf("-dontobfuscate"))
+            val diagnosticOutputDir =
+              layout.buildDirectory.dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName").get().asFile
+
+            // We can't actually declare this because AGP's NonIncrementalTask will clear it
+            // during the task action
+            //                  outputs.dir(diagnosticOutputDir)
+            //                      .withPropertyName("diagnosticsDir")
+
+            if (extension.emitDebugInformation.getOrElse(false)) {
+              doFirst {
+                val mergedFilesContent =
+                  keepRulesFiles.files
+                    .asSequence()
+                    .flatMap { it.walkTopDown() }
+                    .filterNot { it.isDirectory }
+                    .joinToString("\n") { "# Source: ${it.absolutePath}\n${it.readText()}" }
+
+                val configurations =
+                  keepRulesConfigurations.orNull
+                    .orEmpty()
+                    .joinToString("\n", prefix = "# Source: extra configurations\n")
+
+                File(diagnosticOutputDir, "patchedL8Rules.pro")
+                  .apply {
+                    if (exists()) {
+                      delete()
+                    }
+                    parentFile.mkdirs()
+                    createNewFile()
+                  }
+                  .writeText("$mergedFilesContent\n$configurations")
               }
             }
-
-            l8Task
-              .configure {
-                val taskName = name
-                keepRulesConfigurations.set(listOf("-dontobfuscate"))
-                val diagnosticOutputDir = layout.buildDirectory.dir(
-                  "$INTERMEDIATES_DIR/l8-diagnostics/$taskName"
-                )
-                  .get()
-                  .asFile
-
-                // We can't actually declare this because AGP's NonIncrementalTask will clear it
-                // during the task action
-//                  outputs.dir(diagnosticOutputDir)
-//                      .withPropertyName("diagnosticsDir")
-
-                if (extension.emitDebugInformation.getOrElse(false)) {
-                  doFirst {
-                    val mergedFilesContent = keepRulesFiles.files.asSequence()
-                      .flatMap { it.walkTopDown() }
-                      .filterNot { it.isDirectory }
-                      .joinToString("\n") {
-                        "# Source: ${it.absolutePath}\n${it.readText()}"
-                      }
-
-                    val configurations = keepRulesConfigurations.orNull.orEmpty()
-                      .joinToString(
-                        "\n",
-                        prefix = "# Source: extra configurations\n"
-                      )
-
-                    File(diagnosticOutputDir, "patchedL8Rules.pro")
-                      .apply {
-                        if (exists()) {
-                          delete()
-                        }
-                        parentFile.mkdirs()
-                        createNewFile()
-                      }
-                      .writeText("$mergedFilesContent\n$configurations")
-                  }
-                }
-              }
           }
+        }
 
         // Now clear the outputs from androidTest's L8 task to end with
-        project
-          .namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name)) {
-            it.configure {
-              doLast {
-                clearDir(desugarLibDex.asFile.get())
-              }
-            }
-          }
+        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name)) {
+          it.configure { doLast { clearDir(desugarLibDex.asFile.get()) } }
+        }
       }
     }
   }
@@ -223,74 +211,75 @@ public class KeeperPlugin : Plugin<Project> {
     extension: KeeperExtension
   ) {
     // Set up r8 configuration
-    val r8Configuration = configurations.create(CONFIGURATION_NAME) {
-      description = "R8 dependencies for Keeper. This is used solely for the TraceReferences CLI"
-      isVisible = false
-      isCanBeConsumed = false
-      isCanBeResolved = true
-      defaultDependencies {
-        logger.debug("keeper r8 default version: $TRACE_REFERENCES_DEFAULT_VERSION")
-        add(project.dependencies.create("com.android.tools:r8:$TRACE_REFERENCES_DEFAULT_VERSION"))
+    val r8Configuration =
+      configurations.create(CONFIGURATION_NAME) {
+        description = "R8 dependencies for Keeper. This is used solely for the TraceReferences CLI"
+        isVisible = false
+        isCanBeConsumed = false
+        isCanBeResolved = true
+        defaultDependencies {
+          logger.debug("keeper r8 default version: $TRACE_REFERENCES_DEFAULT_VERSION")
+          add(project.dependencies.create("com.android.tools:r8:$TRACE_REFERENCES_DEFAULT_VERSION"))
+        }
       }
-    }
 
-    val androidJarRegularFileProvider = layout.file(
-      provider {
-        resolveAndroidEmbeddedJar(
-          appExtension,
-          appComponentsExtension,
-          "android.jar",
-          checkIfExisting = true
-        )
-      }
-    )
-    val androidTestJarRegularFileProvider = layout.file(
-      provider {
-        resolveAndroidEmbeddedJar(
-          appExtension,
-          appComponentsExtension,
-          "optional/android.test.base.jar",
-          checkIfExisting = false
-        )
-      }
-    )
-
-    appComponentsExtension.onApplicableVariants(
-      project,
-      appExtension,
-      verifyMinification = true
-    ) { testVariant, appVariant ->
-      val intermediateAppJar = createIntermediateAppJar(
-        appVariant = appVariant,
-        emitDebugInfo = extension.emitDebugInformation
+    val androidJarRegularFileProvider =
+      layout.file(
+        provider {
+          resolveAndroidEmbeddedJar(
+            appExtension,
+            appComponentsExtension,
+            "android.jar",
+            checkIfExisting = true
+          )
+        }
       )
-      val intermediateAndroidTestJar = createIntermediateAndroidTestJar(
-        emitDebugInfo = extension.emitDebugInformation,
-        testVariant = testVariant,
-        appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
-      )
-      val inferAndroidTestUsageProvider = tasks.register(
-        "infer${testVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
-        InferAndroidTestKeepRules::class.java,
-        InferAndroidTestKeepRules(
-          variantName = testVariant.name,
-          androidTestJarProvider = intermediateAndroidTestJar,
-          releaseClassesJarProvider = intermediateAppJar,
-          androidJar = androidJarRegularFileProvider,
-          androidTestJar = androidTestJarRegularFileProvider,
-          automaticallyAddR8Repo = extension.automaticR8RepoManagement,
-          enableAssertions = extension.enableAssertions,
-          extensionJvmArgs = extension.r8JvmArgs,
-          traceReferencesArgs = extension.traceReferences.arguments,
-          r8Configuration = r8Configuration
-        )
+    val androidTestJarRegularFileProvider =
+      layout.file(
+        provider {
+          resolveAndroidEmbeddedJar(
+            appExtension,
+            appComponentsExtension,
+            "optional/android.test.base.jar",
+            checkIfExisting = false
+          )
+        }
       )
 
-      val prop = layout.dir(
-        inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile }
-      )
-      val testProguardFiles = testVariant.runtimeConfiguration
-        .proguardFiles()
+    appComponentsExtension.onApplicableVariants(project, appExtension, verifyMinification = true) {
+      testVariant,
+      appVariant ->
+      val intermediateAppJar =
+        createIntermediateAppJar(
+          appVariant = appVariant,
+          emitDebugInfo = extension.emitDebugInformation
+        )
+      val intermediateAndroidTestJar =
+        createIntermediateAndroidTestJar(
+          emitDebugInfo = extension.emitDebugInformation,
+          testVariant = testVariant,
+          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
+        )
+      val inferAndroidTestUsageProvider =
+        tasks.register(
+          "infer${testVariant.name.capitalize(Locale.US)}KeepRulesForKeeper",
+          InferAndroidTestKeepRules::class.java,
+          InferAndroidTestKeepRules(
+            variantName = testVariant.name,
+            androidTestJarProvider = intermediateAndroidTestJar,
+            releaseClassesJarProvider = intermediateAppJar,
+            androidJar = androidJarRegularFileProvider,
+            androidTestJar = androidTestJarRegularFileProvider,
+            automaticallyAddR8Repo = extension.automaticR8RepoManagement,
+            enableAssertions = extension.enableAssertions,
+            extensionJvmArgs = extension.r8JvmArgs,
+            traceReferencesArgs = extension.traceReferences.arguments,
+            r8Configuration = r8Configuration
+          )
+        )
+
+      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+      val testProguardFiles = testVariant.runtimeConfiguration.proguardFiles()
       applyGeneratedRules(appVariant.name, prop, testProguardFiles)
     }
   }
@@ -301,11 +290,11 @@ public class KeeperPlugin : Plugin<Project> {
     path: String,
     checkIfExisting: Boolean
   ): File {
-    val compileSdkVersion = appExtension.compileSdkVersion
-      ?: error("No compileSdkVersion found")
-    val file = File(
-      "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/$compileSdkVersion/$path"
-    )
+    val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found")
+    val file =
+      File(
+        "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/$compileSdkVersion/$path"
+      )
     check(!checkIfExisting || file.exists()) {
       "No $path found! Expected to find it at: ${file.absolutePath}"
     }
@@ -330,7 +319,8 @@ public class KeeperPlugin : Plugin<Project> {
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't
             have minification enabled, so the keep rules will have no effect. To fix this warning, either avoid applying
             the Keeper plugin when android.testBuildType = $buildType or enable minification on this variant.
-            """.trimIndent()
+            """
+              .trimIndent()
           )
           return@let
         }
@@ -347,20 +337,19 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks.withType(R8Task::class.java)
+    tasks
+      .withType(R8Task::class.java)
       .matching { it.name == targetName }
       .configureEach {
-        logger.debug(
-          "$TAG: Patching task '$name' with inferred androidTest proguard rules"
-        )
+        logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
         configurationFiles.from(testProguardFiles)
       }
   }
 
   /**
-   * Creates an intermediate androidTest.jar consisting of all the classes compiled for the androidTest source set.
-   * This output is used in the inferAndroidTestUsage task.
+   * Creates an intermediate androidTest.jar consisting of all the classes compiled for the
+   * androidTest source set. This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAndroidTestJar(
     emitDebugInfo: Provider<Boolean>,
@@ -381,21 +370,16 @@ public class KeeperPlugin : Plugin<Project> {
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
-      val diagnosticsDir = layout.buildDirectory.dir(
-        "$INTERMEDIATES_DIR/${testVariant.name}/diagnostics"
-      )
+      val diagnosticsDir =
+        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
       this.diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(
-        outputDir.map {
-          it.file("classes.jar")
-        }
-      )
+      archiveFile.set(outputDir.map { it.file("classes.jar") })
     }
   }
 
   /**
-   * Creates an intermediate app.jar consisting of all the classes compiled for the target app variant. This
-   * output is used in the inferAndroidTestUsage task.
+   * Creates an intermediate app.jar consisting of all the classes compiled for the target app
+   * variant. This output is used in the inferAndroidTestUsage task.
    */
   private fun Project.createIntermediateAppJar(
     appVariant: ApplicationVariant,
@@ -413,9 +397,8 @@ public class KeeperPlugin : Plugin<Project> {
       }
 
       val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
-      val diagnosticsDir = layout.buildDirectory.dir(
-        "$INTERMEDIATES_DIR/${appVariant.name}/diagnostics"
-      )
+      val diagnosticsDir =
+        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
       diagnosticsOutputDir.set(diagnosticsDir)
       archiveFile.set(outputDir.map { it.file("classes.jar") })
       appJarsFile.set(outputDir.map { it.file("jars.txt") })
@@ -433,14 +416,7 @@ private fun Configuration.proguardFiles(): Provider<Set<File>> {
 
 private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
   return incoming
-    .artifactView {
-      attributes {
-        attribute(
-          AndroidArtifacts.ARTIFACT_TYPE,
-          artifactType.type
-        )
-      }
-    }
+    .artifactView { attributes { attribute(AndroidArtifacts.ARTIFACT_TYPE, artifactType.type) } }
     .artifacts
     .resolvedArtifacts
     .map { it.asSequence().map { it.file }.toSet() }
@@ -477,8 +453,7 @@ private inline fun <reified T : Task> Project.namedLazy(
   try {
     action(tasks.named(targetName, T::class.java))
     return
-  } catch (ignored: UnknownTaskException) {
-  }
+  } catch (ignored: UnknownTaskException) {}
 
   var didRun = false
 

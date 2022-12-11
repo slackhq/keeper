@@ -48,15 +48,15 @@ internal fun File.newDir(path: String): File {
   return File(this, path).apply { mkdirs() }
 }
 
-internal fun File.generatedChild(path: String) = child("build", "intermediates", "keeper", *path.split("/").toTypedArray())
-internal fun File.child(vararg path: String) = File(
-  this,
-  path.toList().joinToString(File.separator)
-).apply {
-  check(exists()) {
-    "Child doesn't exist! Expected $this. Other files in this dir: ${parentFile.listFiles()}"
+internal fun File.generatedChild(path: String) =
+  child("build", "intermediates", "keeper", *path.split("/").toTypedArray())
+
+internal fun File.child(vararg path: String) =
+  File(this, path.toList().joinToString(File.separator)).apply {
+    check(exists()) {
+      "Child doesn't exist! Expected $this. Other files in this dir: ${parentFile.listFiles()}"
+    }
   }
-}
 
 internal sealed class SourceFile(val name: String) {
   abstract fun writeTo(file: File)
@@ -65,9 +65,8 @@ internal sealed class SourceFile(val name: String) {
     override fun writeTo(file: File) = javaFile.writeTo(file)
   }
 
-  data class KotlinSourceFile(
-    val fileSpec: FileSpec
-  ) : SourceFile(fileSpec.members.filterIsInstance<TypeSpec>().first().name!!) {
+  data class KotlinSourceFile(val fileSpec: FileSpec) :
+    SourceFile(fileSpec.members.filterIsInstance<TypeSpec>().first().name!!) {
     override fun writeTo(file: File) = fileSpec.writeTo(file)
   }
 }
@@ -77,4 +76,5 @@ internal operator fun File.plusAssign(sourceFile: SourceFile) {
 }
 
 internal fun JavaFile.asSourceFile(): SourceFile = JavaSourceFile(this)
+
 internal fun FileSpec.asSourceFile(): SourceFile = KotlinSourceFile(this)

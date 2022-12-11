@@ -37,15 +37,19 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "keeper-root"
+
 include(":sample")
+
 include(":sample-libraries:a")
+
 include(":sample-libraries:b")
+
 include(":sample-libraries:c")
+
 include(":sample-libraries:test-only-android")
+
 include(":sample-libraries:test-only-jvm")
 
 includeBuild("keeper-gradle-plugin") {
-  dependencySubstitution {
-    substitute(module("com.slack.keeper:keeper")).using(project(":"))
-  }
+  dependencySubstitution { substitute(module("com.slack.keeper:keeper")).using(project(":")) }
 }

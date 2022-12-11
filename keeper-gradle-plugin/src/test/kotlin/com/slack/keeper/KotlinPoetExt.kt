@@ -26,11 +26,10 @@ internal fun kotlinFile(
   body: TypeSpec.Builder.() -> Unit
 ): SourceFile {
   return FileSpec.get(
-    packageName = packageName,
-    typeSpec = TypeSpec.objectBuilder(className)
-      .apply(body)
-      .build()
-  ).asSourceFile()
+      packageName = packageName,
+      typeSpec = TypeSpec.objectBuilder(className).apply(body).build()
+    )
+    .asSourceFile()
 }
 
 internal fun TypeSpec.Builder.funSpec(name: String, body: FunSpec.Builder.() -> Unit) {
