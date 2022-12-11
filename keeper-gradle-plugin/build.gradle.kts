@@ -62,7 +62,9 @@ tasks.withType<Test>().configureEach {
   beforeTest(closureOf<TestDescriptor> { logger.lifecycle("Running test: $this") })
 }
 
-sourceSets { getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata") }
+sourceSets {
+  getByName("test").resources.srcDirs(project.layout.buildDirectory.dir("pluginUnderTestMetadata"))
+}
 
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
 
