@@ -26,12 +26,9 @@ internal fun javaFile(
   body: TypeSpec.Builder.() -> Unit
 ): SourceFile {
   return JavaFile.builder(
-    packageName,
-    TypeSpec.classBuilder(className)
-      .addModifiers(PUBLIC)
-      .apply(body)
-      .build()
-  )
+      packageName,
+      TypeSpec.classBuilder(className).addModifiers(PUBLIC).apply(body).build()
+    )
     .build()
     .asSourceFile()
 }

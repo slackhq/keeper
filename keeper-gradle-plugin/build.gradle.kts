@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.net.URL
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.net.URL
 
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
@@ -40,9 +40,7 @@ repositories {
 }
 
 // Reimplement kotlin-dsl's application of this function for nice DSLs
-samWithReceiver {
-  annotation("org.gradle.api.HasImplicitReceiver")
-}
+samWithReceiver { annotation("org.gradle.api.HasImplicitReceiver") }
 
 tasks.withType<KotlinCompile>().configureEach {
   kotlinOptions {
@@ -50,8 +48,8 @@ tasks.withType<KotlinCompile>().configureEach {
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
     apiVersion = "1.7"
     languageVersion = "1.7"
-//    @Suppress("SuspiciousCollectionReassignment")
-//    freeCompilerArgs += listOf("-progressive")
+    //    @Suppress("SuspiciousCollectionReassignment")
+    //    freeCompilerArgs += listOf("-progressive")
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
     // Serializable, which causes accidental headaches with Gradle configuration caching. It's
     // easier for us to just use the previous anonymous classes behavior
@@ -61,26 +59,16 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.withType<Test>().configureEach {
-  beforeTest(
-    closureOf<TestDescriptor> {
-      logger.lifecycle("Running test: $this")
-    }
-  )
+  beforeTest(closureOf<TestDescriptor> { logger.lifecycle("Running test: $this") })
 }
 
 sourceSets {
-  getByName("test").resources.srcDirs("$buildDir/pluginUnderTestMetadata")
+  getByName("test").resources.srcDirs(project.layout.buildDirectory.dir("pluginUnderTestMetadata"))
 }
 
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(11))
-  }
-}
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
 
-tasks.withType<JavaCompile>().configureEach {
-  options.release.set(11)
-}
+tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
 
 gradlePlugin {
   plugins {
@@ -91,9 +79,7 @@ gradlePlugin {
   }
 }
 
-kotlin {
-  explicitApi()
-}
+kotlin { explicitApi() }
 
 tasks.withType<DokkaTask>().configureEach {
   outputDirectory.set(rootDir.resolve("../docs/0.x"))
@@ -104,7 +90,9 @@ tasks.withType<DokkaTask>().configureEach {
       url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html"))
     }
     externalDocumentationLink {
-      packageListUrl.set(URL("https://developer.android.com/reference/tools/gradle-api/7.3/package-list"))
+      packageListUrl.set(
+        URL("https://developer.android.com/reference/tools/gradle-api/7.3/package-list")
+      )
       url.set(URL("https://developer.android.com/reference/tools/gradle-api/7.3/classes"))
     }
   }
@@ -116,14 +104,11 @@ mavenPublishing {
 }
 
 // Fix missing implicit task dependency in Gradle's test kit
-tasks.named("processTestResources") {
-  dependsOn("pluginUnderTestMetadata")
-}
+tasks.named("processTestResources") { dependsOn("pluginUnderTestMetadata") }
 
 val addTestPlugin: Configuration = configurations.create("addTestPlugin")
-configurations {
-  testImplementation.get().extendsFrom(addTestPlugin)
-}
+
+configurations { testImplementation.get().extendsFrom(addTestPlugin) }
 
 tasks.pluginUnderTestMetadata {
   // make sure the test can access plugins for coordination.

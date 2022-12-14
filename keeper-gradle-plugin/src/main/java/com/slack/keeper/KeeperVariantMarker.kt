@@ -18,8 +18,7 @@ package com.slack.keeper
 import com.android.build.api.variant.VariantBuilder
 
 /**
- * Register this with [VariantBuilder.registerExtension] to opt this variant into
- * Keeper.
+ * Register this with [VariantBuilder.registerExtension] to opt this variant into Keeper.
  *
  * ```
  * androidComponents {

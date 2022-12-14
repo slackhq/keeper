@@ -19,6 +19,9 @@ package com.slack.keeper
 
 import com.android.zipflinger.BytesSource
 import com.android.zipflinger.ZipArchive
+import java.io.File
+import java.util.zip.Deflater
+import java.util.zip.ZipFile
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -36,22 +39,17 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
-import java.io.File
-import java.util.zip.Deflater
-import java.util.zip.ZipFile
 
 public abstract class BaseKeeperJarTask : DefaultTask() {
 
-  @get:Input
-  public abstract val emitDebugInfo: Property<Boolean>
+  @get:Input public abstract val emitDebugInfo: Property<Boolean>
 
-  @get:OutputDirectory
-  public abstract val diagnosticsOutputDir: DirectoryProperty
+  @get:OutputDirectory public abstract val diagnosticsOutputDir: DirectoryProperty
 
   /**
-   * This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the
-   * jars really does matter here. Using [Classpath] is an error, as it looks only at content and
-   * not name or path, and we really do need to know the actual path to the artifact, even if its
+   * This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the jars
+   * really does matter here. Using [Classpath] is an error, as it looks only at content and not
+   * name or path, and we really do need to know the actual path to the artifact, even if its
    * contents haven't changed.
    */
   @get:PathSensitive(PathSensitivity.ABSOLUTE)
@@ -60,9 +58,7 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
-      diagnosticsOutputDir.get().file("$fileName.txt").asFile.apply {
-        writeText(body())
-      }
+      diagnosticsOutputDir.get().file("$fileName.txt").asFile.apply { writeText(body()) }
     } else {
       null
     }
@@ -71,8 +67,8 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
 /**
  * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
- * intended to be cacheable, but in our case it's fine since the resulting jar is an input of a
- * task and not just a transient operation of another plugin.
+ * intended to be cacheable, but in our case it's fine since the resulting jar is an input of a task
+ * and not just a transient operation of another plugin.
  *
  * This uses `ZipFlinger` under the hood to run the copy operation performantly.
  */
@@ -80,15 +76,13 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 @CacheableTask
 public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
-  @get:OutputFile
-  public abstract val archiveFile: RegularFileProperty
+  @get:OutputFile public abstract val archiveFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
   public abstract val classpath: ConfigurableFileCollection
 
-  @get:OutputFile
-  public abstract val appJarsFile: RegularFileProperty
+  @get:OutputFile public abstract val appJarsFile: RegularFileProperty
 
   public fun from(vararg paths: Any) {
     classpath.from(*paths)
@@ -100,17 +94,14 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      allJars
-        .files
-        .forEach { jar ->
-          appJars.add(jar.canonicalPath)
-          archive.extractClassesFrom(jar) {
-            appClasses += it
-          }
-        }
+      allJars.files.forEach { jar ->
+        appJars.add(jar.canonicalPath)
+        archive.extractClassesFrom(jar) { appClasses += it }
+      }
 
       // Take the compiled classes
-      classpath.asSequence()
+      classpath
+        .asSequence()
         .flatMap { it.classesSequence() }
         .forEach { (name, file) ->
           appClasses.add(name)
@@ -121,18 +112,16 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
 
-    diagnostic("classes") {
-      appClasses.sorted()
-        .joinToString("\n")
-    }
+    diagnostic("classes") { appClasses.sorted().joinToString("\n") }
   }
 }
 
 /**
- * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct dependencies
- * (as compared to the [appJarsFile]). R8's `TraceReferences` requires no class overlap between the two jars it's comparing, so
- * at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be
- * APIs that _they_ use that are used in the target app runtime, and we want R8 to account for those usages as well.
+ * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct
+ * dependencies (as compared to the [appJarsFile]). R8's `TraceReferences` requires no class overlap
+ * between the two jars it's comparing, so at copy-time this will compute the unique androidTest
+ * dependencies. We need to have them because there may be APIs that _they_ use that are used in the
+ * target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
 public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
@@ -142,16 +131,13 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
   }
 
   // Only care about the contents
-  @get:PathSensitive(NONE)
-  @get:InputFile
-  public abstract val appJarsFile: RegularFileProperty
+  @get:PathSensitive(NONE) @get:InputFile public abstract val appJarsFile: RegularFileProperty
 
   @Suppress("UnstableApiUsage")
   @get:Classpath
   public abstract val classpath: ConfigurableFileCollection
 
-  @get:OutputFile
-  public abstract val archiveFile: RegularFileProperty
+  @get:OutputFile public abstract val archiveFile: RegularFileProperty
 
   public fun from(vararg paths: Any) {
     classpath.from(*paths)
@@ -164,21 +150,16 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
 
     val androidTestClasspath = allJars.files
     diagnostic("jars") {
-      androidTestClasspath.sortedBy { it.canonicalPath }
-        .joinToString("\n") {
-          it.canonicalPath
-        }
+      androidTestClasspath.sortedBy { it.canonicalPath }.joinToString("\n") { it.canonicalPath }
     }
 
-    val distinctAndroidTestClasspath = androidTestClasspath.toMutableSet().apply {
-      removeAll { it.canonicalPath in appJars }
-    }
+    val distinctAndroidTestClasspath =
+      androidTestClasspath.toMutableSet().apply { removeAll { it.canonicalPath in appJars } }
 
     diagnostic("distinctJars") {
-      distinctAndroidTestClasspath.sortedBy { it.canonicalPath }
-        .joinToString("\n") {
-          it.canonicalPath
-        }
+      distinctAndroidTestClasspath
+        .sortedBy { it.canonicalPath }
+        .joinToString("\n") { it.canonicalPath }
     }
 
     val androidTestClasses = mutableSetOf<String>()
@@ -186,14 +167,11 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
       // The runtime classpath (i.e. from dependencies)
       distinctAndroidTestClasspath
         .filter { it.exists() && it.extension == "jar" }
-        .forEach { jar ->
-          archive.extractClassesFrom(jar) {
-            androidTestClasses += it
-          }
-        }
+        .forEach { jar -> archive.extractClassesFrom(jar) { androidTestClasses += it } }
 
       // Take the compiled classes
-      classpath.asSequence()
+      classpath
+        .asSequence()
         .flatMap { it.classesSequence() }
         .forEach { (name, file) ->
           androidTestClasses += name
@@ -202,25 +180,23 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
         }
     }
 
-    diagnostic("androidTestClasses") {
-      androidTestClasses.sorted().joinToString("\n")
-    }
+    diagnostic("androidTestClasses") { androidTestClasses.sorted().joinToString("\n") }
 
     // See https://issuetracker.google.com/issues/157583077 for why we do this
     if (emitDebugInfo.get()) {
-      val duplicateClasses = appJars.asSequence()
-        .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
-        .map { it.name }
-        .distinct()
-        .filterTo(LinkedHashSet()) { it in androidTestClasses }
+      val duplicateClasses =
+        appJars
+          .asSequence()
+          .flatMap { jar -> ZipFile(File(jar)).use { it.entries().toList() }.asSequence() }
+          .map { it.name }
+          .distinct()
+          .filterTo(LinkedHashSet()) { it in androidTestClasses }
 
       // https://github.com/slackhq/keeper/issues/82
       duplicateClasses.remove("module-info.class")
 
       if (duplicateClasses.isNotEmpty()) {
-        val output = diagnostic("duplicateClasses") {
-          duplicateClasses.sorted().joinToString("\n")
-        }
+        val output = diagnostic("duplicateClasses") { duplicateClasses.sorted().joinToString("\n") }
         logger.warn(
           "Duplicate classes found in androidTest APK and app APK! This" +
             " can cause obscure runtime errors during tests due to the app" +

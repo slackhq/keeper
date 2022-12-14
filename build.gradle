@@ -47,27 +47,26 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    String ktlintVersion = "0.46.0"
-    Map<String, String> ktlintUserData = ["indent_size": "2", "continuation_indent_size": "2"]
+    String ktfmtVersion = libs.versions.ktfmt.get()
     kotlin {
         target("**/*.kt")
         targetExclude("**/.gradle/**", "**/build/**")
-        ktlint(ktlintVersion).editorConfigOverride(ktlintUserData)
+        ktfmt(ktfmtVersion).googleStyle()
         trimTrailingWhitespace()
         endWithNewline()
         licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
         targetExclude("**/copyright.kt")
     }
     kotlinGradle {
-        target("**/*.kts")
-        ktlint(ktlintVersion).editorConfigOverride(ktlintUserData)
+        target("**/*.kts", "./*.kts")
+        ktfmt(ktfmtVersion).googleStyle()
         trimTrailingWhitespace()
         endWithNewline()
         licenseHeaderFile("spotless/copyright.kt", "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)")
     }
     java {
         target("**/*.java")
-        googleJavaFormat('1.14.0').reflowLongStrings()
+        googleJavaFormat(libs.versions.gjf.get()).reflowLongStrings()
         trimTrailingWhitespace()
         endWithNewline()
         licenseHeaderFile(rootProject.file("spotless/copyright.java"))

@@ -16,9 +16,9 @@
 package com.slack.keeper.sample
 
 import com.slack.keeper.example.c.TestOnlyCClass
+import java.time.Duration
 import okio.ByteString
 import okio.ByteString.Companion.encodeUtf8
-import java.time.Duration
 
 object TestOnlyCClassCaller {
   fun callCClass() {
