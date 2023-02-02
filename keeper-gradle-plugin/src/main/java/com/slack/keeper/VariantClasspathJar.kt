@@ -48,7 +48,6 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   @get:OutputDirectory public abstract val diagnosticsOutputDir: DirectoryProperty
 
-  // TODO what's this for?
   @get:InputFiles public abstract val allDirectories: ListProperty<Directory>
 
   @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
@@ -75,15 +74,7 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 
   @get:OutputFile public abstract val archiveFile: RegularFileProperty
 
-  @Suppress("UnstableApiUsage")
-  @get:Classpath
-  public abstract val classpath: ConfigurableFileCollection
-
   @get:OutputFile public abstract val appJarsFile: RegularFileProperty
-
-  public fun from(vararg paths: Any) {
-    classpath.from(*paths)
-  }
 
   @TaskAction
   public fun createJar() {
@@ -100,8 +91,10 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
         }
 
       // Take the compiled classes
-      classpath
+      allDirectories
+        .get()
         .asSequence()
+        .map { it.asFile }
         .flatMap { it.classesSequence() }
         .forEach { (name, file) ->
           appClasses.add(name)

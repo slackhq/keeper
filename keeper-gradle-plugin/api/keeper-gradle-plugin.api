@@ -68,9 +68,7 @@ public abstract class com/slack/keeper/TraceReferences {
 public abstract class com/slack/keeper/VariantClasspathJar : com/slack/keeper/BaseKeeperJarTask {
 	public fun <init> ()V
 	public final fun createJar ()V
-	public final fun from ([Ljava/lang/Object;)V
 	public abstract fun getAppJarsFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getArchiveFile ()Lorg/gradle/api/file/RegularFileProperty;
-	public abstract fun getClasspath ()Lorg/gradle/api/file/ConfigurableFileCollection;
 }
 
