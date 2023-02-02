@@ -48,9 +48,9 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   @get:OutputDirectory public abstract val diagnosticsOutputDir: DirectoryProperty
 
-  @get:InputFiles public abstract val allDirectories: ListProperty<Directory>
+  @get:Classpath @get:InputFiles public abstract val allDirectories: ListProperty<Directory>
 
-  @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
+  @get:PathSensitive(NONE) @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
