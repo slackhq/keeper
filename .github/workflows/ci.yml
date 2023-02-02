@@ -45,7 +45,7 @@ jobs:
         env:
           DEP_OVERRIDE_agp: ${{ matrix.agp }}
         with:
-          arguments: ./gradlew -p keeper-gradle-plugin check
+          arguments: -p keeper-gradle-plugin check
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
