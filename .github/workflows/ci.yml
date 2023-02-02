@@ -13,15 +13,14 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.job }} / JDK ${{ matrix.java }} / AGP ${{ matrix.agp }}
+    name: ${{ matrix.job }} / AGP ${{ matrix.agp }}
     # Use macOS for emulator hardware acceleration
     runs-on: 'macOS-latest'
     timeout-minutes: 30
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        java: ['11']
-        agpTestVersion: ['7.3.1']
+        agp: ['8.0.0-beta01', '8.1.0-alpha02']
         job: ['instrumentation', 'plugin']
     steps:
       - name: Checkout
@@ -30,30 +29,23 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Generate cache key
-        run: ./checksum.sh checksum.txt
-
-      - uses: actions/cache@v2
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ matrix.java }}-${{ hashFiles('checksum.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.java }}-
-
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: ${{ matrix.java }}
+          java-version: '19'
 
       - name: Spot check
         run: ./gradlew spotlessCheck
 
       - name: Test plugin
+        id: gradle
         if: matrix.job == 'plugin'
+        uses: gradle/gradle-build-action@v2
         env:
-          DEP_OVERRIDE_agpTestVersion: ${{ matrix.agpTestVersion }}
-        run: ./gradlew -p keeper-gradle-plugin check
+          DEP_OVERRIDE_agp: ${{ matrix.agp }}
+        with:
+          arguments: ./gradlew -p keeper-gradle-plugin check
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
