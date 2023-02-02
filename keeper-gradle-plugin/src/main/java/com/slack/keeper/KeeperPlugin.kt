@@ -416,10 +416,6 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.classesJars(): Provider<Set<File>> {
-  return artifactView(ArtifactType.CLASSES_JAR)
-}
-
 private fun Configuration.proguardFiles(): Provider<Set<File>> {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
