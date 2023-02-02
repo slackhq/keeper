@@ -17,10 +17,12 @@
 
 package com.slack.keeper
 
-import com.android.build.api.artifact.MultipleArtifact
+import com.android.build.api.artifact.ScopedArtifact
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
+import com.android.build.api.variant.Component
+import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
@@ -356,25 +358,34 @@ public class KeeperPlugin : Plugin<Project> {
     testVariant: AndroidTest,
     appJarsProvider: Provider<RegularFile>
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
-    return tasks.register(
-      "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-      AndroidTestVariantClasspathJar::class.java
-    ) {
-      group = KEEPER_TASK_GROUP
-      this.emitDebugInfo.value(emitDebugInfo)
-      this.appJarsFile.set(appJarsProvider)
+    val taskProvider =
+      tasks.register(
+        "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+        AndroidTestVariantClasspathJar::class.java
+      ) {
+        group = KEEPER_TASK_GROUP
+        this.emitDebugInfo.value(emitDebugInfo)
+        this.appJarsFile.set(appJarsProvider)
 
-      with(testVariant) {
-        from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfiguration.classesJars())
+        val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
+        val diagnosticsDir =
+          layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
+        this.diagnosticsOutputDir.set(diagnosticsDir)
+        archiveFile.set(outputDir.map { it.file("classes.jar") })
       }
 
-      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
-      val diagnosticsDir =
-        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
-      this.diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map { it.file("classes.jar") })
-    }
+    wireClassesAndJarsFor(testVariant, taskProvider)
+    return taskProvider
+  }
+
+  private fun wireClassesAndJarsFor(
+    component: Component,
+    taskProvider: TaskProvider<out BaseKeeperJarTask>
+  ) {
+    component.artifacts
+      .forScope(ScopedArtifacts.Scope.PROJECT)
+      .use(taskProvider)
+      .toGet(ScopedArtifact.CLASSES, BaseKeeperJarTask::allJars, BaseKeeperJarTask::allDirectories)
   }
 
   /**
@@ -385,24 +396,23 @@ public class KeeperPlugin : Plugin<Project> {
     appVariant: ApplicationVariant,
     emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
-    return tasks.register(
-      "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-      VariantClasspathJar::class.java
-    ) {
-      group = KEEPER_TASK_GROUP
-      this.emitDebugInfo.set(emitDebugInfo)
-      with(appVariant) {
-        from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfiguration.classesJars())
-      }
+    val taskProvider =
+      tasks.register(
+        "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+        VariantClasspathJar::class.java
+      ) {
+        group = KEEPER_TASK_GROUP
+        this.emitDebugInfo.set(emitDebugInfo)
 
-      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
-      val diagnosticsDir =
-        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
-      diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map { it.file("classes.jar") })
-      appJarsFile.set(outputDir.map { it.file("jars.txt") })
-    }
+        val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
+        val diagnosticsDir =
+          layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
+        diagnosticsOutputDir.set(diagnosticsDir)
+        archiveFile.set(outputDir.map { it.file("classes.jar") })
+        appJarsFile.set(outputDir.map { it.file("jars.txt") })
+      }
+    wireClassesAndJarsFor(appVariant, taskProvider)
+    return taskProvider
   }
 }
 

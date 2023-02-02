@@ -24,8 +24,11 @@ import java.util.zip.Deflater
 import java.util.zip.ZipFile
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -35,7 +38,6 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
@@ -46,15 +48,10 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   @get:OutputDirectory public abstract val diagnosticsOutputDir: DirectoryProperty
 
-  /**
-   * This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the jars
-   * really does matter here. Using [Classpath] is an error, as it looks only at content and not
-   * name or path, and we really do need to know the actual path to the artifact, even if its
-   * contents haven't changed.
-   */
-  @get:PathSensitive(PathSensitivity.ABSOLUTE)
-  @get:InputFiles
-  public abstract val allJars: ConfigurableFileCollection
+  // TODO what's this for?
+  @get:InputFiles public abstract val allDirectories: ListProperty<Directory>
+
+  @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
@@ -94,10 +91,13 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      allJars.files.forEach { jar ->
-        appJars.add(jar.canonicalPath)
-        archive.extractClassesFrom(jar) { appClasses += it }
-      }
+      allJars
+        .get()
+        .map { it.asFile }
+        .forEach { jar ->
+          appJars.add(jar.canonicalPath)
+          archive.extractClassesFrom(jar) { appClasses += it }
+        }
 
       // Take the compiled classes
       classpath
@@ -148,7 +148,7 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
-    val androidTestClasspath = allJars.files
+    val androidTestClasspath = allJars.get().map { it.asFile }
     diagnostic("jars") {
       androidTestClasspath.sortedBy { it.canonicalPath }.joinToString("\n") { it.canonicalPath }
     }
