@@ -81,6 +81,13 @@ jobs:
           distribution: 'zulu'
           java-version: '19'
 
+      # Just here to restore cache
+      - name: Gradle prep
+        id: gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: help
+
       - name: Upload snapshot (main only)
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SonatypeUsername }}
