@@ -314,8 +314,7 @@ public class KeeperPlugin : Plugin<Project> {
       // Look for our marker extension
       appVariant.getExtension(KeeperVariantMarker::class.java) ?: return@onVariants
       appVariant.androidTest?.let { testVariant ->
-        // TODO use only components after https://issuetracker.google.com/issues/199411018
-        if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
+        if (verifyMinification && !appVariant.isMinifyEnabled) {
           project.logger.error(
             """
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't
