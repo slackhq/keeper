@@ -38,6 +38,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.tasks.Jar
@@ -50,7 +51,13 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 
   @get:Classpath @get:InputFiles public abstract val allDirectories: ListProperty<Directory>
 
-  @get:PathSensitive(NONE) @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
+  /**
+   * This needs to use [InputFiles] and [PathSensitivity.ABSOLUTE] because the path to the jars
+   * really does matter here. Using [Classpath] is an error, as it looks only at content and not
+   * name or path, and we really do need to know the actual path to the artifact, even if its
+   * contents haven't changed.
+   */
+  @get:PathSensitive(PathSensitivity.ABSOLUTE) @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
@@ -85,6 +92,8 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
       allJars
         .get()
         .map { it.asFile }
+        .distinct()
+        .sortedBy { it.nameWithoutExtension }
         .forEach { jar ->
           appJars.add(jar.canonicalPath)
           archive.extractClassesFrom(jar) { appClasses += it }
