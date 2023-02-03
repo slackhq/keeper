@@ -57,7 +57,9 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
    * name or path, and we really do need to know the actual path to the artifact, even if its
    * contents haven't changed.
    */
-  @get:PathSensitive(PathSensitivity.ABSOLUTE) @get:InputFiles public abstract val allJars: ListProperty<RegularFile>
+  @get:PathSensitive(PathSensitivity.ABSOLUTE)
+  @get:InputFiles
+  public abstract val allJars: ListProperty<RegularFile>
 
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {

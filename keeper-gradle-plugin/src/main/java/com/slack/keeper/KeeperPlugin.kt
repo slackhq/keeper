@@ -145,10 +145,9 @@ public class KeeperPlugin : Plugin<Project> {
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
   ) {
-    appComponentsExtension.onApplicableVariants(
-      project,
-      verifyMinification = false
-    ) { testVariant, appVariant ->
+    appComponentsExtension.onApplicableVariants(project, verifyMinification = false) {
+      testVariant,
+      appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
