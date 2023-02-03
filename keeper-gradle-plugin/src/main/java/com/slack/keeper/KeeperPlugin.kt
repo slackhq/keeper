@@ -147,7 +147,6 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     appComponentsExtension.onApplicableVariants(
       project,
-      appExtension,
       verifyMinification = false
     ) { testVariant, appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
@@ -248,7 +247,7 @@ public class KeeperPlugin : Plugin<Project> {
         }
       )
 
-    appComponentsExtension.onApplicableVariants(project, appExtension, verifyMinification = true) {
+    appComponentsExtension.onApplicableVariants(project, verifyMinification = true) {
       testVariant,
       appVariant ->
       val intermediateAppJar =
@@ -305,7 +304,6 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
-    appExtension: AppExtension,
     verifyMinification: Boolean,
     body: (AndroidTest, ApplicationVariant) -> Unit
   ) {
