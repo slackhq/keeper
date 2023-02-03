@@ -380,7 +380,7 @@ public class KeeperPlugin : Plugin<Project> {
     taskProvider: TaskProvider<out BaseKeeperJarTask>
   ) {
     component.artifacts
-      .forScope(ScopedArtifacts.Scope.PROJECT)
+      .forScope(ScopedArtifacts.Scope.ALL)
       .use(taskProvider)
       .toGet(ScopedArtifact.CLASSES, BaseKeeperJarTask::allJars, BaseKeeperJarTask::allDirectories)
   }
