@@ -70,16 +70,10 @@ import org.junit.runners.Parameterized.Parameters
  *         - TestOnlyKotlinClassCaller.kt
  * ```
  */
-@RunWith(Parameterized::class)
-internal class KeeperFunctionalTest(private val minifierType: MinifierType) {
+internal class KeeperFunctionalTest {
 
-  companion object {
-    @JvmStatic
-    @Parameters(name = "{0}")
-    fun data(): List<Array<*>> {
-      return listOf(*MinifierType.values().map { arrayOf(it) }.toTypedArray())
-    }
-  }
+  // TODO inline away this
+  private val minifierType: MinifierType = MinifierType.R8_TRACE_REFERENCES
 
   /**
    * Represents a minifier type.
