@@ -15,6 +15,8 @@
  */
 import java.net.URL
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -43,18 +45,16 @@ repositories {
 samWithReceiver { annotation("org.gradle.api.HasImplicitReceiver") }
 
 tasks.withType<KotlinCompile>().configureEach {
-  kotlinOptions {
-    jvmTarget = "11"
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.7"
-    languageVersion = "1.7"
-    //    @Suppress("SuspiciousCollectionReassignment")
-    //    freeCompilerArgs += listOf("-progressive")
+    apiVersion.set(KotlinVersion.KOTLIN_1_8)
+    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+    //   freeCompilerArgs.add(listOf("-progressive"))
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
     // Serializable, which causes accidental headaches with Gradle configuration caching. It's
     // easier for us to just use the previous anonymous classes behavior
-    @Suppress("SuspiciousCollectionReassignment")
-    freeCompilerArgs += "-Xsam-conversions=class"
+    freeCompilerArgs.add("-Xsam-conversions=class")
   }
 }
 
