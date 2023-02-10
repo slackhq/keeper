@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 
@@ -31,11 +32,17 @@ allprojects {
         mavenCentral()
     }
 
+    pluginManager.withPlugin("java") {
+        java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
+
+        tasks.withType(JavaCompile.class).configureEach { options.release.set(11) }
+    }
+
     plugins.withType(KotlinBasePlugin.class).configureEach {
         project.tasks.withType(KotlinCompile).configureEach {
-            kotlinOptions {
-                jvmTarget = "11"
-                freeCompilerArgs += ['-progressive']
+            compilerOptions {
+                jvmTarget = JvmTarget.JVM_11
+                freeCompilerArgs.add('-progressive')
             }
         }
     }
