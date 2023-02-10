@@ -70,28 +70,6 @@ import org.junit.rules.TemporaryFolder
  */
 internal class KeeperFunctionalTest {
 
-  // TODO inline away this
-  private val minifierType: MinifierType = MinifierType.R8_TRACE_REFERENCES
-
-  /**
-   * Represents a minifier type.
-   *
-   * @property taskName The representation in a gradle task name.
-   * @property expectedRules The expected generated rules outputted by `-printconfiguration`.
-   * @property keeperExtraConfig Extra [KeeperExtension] configuration.
-   */
-  enum class MinifierType(
-    val taskName: String,
-    val expectedRules: Map<String, List<String>?>,
-    val keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE
-  ) {
-    R8_TRACE_REFERENCES(
-      "R8",
-      EXPECTED_TRACE_REFERENCES_CONFIG,
-      keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED
-    )
-  }
-
   @Rule
   @JvmField
   val temporaryFolder: TemporaryFolder = TemporaryFolder.builder().assureDeletion().build()
@@ -108,7 +86,7 @@ internal class KeeperFunctionalTest {
     val (projectDir, proguardConfigOutput) =
       prepareProject(
         temporaryFolder,
-        buildGradleFile("staging", "external", keeperExtraConfig = minifierType.keeperExtraConfig)
+        buildGradleFile("staging", "external", keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED)
       )
 
     val result = projectDir.runAsWiredStaging()
@@ -136,13 +114,13 @@ internal class KeeperFunctionalTest {
       projectDir.generatedChild("externalStagingAndroidTest/inferredKeepRules.pro")
     assertThat(generatedRules.readText().trim())
       .isEqualTo(
-        minifierType.expectedRules.map { indentRules(it.key, it.value) }.joinToString("\n")
+        EXPECTED_TRACE_REFERENCES_CONFIG.map { indentRules(it.key, it.value) }.joinToString("\n")
       )
 
     // Finally - verify our rules were included in the final minification execution.
     // Have to compare slightly different strings because proguard's format is a little different
     assertThat(proguardConfigOutput.readText().trim().replace("    ", "  ")).let { assertion ->
-      minifierType.expectedRules.forEach { assertion.contains(indentRules(it.key, it.value)) }
+      EXPECTED_TRACE_REFERENCES_CONFIG.forEach { assertion.contains(indentRules(it.key, it.value)) }
     }
   }
 
@@ -296,7 +274,6 @@ internal class KeeperFunctionalTest {
 private fun String.prefixIfNot(prefix: String) =
   if (this.startsWith(prefix)) this else "$prefix$this"
 
-@Language("PROGUARD")
 private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> =
   mapOf(
     "-keep class com.slack.keeper.sample.TestOnlyClass" to
