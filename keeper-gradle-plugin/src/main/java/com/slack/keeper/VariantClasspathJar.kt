@@ -23,7 +23,6 @@ import java.io.File
 import java.util.zip.Deflater
 import java.util.zip.ZipFile
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
@@ -61,6 +60,20 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
   @get:InputFiles
   public abstract val allJars: ListProperty<RegularFile>
 
+  protected fun jarFilesSequence(): Sequence<File> {
+    return allJars
+      .get()
+      .asSequence()
+      .map { it.asFile }
+      .distinct()
+      .sortedBy { it.invariantSeparatorsPath }
+  }
+
+  protected fun compiledClassesSequence(): Sequence<Pair<String, File>> {
+    // Take the compiled classes
+    return allDirectories.get().asSequence().map { it.asFile }.flatMap { it.classesSequence() }
+  }
+
   protected fun diagnostic(fileName: String, body: () -> String): File? {
     return if (emitDebugInfo.get()) {
       diagnosticsOutputDir.get().file("$fileName.txt").asFile.apply { writeText(body()) }
@@ -91,27 +104,17 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
     val appClasses = mutableSetOf<String>()
     ZipArchive(archiveFile.asFile.get().toPath()).use { archive ->
       // The runtime classpath (i.e. from dependencies)
-      allJars
-        .get()
-        .map { it.asFile }
-        .distinct()
-        .sortedBy { it.nameWithoutExtension }
-        .forEach { jar ->
-          appJars.add(jar.canonicalPath)
-          archive.extractClassesFrom(jar) { appClasses += it }
-        }
+      jarFilesSequence().forEach { jar ->
+        appJars.add(jar.canonicalPath)
+        archive.extractClassesFrom(jar) { appClasses += it }
+      }
 
       // Take the compiled classes
-      allDirectories
-        .get()
-        .asSequence()
-        .map { it.asFile }
-        .flatMap { it.classesSequence() }
-        .forEach { (name, file) ->
-          appClasses.add(name)
-          archive.delete(name)
-          archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
-        }
+      compiledClassesSequence().forEach { (name, file) ->
+        appClasses.add(name)
+        archive.delete(name)
+        archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
+      }
     }
 
     appJarsFile.get().asFile.writeText(appJars.sorted().joinToString("\n"))
@@ -137,33 +140,21 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
   // Only care about the contents
   @get:PathSensitive(NONE) @get:InputFile public abstract val appJarsFile: RegularFileProperty
 
-  @Suppress("UnstableApiUsage")
-  @get:Classpath
-  public abstract val classpath: ConfigurableFileCollection
-
   @get:OutputFile public abstract val archiveFile: RegularFileProperty
-
-  public fun from(vararg paths: Any) {
-    classpath.from(*paths)
-  }
 
   @TaskAction
   public fun createJar() {
     logger.debug("$LOG: Diffing androidTest jars and app jars")
     val appJars = appJarsFile.get().asFile.useLines { it.toSet() }
 
-    val androidTestClasspath = allJars.get().map { it.asFile }
-    diagnostic("jars") {
-      androidTestClasspath.sortedBy { it.canonicalPath }.joinToString("\n") { it.canonicalPath }
-    }
+    val androidTestClasspath = jarFilesSequence().toList()
+    diagnostic("jars") { androidTestClasspath.joinToString("\n") { it.canonicalPath } }
 
     val distinctAndroidTestClasspath =
       androidTestClasspath.toMutableSet().apply { removeAll { it.canonicalPath in appJars } }
 
     diagnostic("distinctJars") {
-      distinctAndroidTestClasspath
-        .sortedBy { it.canonicalPath }
-        .joinToString("\n") { it.canonicalPath }
+      distinctAndroidTestClasspath.joinToString("\n") { it.canonicalPath }
     }
 
     val androidTestClasses = mutableSetOf<String>()
@@ -174,14 +165,11 @@ public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
         .forEach { jar -> archive.extractClassesFrom(jar) { androidTestClasses += it } }
 
       // Take the compiled classes
-      classpath
-        .asSequence()
-        .flatMap { it.classesSequence() }
-        .forEach { (name, file) ->
-          androidTestClasses += name
-          archive.delete(name)
-          archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
-        }
+      compiledClassesSequence().forEach { (name, file) ->
+        androidTestClasses.add(name)
+        archive.delete(name)
+        archive.add(BytesSource(file.toPath(), name, Deflater.NO_COMPRESSION))
+      }
     }
 
     diagnostic("androidTestClasses") { androidTestClasses.sorted().joinToString("\n") }

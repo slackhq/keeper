@@ -29,6 +29,7 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
   return walkTopDown()
     .filter { it.extension == "class" }
     .filterNot { "META-INF" in it.name }
+    .sortedBy { it.invariantSeparatorsPath }
     .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
 }
 
