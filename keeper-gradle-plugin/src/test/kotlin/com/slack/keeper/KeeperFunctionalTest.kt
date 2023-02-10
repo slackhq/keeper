@@ -86,7 +86,11 @@ internal class KeeperFunctionalTest {
     val (projectDir, proguardConfigOutput) =
       prepareProject(
         temporaryFolder,
-        buildGradleFile("staging", "external", keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED)
+        buildGradleFile(
+          "staging",
+          "external",
+          keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED
+        )
       )
 
     val result = projectDir.runAsWiredStaging()
@@ -369,7 +373,7 @@ private fun buildGradleFile(
   automaticR8RepoManagement: Boolean = true,
   keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE,
   androidExtraConfig: AndroidExtraConfig = AndroidExtraConfig.ONLY_EXTERNAL_STAGING,
-  emitDebugInformation: Boolean = false,
+  emitDebugInformation: Boolean = true,
   extraDependencies: Map<String, String> = emptyMap()
 ): String {
   val testVariant = "$testFlavor${testBuildType.capitalize(Locale.US)}"
