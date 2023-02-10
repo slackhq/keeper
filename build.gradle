@@ -26,12 +26,7 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
+subprojects {
     pluginManager.withPlugin("java") {
         java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
 
