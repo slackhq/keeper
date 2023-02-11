@@ -28,19 +28,6 @@ plugins {
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
 }
 
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
-
-repositories {
-  mavenCentral()
-  google()
-  gradlePluginPortal()
-}
-
 // Reimplement kotlin-dsl's application of this function for nice DSLs
 samWithReceiver { annotation("org.gradle.api.HasImplicitReceiver") }
 

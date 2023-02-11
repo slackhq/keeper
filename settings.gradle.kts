@@ -34,6 +34,23 @@ dependencyResolutionManagement {
       }
     }
   }
+  repositories {
+    google()
+    mavenCentral()
+
+    // Example demo of how to configure your own R8 repo
+    repositories {
+      // Limit this repo to only the R8 dependency
+      exclusiveContent {
+        forRepository {
+          maven("https://storage.googleapis.com/r8-releases/raw") {
+            content { includeModule("com.android.tools", "r8") }
+          }
+        }
+        filter { includeModule("com.android.tools", "r8") }
+      }
+    }
+  }
 }
 
 rootProject.name = "keeper-root"
