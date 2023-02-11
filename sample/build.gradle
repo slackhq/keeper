@@ -162,13 +162,7 @@ if (isCi) {
           doLast {
             println "Checking expected configuration contains embedded library rules from androidTest"
             def output = r8Task.getProguardConfigurationOutput()
-            String allConfigurations
-            if (output instanceof Provider<File>) {
-              // This is a Provider on AGP 7
-              allConfigurations = output.get().text
-            } else {
-              allConfigurations = output.text
-            }
+            String allConfigurations = output.get().text
             logger.lifecycle("Verifying R8 configuration contents")
             if (!allConfigurations.contains("-keep class slack.test.only.Android { *; }")) {
               throw new IllegalStateException("R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations")
