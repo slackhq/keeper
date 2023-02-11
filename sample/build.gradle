@@ -131,8 +131,8 @@ if (isCi) {
       .configureEach {
         doLast {
           println "Checking expected rules"
-          String outputRules = outputProguardRules.getAsFile().get().text
-          String expectedRules = file("expectedRules.pro").text
+          String outputRules = outputProguardRules.getAsFile().get().text.trim()
+          String expectedRules = file("expectedRules.pro").text.trim()
           if (outputRules != expectedRules) {
             throw new IllegalStateException("Rules don't match expected, existing ones:\n$outputRules")
           }
