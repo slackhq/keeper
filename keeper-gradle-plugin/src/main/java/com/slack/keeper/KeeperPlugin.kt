@@ -17,7 +17,10 @@
 
 package com.slack.keeper
 
+import com.android.build.api.artifact.Artifacts
 import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.artifact.impl.ArtifactsImpl
+import com.android.build.api.component.analytics.AnalyticsEnabledArtifacts
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
@@ -26,6 +29,7 @@ import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
+import com.android.build.gradle.internal.scope.InternalArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import java.io.File
@@ -278,9 +282,22 @@ public class KeeperPlugin : Plugin<Project> {
           )
         )
 
-      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-      val testProguardFiles = testVariant.runtimeConfiguration.proguardFiles()
-      applyGeneratedRules(appVariant.name, prop, testProguardFiles)
+      afterEvaluate {
+        val prop =
+          layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+        val testProguardFiles = testVariant.runtimeConfiguration.proguardFiles()
+        val testProguardFile =
+          (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
+        applyGeneratedRules(appVariant.name, prop, testProguardFiles, testProguardFile)
+      }
+    }
+  }
+
+  private fun Artifacts.unwrap(): ArtifactsImpl {
+    return when (this) {
+      is ArtifactsImpl -> this
+      is AnalyticsEnabledArtifacts -> delegate.unwrap()
+      else -> error("Unrecognized artifacts type $javaClass")
     }
   }
 
@@ -331,7 +348,8 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
     appVariant: String,
     prop: Provider<Directory>,
-    testProguardFiles: Provider<Set<File>>
+    testProguardFiles: Provider<Set<File>>,
+    testProguardFile: Provider<RegularFile>
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
@@ -342,6 +360,7 @@ public class KeeperPlugin : Plugin<Project> {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
         configurationFiles.from(testProguardFiles)
+        configurationFiles.from(testProguardFile)
       }
   }
 
@@ -413,7 +432,7 @@ public class KeeperPlugin : Plugin<Project> {
 }
 
 private fun Configuration.proguardFiles(): Provider<Set<File>> {
-  return artifactView(ArtifactType.UNFILTERED_PROGUARD_RULES)
+  return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
 private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
