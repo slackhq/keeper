@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        agp: ['8.0.0-beta01', '8.1.0-alpha02']
+        agp: ['8.0.0-beta02', '8.1.0-alpha04']
         job: ['instrumentation', 'plugin']
     steps:
       - name: Checkout
