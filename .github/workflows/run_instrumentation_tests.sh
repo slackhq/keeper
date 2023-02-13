@@ -1,5 +1,8 @@
 #!/bin/bash
 
+adb uninstall com.slack.keeper.sample || true
+adb uninstall com.slack.keeper.sample.androidTest || true
+
 echo "Building APK and verifying L8"
 ./gradlew :sample:minifyExternalStagingWithR8 --stacktrace -Pkeeper.verifyL8=true
 
@@ -9,3 +12,6 @@ echo "Building APK and verifying L8"
 # Now proceed, with much of the build being cached up to this point
 echo "Running instrumentation tests"
 ./gradlew connectedExternalStagingAndroidTest --stacktrace
+
+adb uninstall com.slack.keeper.sample || true
+adb uninstall com.slack.keeper.sample.androidTest || true

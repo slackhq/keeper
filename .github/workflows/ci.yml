@@ -11,6 +11,11 @@ on:
   # Always run on PRs
   pull_request:
 
+env:
+  # Test on API 30 because that's the first version with ATDs
+  API_LEVEL: '30'
+  AVD_TARGET: 'aosp_atd'
+
 jobs:
   build:
     name: ${{ matrix.job }} / AGP ${{ matrix.agp }}
@@ -48,13 +53,42 @@ jobs:
         with:
           arguments: -p keeper-gradle-plugin check
 
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
+        if: matrix.job == 'instrumentation'
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ env.API_LEVEL }}-${{ env.AVD_TARGET }}
+
+      - name: Create AVD and generate snapshot for caching
+        if: matrix.job == 'instrumentation' && steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          disable-spellchecker: true
+          target: ${{ env.AVD_TARGET }}
+          channel: canary # Necessary for ATDs
+          script: echo "Generated AVD snapshot for caching."
+
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         if: matrix.job == 'instrumentation'
         with:
+          api-level: ${{ env.API_LEVEL }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          disable-spellchecker: true
+          target: 'aosp_atd'
+          channel: canary # Necessary for ATDs
           # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
-          script: .github/workflows/run_instrumentation_tests.sh
-          api-level: 29
+          script: ./.github/workflows/run_instrumentation_tests.sh
 
       - name: (Fail-only) Bundle the build report
         if: failure()
