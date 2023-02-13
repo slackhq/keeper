@@ -285,7 +285,7 @@ public class KeeperPlugin : Plugin<Project> {
       afterEvaluate {
         val prop =
           layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-        val testProguardFiles = testVariant.runtimeConfiguration.proguardFiles()
+        val testProguardFiles = testVariant.compileConfiguration.proguardFiles()
         val testProguardFile =
           (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
         applyGeneratedRules(appVariant.name, prop, testProguardFiles, testProguardFile)
