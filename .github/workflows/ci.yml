@@ -60,7 +60,8 @@ jobs:
         with:
           path: |
             ~/.android/avd/*
-            ~/.android/adb*
+            ~/.android/adbkey
+            ~/.android/adbkey.pub
           key: avd-${{ env.API_LEVEL }}-${{ env.AVD_TARGET }}
 
       - name: Create AVD and generate snapshot for caching
