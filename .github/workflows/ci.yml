@@ -20,7 +20,8 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        agp: ['8.0.0-beta02', '8.1.0-alpha04']
+        # TODO add back '8.1.0-alpha04' once API changes around L8 keep rules are sorted out
+        agp: ['8.0.0-beta02']
         job: ['instrumentation', 'plugin']
     steps:
       - name: Checkout
