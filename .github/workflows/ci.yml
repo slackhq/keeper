@@ -28,6 +28,8 @@ jobs:
         # TODO add back '8.1.0-alpha04' once API changes around L8 keep rules are sorted out
         agp: ['8.0.0-beta02']
         job: ['instrumentation', 'plugin']
+    env:
+      DEP_OVERRIDE_agp: ${{ matrix.agp }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -48,12 +50,17 @@ jobs:
         id: gradle
         if: matrix.job == 'plugin'
         uses: gradle/gradle-build-action@v2
-        env:
-          DEP_OVERRIDE_agp: ${{ matrix.agp }}
         with:
           arguments: -p keeper-gradle-plugin check
 
-       # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
+      - name: Assemble instrumentation tests
+        id: gradle-assemble-instrumentation
+        if: matrix.job == 'instrumentation'
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :sample:minifyExternalStagingWithR8 --stacktrace -Pkeeper.verifyL8=true
+
+      # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
 #      - name: AVD cache
 #        uses: actions/cache@v3
 #        id: avd-cache
@@ -79,8 +86,8 @@ jobs:
 #          script: echo "Generated AVD snapshot for caching."
 
       - name: Run instrumentation tests
-        uses: reactivecircus/android-emulator-runner@v2
         if: matrix.job == 'instrumentation'
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ env.API_LEVEL }}
           force-avd-creation: false
@@ -89,8 +96,16 @@ jobs:
           disable-spellchecker: true
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
-          # We don't want to wait for the emulator to start/stop twice, so we combine this script into the same step.
-          script: ./.github/workflows/run_instrumentation_tests.sh
+          script: |
+            adb uninstall com.slack.keeper.sample || true
+            adb uninstall com.slack.keeper.sample.androidTest || true
+            
+            # Now proceed, with much of the build being cached up to this point
+            echo "Running instrumentation tests"
+            ./gradlew connectedExternalStagingAndroidTest --stacktrace
+            
+            adb uninstall com.slack.keeper.sample || true
+            adb uninstall com.slack.keeper.sample.androidTest || true
 
       - name: (Fail-only) Bundle the build report
         if: failure()
