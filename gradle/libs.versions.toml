@@ -1,5 +1,5 @@
 [versions]
-agp = "8.0.0-beta02"
+agp = "8.0.0-beta03"
 androidx-test = "1.4.0"
 kotlin = "1.8.10"
 gjf = "1.15.0"
