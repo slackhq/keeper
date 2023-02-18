@@ -359,8 +359,12 @@ public class KeeperPlugin : Plugin<Project> {
       .configureEach {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
-        configurationFiles.from(testProguardFiles)
-        configurationFiles.from(testProguardFile)
+        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't propagate
+        // task dependencies and breaks in Gradle 8.
+        if (!hasProperty("keeper.disableTestProguardFiles")) {
+          configurationFiles.from(testProguardFiles)
+          configurationFiles.from(testProguardFile)
+        }
       }
   }
 
