@@ -353,6 +353,7 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
+    val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
     tasks
       .withType(R8Task::class.java)
       .matching { it.name == targetName }
@@ -361,7 +362,7 @@ public class KeeperPlugin : Plugin<Project> {
         configurationFiles.from(prop)
         // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't propagate
         // task dependencies and breaks in Gradle 8.
-        if (!hasProperty("keeper.disableTestProguardFiles")) {
+        if (!disableTestProguardFiles) {
           configurationFiles.from(testProguardFiles)
           configurationFiles.from(testProguardFile)
         }
