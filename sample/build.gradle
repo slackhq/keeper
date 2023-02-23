@@ -85,11 +85,6 @@ android {
   testBuildType = "staging"
 }
 
-// Controlled by Keeper CI for testing
-boolean useTraceReferences = providers.gradleProperty("keeperTest.enableTraceReferences")
-    .map { Boolean.parseBoolean(it) }
-    .orElse(false)
-
 // Example: Only enable on "externalStaging"
 androidComponents {
   beforeVariants(selector().all()) { VariantBuilder variantBuilder ->
@@ -109,12 +104,9 @@ keeper {
   // Uncomment this line to debug the R8 from a remote instance.
   //r8JvmArgs.addAll(Arrays.asList("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"))
 
-  if (useTraceReferences) {
-    // Enable the new experimental TraceReferences tool.
-    traceReferences {
-      // Don't fail the build if missing definitions are found.
-      arguments.set(["--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"])
-    }
+  traceReferences {
+    // Don't fail the build if missing definitions are found.
+    arguments.set(["--map-diagnostics:MissingDefinitionsDiagnostic", "error", "info"])
   }
 }
 
