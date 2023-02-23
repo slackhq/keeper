@@ -252,7 +252,7 @@ internal class KeeperFunctionalTest {
   private fun runGradleInternal(projectDir: File, vararg args: String): BuildResult {
     val extraArgs = args.toMutableList()
     extraArgs += "--stacktrace"
-    //    extraArgs += "--configuration-cache"
+    extraArgs += "--configuration-cache"
     return GradleRunner.create()
       .forwardStdOutput(System.out.writer())
       .forwardStdError(System.err.writer())
@@ -394,7 +394,7 @@ private fun buildGradleFile(
   }
 
   plugins {
-    id 'com.android.application' version '8.0.0-beta01'
+    id 'com.android.application' version '8.0.0-beta03'
     id 'org.jetbrains.kotlin.android' version '1.8.10'
     id 'com.slack.keeper'
   }
