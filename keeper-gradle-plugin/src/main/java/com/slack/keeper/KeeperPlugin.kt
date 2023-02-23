@@ -42,7 +42,6 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
@@ -349,7 +348,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
     appVariant: String,
     prop: Provider<Directory>,
-    testProguardFiles: FileCollection,
+    testProguardFiles: Provider<Set<File>>,
     testProguardFile: Provider<RegularFile>
   ) {
     val targetName = interpolateR8TaskName(appVariant)
@@ -437,15 +436,16 @@ public class KeeperPlugin : Plugin<Project> {
   }
 }
 
-private fun Configuration.proguardFiles(): FileCollection {
+private fun Configuration.proguardFiles(): Provider<Set<File>> {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
-private fun Configuration.artifactView(artifactType: ArtifactType): FileCollection {
+private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
   return incoming
     .artifactView { attributes { attribute(AndroidArtifacts.ARTIFACT_TYPE, artifactType.type) } }
     .artifacts
-    .artifactFiles
+    .resolvedArtifacts
+    .map { it.asSequence().map { it.file }.toSet() }
 }
 
 /** Copy of the stdlib version until it's stable. */
