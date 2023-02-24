@@ -26,7 +26,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         # TODO add back '8.1.0-alpha04' once API changes around L8 keep rules are sorted out
-        agp: ['8.0.0-beta02']
+        agp: ['8.0.0-beta03']
         job: ['instrumentation', 'plugin']
     env:
       DEP_OVERRIDE_agp: ${{ matrix.agp }}
