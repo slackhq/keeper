@@ -19,7 +19,7 @@ androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidx-
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
 androidx-test-truth = "androidx.test.ext:junit:1.1.3"
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
-desugarJdkLibs = "com.android.tools:desugar_jdk_libs:2.0.1"
+desugarJdkLibs = "com.android.tools:desugar_jdk_libs:2.0.2"
 javapoet = "com.squareup:javapoet:1.13.0"
 junit = "junit:junit:4.13.2"
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
