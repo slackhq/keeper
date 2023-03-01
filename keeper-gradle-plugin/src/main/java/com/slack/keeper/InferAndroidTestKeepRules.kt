@@ -16,7 +16,10 @@
 package com.slack.keeper
 
 import java.util.Locale
+import javax.inject.Inject
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
@@ -25,10 +28,12 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.process.ExecOperations
 
 /**
  * Generates proguard keep rules from the generated [androidTestSourceJar] and [appTargetJar] tasks,
@@ -41,10 +46,15 @@ import org.gradle.api.tasks.TaskProvider
  *
  * This task's output is finally used as an input into the app variant's proguard transform task.
  */
-// TODO(zsweers) Run this in the background once Gradle supports it:
-// https://github.com/gradle/gradle/issues/1367
 @CacheableTask
-public abstract class InferAndroidTestKeepRules : JavaExec() {
+public abstract class InferAndroidTestKeepRules
+@Inject
+constructor(private val execOps: ExecOperations) : DefaultTask() {
+
+  init {
+    group = KEEPER_TASK_GROUP
+    description = "Infers keep rules based on target app APIs used from the androidTest classes"
+  }
 
   @get:Classpath public abstract val androidTestSourceJar: RegularFileProperty
 
@@ -71,31 +81,33 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
   /** @see TraceReferences.arguments */
   @get:Input public abstract val traceReferencesArgs: ListProperty<String>
 
+  @get:Classpath @get:InputFiles public abstract val r8Program: ConfigurableFileCollection
+
   @get:OutputFile public abstract val outputProguardRules: RegularFileProperty
 
-  override fun exec() {
+  @TaskAction
+  internal fun exec() {
     // If you want to debug this, uncomment the below line and attach a remote debugger from a
     // cloned R8 repo project.
+    var inputJvmArgs = emptyList<String>()
     if (jvmArgsProperty.isPresent) {
-      val inputJvmArgs = jvmArgsProperty.get()
-      if (inputJvmArgs.isNotEmpty()) {
-        logger.lifecycle(
-          "Starting infer exec with jvmArgs ${
-          inputJvmArgs.joinToString(
-            ", ",
-            prefix = "[",
-            postfix = "]"
-          )
-          }. If debugging, attach the debugger now."
+      val args = jvmArgsProperty.get()
+      if (args.isNotEmpty()) {
+        val argString = args.joinToString(", ", prefix = "[", postfix = "]")
+        logger.debug(
+          "Starting infer exec with jvmArgs $argString. If debugging, attach the debugger now."
         )
-        jvmArgs = inputJvmArgs
+        inputJvmArgs = args
       }
     }
 
-    enableAssertions = enableAssertionsProperty.get()
-    args = genTraceReferencesArgs()
-
-    super.exec()
+    execOps.javaexec {
+      classpath(r8Program)
+      jvmArgs(inputJvmArgs)
+      args(genTraceReferencesArgs())
+      enableAssertions = enableAssertionsProperty.get()
+      mainClass.set("com.android.tools.r8.tracereferences.TraceReferences")
+    }
   }
 
   private fun genTraceReferencesArgs(): List<String?> =
@@ -141,7 +153,6 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
         }
       }
 
-      group = KEEPER_TASK_GROUP
       androidTestSourceJar.set(androidTestJarProvider.flatMap { it.archiveFile })
       appTargetJar.set(releaseClassesJarProvider.flatMap { it.archiveFile })
       this.androidJar.set(androidJar)
@@ -155,9 +166,7 @@ public abstract class InferAndroidTestKeepRules : JavaExec() {
           }/inferredKeepRules.pro"
         )
       )
-      classpath(r8Configuration)
-      mainClass.set("com.android.tools.r8.tracereferences.TraceReferences")
-
+      r8Program.setFrom(r8Configuration)
       enableAssertionsProperty.set(enableAssertions)
     }
   }
