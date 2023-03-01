@@ -385,7 +385,6 @@ public class KeeperPlugin : Plugin<Project> {
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
         AndroidTestVariantClasspathJar::class.java
       ) {
-        group = KEEPER_TASK_GROUP
         this.emitDebugInfo.value(emitDebugInfo)
         this.appJarsFile.set(appJarsProvider)
 
@@ -402,12 +401,12 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun wireClassesAndJarsFor(
     component: Component,
-    taskProvider: TaskProvider<out BaseKeeperJarTask>
+    taskProvider: TaskProvider<out KeeperJarTask>
   ) {
     component.artifacts
       .forScope(ScopedArtifacts.Scope.ALL)
       .use(taskProvider)
-      .toGet(ScopedArtifact.CLASSES, BaseKeeperJarTask::allJars, BaseKeeperJarTask::allDirectories)
+      .toGet(ScopedArtifact.CLASSES, KeeperJarTask::allJars, KeeperJarTask::allDirectories)
   }
 
   /**
@@ -423,7 +422,6 @@ public class KeeperPlugin : Plugin<Project> {
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
         VariantClasspathJar::class.java
       ) {
-        group = KEEPER_TASK_GROUP
         this.emitDebugInfo.set(emitDebugInfo)
 
         val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")

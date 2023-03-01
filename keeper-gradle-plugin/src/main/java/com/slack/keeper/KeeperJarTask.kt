@@ -40,9 +40,8 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.PathSensitivity.NONE
 import org.gradle.api.tasks.TaskAction
-import org.gradle.jvm.tasks.Jar
 
-public abstract class BaseKeeperJarTask : DefaultTask() {
+public abstract class KeeperJarTask : DefaultTask() {
 
   @get:Input public abstract val emitDebugInfo: Property<Boolean>
 
@@ -84,15 +83,20 @@ public abstract class BaseKeeperJarTask : DefaultTask() {
 }
 
 /**
- * A simple cacheable task that creates a jar from a given [classpath]. Normally these aren't
- * intended to be cacheable, but in our case it's fine since the resulting jar is an input of a task
- * and not just a transient operation of another plugin.
+ * A simple cacheable task that creates a jar from given [allDirectories] and [allJars]. Normally
+ * these aren't intended to be cacheable, but in our case it's fine since the resulting jar is an
+ * input of a task and not just a transient operation of another plugin.
  *
  * This uses `ZipFlinger` under the hood to run the copy operation performantly.
  */
 @Suppress("UnstableApiUsage")
 @CacheableTask
-public abstract class VariantClasspathJar : BaseKeeperJarTask() {
+public abstract class VariantClasspathJar : KeeperJarTask() {
+
+  init {
+    group = KEEPER_TASK_GROUP
+    description = "Creates a fat jar of all the target app classes and its dependencies"
+  }
 
   @get:OutputFile public abstract val archiveFile: RegularFileProperty
 
@@ -124,17 +128,23 @@ public abstract class VariantClasspathJar : BaseKeeperJarTask() {
 }
 
 /**
- * A [Jar] task that sources from both the androidTest compiled sources _and_ its distinct
+ * A [KeeperJarTask] task that sources from both the androidTest compiled sources _and_ its distinct
  * dependencies (as compared to the [appJarsFile]). R8's `TraceReferences` requires no class overlap
  * between the two jars it's comparing, so at copy-time this will compute the unique androidTest
  * dependencies. We need to have them because there may be APIs that _they_ use that are used in the
  * target app runtime, and we want R8 to account for those usages as well.
  */
 @CacheableTask
-public abstract class AndroidTestVariantClasspathJar : BaseKeeperJarTask() {
+public abstract class AndroidTestVariantClasspathJar : KeeperJarTask() {
 
   private companion object {
     val LOG = AndroidTestVariantClasspathJar::class.simpleName!!
+  }
+
+  init {
+    group = KEEPER_TASK_GROUP
+    description =
+      "Creates a fat jar of all the test app classes and its distinct dependencies from the target app dependencies"
   }
 
   // Only care about the contents
