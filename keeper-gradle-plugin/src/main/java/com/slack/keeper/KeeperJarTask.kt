@@ -89,7 +89,6 @@ public abstract class KeeperJarTask : DefaultTask() {
  *
  * This uses `ZipFlinger` under the hood to run the copy operation performantly.
  */
-@Suppress("UnstableApiUsage")
 @CacheableTask
 public abstract class VariantClasspathJar : KeeperJarTask() {
 
