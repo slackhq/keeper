@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.util.Locale
+
 pluginManagement {
   repositories {
     google()
@@ -27,7 +29,7 @@ dependencyResolutionManagement {
       val overrides = System.getenv().filterKeys { it.startsWith("DEP_OVERRIDE_") }
       maybeCreate("libs").apply {
         for ((key, value) in overrides) {
-          val catalogKey = key.removePrefix("DEP_OVERRIDE_").toLowerCase()
+          val catalogKey = key.removePrefix("DEP_OVERRIDE_").lowercase(Locale.US)
           println("Overriding $catalogKey with $value")
           version(catalogKey, value)
         }
