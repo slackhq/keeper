@@ -15,9 +15,8 @@ build type that you test against is controlled by the `testBuildType` flag, whic
 
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
-**Note:** Keeper uses private APIs from AGP and could break between releases. It is currently
-tested against AGP version `7.1.0` and `7.2.0-beta01` (or whatever `ci_agp_version` env
-vars are described [here](https://github.com/slackhq/keeper/blob/main/.github/workflows/ci.yml).
+**Note:** Keeper uses private APIs from AGP and could break between releases. See the changelog to 
+check what versions are supported with each release.
 
 ## Installation
 
