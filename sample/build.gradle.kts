@@ -52,6 +52,10 @@ android {
     isCoreLibraryDesugaringEnabled = true
   }
 
+  // I know it looks like this shouldn't be necessary in the modern age of Kotlin Android
+  // development. But I assure you, it most certainly is. If you try to remove it, remember to check
+  // here if you see TestOnlyClass missing from proguard rules, as it's called from a Java file that
+  // is, somehow, protected by this block.
   sourceSets {
     maybeCreate("main").java.srcDirs("src/main/kotlin")
     maybeCreate("androidTest").java.srcDirs("src/androidTest/kotlin")

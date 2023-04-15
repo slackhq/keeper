@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.14.0
+------
+
+_2023-04-15_
+
+Happy new year!
+
+- **Enhancement**: Support AGP 8.0. AGP 7.x and lower are no longer supported.
+- **Enhancement**: Use new AGP APIs for retrieving all compiled classes, better supporting configuration cache.
+- **Enhancement**: Better support configuration cache in Gradle 8.x in general.
+- **Enhancement**: Add new `keeper.disableTestProguardFiles` flag gradle property to optionally disable merging in test proguard files.
+- **Enhancement**: `InferAndroidTestKeepRules` no longer extends `JavaExec`.
+- **Enhancement**: `PrintUses` support is removed entirely.
+- **Fix**: Use `artifactFiles` instead of `resolvedArtifacts` for resolving proguard files.
+
 0.13.0
 ------
 
