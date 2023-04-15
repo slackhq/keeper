@@ -10,7 +10,7 @@ agp-library = { id = "com.android.library", version.ref = "agp" }
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.12.1" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.25.1" }
-spotless = { id = "com.diffplug.spotless", version = "6.14.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.18.0" }
 
 [libraries]
 androidx-annotation = "androidx.annotation:annotation:1.6.0"
