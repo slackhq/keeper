@@ -15,8 +15,16 @@
  */
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
+import com.google.common.truth.Truth.assertThat
 import com.slack.keeper.InferAndroidTestKeepRules
 import com.slack.keeper.optInToKeeper
+
+buildscript {
+  dependencies {
+    // Truth has nice string comparison APIs and error messages
+    classpath(libs.truth)
+  }
+}
 
 plugins {
   id("com.android.application")
@@ -111,9 +119,10 @@ if (isCi) {
       val outputRules = outputProguardRules.asFile.get().readText().trim()
       val expectedRules = file("expectedRules.pro").readText().trim()
       if (outputRules != expectedRules) {
-        throw IllegalStateException(
-          "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'.\n$outputRules"
+        System.err.println(
+          "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'"
         )
+        assertThat(outputRules).isEqualTo(expectedRules)
       }
     }
   }
