@@ -126,7 +126,7 @@ if (isCi) {
           String outputRules = outputProguardRules.getAsFile().get().text.trim()
           String expectedRules = file("expectedRules.pro").text.trim()
           if (outputRules != expectedRules) {
-            throw new IllegalStateException("Rules don't match expected, existing ones:\n$outputRules")
+            throw new IllegalStateException("Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'.\n$outputRules")
           }
         }
       }
