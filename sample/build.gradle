@@ -19,7 +19,6 @@ import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import com.slack.keeper.InferAndroidTestKeepRules
 import com.slack.keeper.KeeperVariantMarker
-import kotlin.PreconditionsKt
 
 plugins {
   id 'com.android.application'
