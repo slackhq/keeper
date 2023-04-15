@@ -125,7 +125,8 @@ if (isCi) {
       val expectedRules = file("expectedRules.pro").readText().trim()
       if (outputRules != expectedRules) {
         System.err.println(
-            "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'")
+          "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'"
+        )
         assertThat(outputRules).isEqualTo(expectedRules)
       }
     }
@@ -133,45 +134,48 @@ if (isCi) {
 
   if (verifyL8) {
     tasks
-        .withType<L8DexDesugarLibTask>()
-        .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
-        .configureEach {
-          doLast {
-            println("Checking expected input rules from diagnostics output")
-            val diagnosticFilePath =
-                "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
-            val diagnostics = file(diagnosticFilePath).readText()
-            if ("-dontobfuscate" !in diagnostics) {
-              throw IllegalStateException(
-                  "L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see $diagnosticFilePath")
-            } else if ("-keep class j\$.time.Instant" !in diagnostics) {
-              throw IllegalStateException(
-                  "L8 diagnostic rules include the main variant's R8-generated rules, see $diagnosticFilePath")
-            }
-          }
-        }
-  }
-
-  tasks
-      .withType<R8Task>()
-      .matching { it.name == "minifyExternalStagingWithR8" }
+      .withType<L8DexDesugarLibTask>()
+      .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
       .configureEach {
         doLast {
-          println(
-              "Checking expected configuration contains embedded library rules from androidTest")
-          val output = getProguardConfigurationOutput()
-          val allConfigurations = output.get().readText()
-          logger.lifecycle("Verifying R8 configuration contents")
-          if ("-keep class slack.test.only.Android { *; }" !in allConfigurations) {
+          println("Checking expected input rules from diagnostics output")
+          val diagnosticFilePath =
+            "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
+          val diagnostics = file(diagnosticFilePath).readText()
+          if ("-dontobfuscate" !in diagnostics) {
             throw IllegalStateException(
-                "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations")
-          }
-          if ("-keep class slack.test.only.Embedded { *; }" !in allConfigurations) {
+              "L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see $diagnosticFilePath"
+            )
+          } else if ("-keep class j\$.time.Instant" !in diagnostics) {
             throw IllegalStateException(
-                "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations")
+              "L8 diagnostic rules include the main variant's R8-generated rules, see $diagnosticFilePath"
+            )
           }
         }
       }
+  }
+
+  tasks
+    .withType<R8Task>()
+    .matching { it.name == "minifyExternalStagingWithR8" }
+    .configureEach {
+      doLast {
+        println("Checking expected configuration contains embedded library rules from androidTest")
+        val output = getProguardConfigurationOutput()
+        val allConfigurations = output.get().readText()
+        logger.lifecycle("Verifying R8 configuration contents")
+        if ("-keep class slack.test.only.Android { *; }" !in allConfigurations) {
+          throw IllegalStateException(
+            "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
+          )
+        }
+        if ("-keep class slack.test.only.Embedded { *; }" !in allConfigurations) {
+          throw IllegalStateException(
+            "R8 configuration doesn't contain embedded library rules from androidTest. Full contents:\n$allConfigurations"
+          )
+        }
+      }
+    }
 }
 
 dependencies {
