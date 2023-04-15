@@ -15,6 +15,8 @@
  */
 import java.net.URL
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -26,47 +28,44 @@ plugins {
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
 }
 
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
-
-repositories {
-  mavenCentral()
-  google()
-  gradlePluginPortal()
-}
-
 // Reimplement kotlin-dsl's application of this function for nice DSLs
 samWithReceiver { annotation("org.gradle.api.HasImplicitReceiver") }
 
 tasks.withType<KotlinCompile>().configureEach {
-  kotlinOptions {
-    jvmTarget = "11"
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion = "1.7"
-    languageVersion = "1.7"
-    //    @Suppress("SuspiciousCollectionReassignment")
-    //    freeCompilerArgs += listOf("-progressive")
+    apiVersion.set(KotlinVersion.KOTLIN_1_8)
+    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+    //   freeCompilerArgs.add(listOf("-progressive"))
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
     // Serializable, which causes accidental headaches with Gradle configuration caching. It's
     // easier for us to just use the previous anonymous classes behavior
-    @Suppress("SuspiciousCollectionReassignment")
-    freeCompilerArgs += "-Xsam-conversions=class"
+    freeCompilerArgs.add("-Xsam-conversions=class")
   }
 }
 
 tasks.withType<Test>().configureEach {
   beforeTest(closureOf<TestDescriptor> { logger.lifecycle("Running test: $this") })
+  // Required to test configuration cache in tests when using withDebug()
+  // https://github.com/gradle/gradle/issues/22765#issuecomment-1339427241
+  jvmArgs(
+    "--add-opens",
+    "java.base/java.util=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.lang.invoke=ALL-UNNAMED",
+    "--add-opens",
+    "java.base/java.net=ALL-UNNAMED",
+  )
 }
 
 sourceSets {
   getByName("test").resources.srcDirs(project.layout.buildDirectory.dir("pluginUnderTestMetadata"))
 }
 
-java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
 
 tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
 
@@ -121,7 +120,7 @@ dependencies {
   compileOnly(libs.zipflinger)
   compileOnly(libs.agp)
 
-  addTestPlugin(libs.agpTestVersion)
+  addTestPlugin(libs.agp)
   addTestPlugin(libs.kgp)
   addTestPlugin(libs.kgp.api)
   testImplementation(libs.javapoet)

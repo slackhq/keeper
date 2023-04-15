@@ -1,24 +1,13 @@
-public abstract class com/slack/keeper/AndroidTestVariantClasspathJar : com/slack/keeper/BaseKeeperJarTask {
+public abstract class com/slack/keeper/AndroidTestVariantClasspathJar : com/slack/keeper/KeeperJarTask {
 	public fun <init> ()V
 	public final fun createJar ()V
-	public final fun from ([Ljava/lang/Object;)V
 	public abstract fun getAppJarsFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getArchiveFile ()Lorg/gradle/api/file/RegularFileProperty;
-	public abstract fun getClasspath ()Lorg/gradle/api/file/ConfigurableFileCollection;
 }
 
-public abstract class com/slack/keeper/BaseKeeperJarTask : org/gradle/api/DefaultTask {
-	public fun <init> ()V
-	protected final fun diagnostic (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/io/File;
-	public abstract fun getAllJars ()Lorg/gradle/api/file/ConfigurableFileCollection;
-	public abstract fun getDiagnosticsOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
-	public abstract fun getEmitDebugInfo ()Lorg/gradle/api/provider/Property;
-}
-
-public abstract class com/slack/keeper/InferAndroidTestKeepRules : org/gradle/api/tasks/JavaExec {
+public abstract class com/slack/keeper/InferAndroidTestKeepRules : org/gradle/api/DefaultTask {
 	public static final field Companion Lcom/slack/keeper/InferAndroidTestKeepRules$Companion;
-	public fun <init> ()V
-	public fun exec ()V
+	public fun <init> (Lorg/gradle/process/ExecOperations;)V
 	public abstract fun getAndroidJar ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getAndroidTestJar ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getAndroidTestSourceJar ()Lorg/gradle/api/file/RegularFileProperty;
@@ -26,6 +15,7 @@ public abstract class com/slack/keeper/InferAndroidTestKeepRules : org/gradle/ap
 	public abstract fun getEnableAssertionsProperty ()Lorg/gradle/api/provider/Property;
 	public abstract fun getJvmArgsProperty ()Lorg/gradle/api/provider/ListProperty;
 	public abstract fun getOutputProguardRules ()Lorg/gradle/api/file/RegularFileProperty;
+	public abstract fun getR8Program ()Lorg/gradle/api/file/ConfigurableFileCollection;
 	public abstract fun getTraceReferencesArgs ()Lorg/gradle/api/provider/ListProperty;
 }
 
@@ -40,6 +30,17 @@ public abstract class com/slack/keeper/KeeperExtension {
 	public final fun getEnableAssertions ()Lorg/gradle/api/provider/Property;
 	public final fun getR8JvmArgs ()Lorg/gradle/api/provider/ListProperty;
 	public final fun traceReferences (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/slack/keeper/KeeperJarTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	protected final fun compiledClassesSequence ()Lkotlin/sequences/Sequence;
+	protected final fun diagnostic (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/io/File;
+	public abstract fun getAllDirectories ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getAllJars ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getDiagnosticsOutputDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getEmitDebugInfo ()Lorg/gradle/api/provider/Property;
+	protected final fun jarFilesSequence ()Lkotlin/sequences/Sequence;
 }
 
 public final class com/slack/keeper/KeeperPlugin : org/gradle/api/Plugin {
@@ -64,12 +65,10 @@ public abstract class com/slack/keeper/TraceReferences {
 	public final fun getArguments ()Lorg/gradle/api/provider/ListProperty;
 }
 
-public abstract class com/slack/keeper/VariantClasspathJar : com/slack/keeper/BaseKeeperJarTask {
+public abstract class com/slack/keeper/VariantClasspathJar : com/slack/keeper/KeeperJarTask {
 	public fun <init> ()V
 	public final fun createJar ()V
-	public final fun from ([Ljava/lang/Object;)V
 	public abstract fun getAppJarsFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getArchiveFile ()Lorg/gradle/api/file/RegularFileProperty;
-	public abstract fun getClasspath ()Lorg/gradle/api/file/ConfigurableFileCollection;
 }
 

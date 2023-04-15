@@ -17,13 +17,19 @@
 
 package com.slack.keeper
 
-import com.android.build.api.artifact.MultipleArtifact
+import com.android.build.api.artifact.Artifacts
+import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.artifact.impl.ArtifactsImpl
+import com.android.build.api.component.analytics.AnalyticsEnabledArtifacts
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
+import com.android.build.api.variant.Component
+import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
+import com.android.build.gradle.internal.scope.InternalArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import java.io.File
@@ -36,6 +42,7 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
@@ -143,11 +150,9 @@ public class KeeperPlugin : Plugin<Project> {
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
   ) {
-    appComponentsExtension.onApplicableVariants(
-      project,
-      appExtension,
-      verifyMinification = false
-    ) { testVariant, appVariant ->
+    appComponentsExtension.onApplicableVariants(project, verifyMinification = false) {
+      testVariant,
+      appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
         // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
@@ -246,7 +251,7 @@ public class KeeperPlugin : Plugin<Project> {
         }
       )
 
-    appComponentsExtension.onApplicableVariants(project, appExtension, verifyMinification = true) {
+    appComponentsExtension.onApplicableVariants(project, verifyMinification = true) {
       testVariant,
       appVariant ->
       val intermediateAppJar =
@@ -278,9 +283,23 @@ public class KeeperPlugin : Plugin<Project> {
           )
         )
 
-      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-      val testProguardFiles = testVariant.runtimeConfiguration.proguardFiles()
-      applyGeneratedRules(appVariant.name, prop, testProguardFiles)
+      afterEvaluate {
+        val prop =
+          layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+        val testProguardFiles =
+          project.provider { testVariant.runtimeConfiguration.proguardFiles() }
+        val testProguardFile =
+          (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
+        applyGeneratedRules(appVariant.name, prop, testProguardFiles, testProguardFile)
+      }
+    }
+  }
+
+  private fun Artifacts.unwrap(): ArtifactsImpl {
+    return when (this) {
+      is ArtifactsImpl -> this
+      is AnalyticsEnabledArtifacts -> delegate.unwrap()
+      else -> error("Unrecognized artifacts type $javaClass")
     }
   }
 
@@ -303,7 +322,6 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
-    appExtension: AppExtension,
     verifyMinification: Boolean,
     body: (AndroidTest, ApplicationVariant) -> Unit
   ) {
@@ -312,8 +330,7 @@ public class KeeperPlugin : Plugin<Project> {
       // Look for our marker extension
       appVariant.getExtension(KeeperVariantMarker::class.java) ?: return@onVariants
       appVariant.androidTest?.let { testVariant ->
-        // TODO use only components after https://issuetracker.google.com/issues/199411018
-        if (verifyMinification && !appExtension.buildTypes.getByName(buildType).isMinifyEnabled) {
+        if (verifyMinification && !appVariant.isMinifyEnabled) {
           project.logger.error(
             """
             Keeper is configured to generate keep rules for the "${appVariant.name}" build variant, but the variant doesn't
@@ -333,17 +350,24 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.applyGeneratedRules(
     appVariant: String,
     prop: Provider<Directory>,
-    testProguardFiles: Provider<Set<File>>
+    testProguardFiles: Provider<FileCollection>,
+    testProguardFile: Provider<RegularFile>
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
+    val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
     tasks
       .withType(R8Task::class.java)
       .matching { it.name == targetName }
       .configureEach {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
-        configurationFiles.from(testProguardFiles)
+        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't propagate
+        // task dependencies and breaks in Gradle 8.
+        if (!disableTestProguardFiles) {
+          configurationFiles.from(testProguardFiles)
+          configurationFiles.from(testProguardFile)
+        }
       }
   }
 
@@ -356,25 +380,33 @@ public class KeeperPlugin : Plugin<Project> {
     testVariant: AndroidTest,
     appJarsProvider: Provider<RegularFile>
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
-    return tasks.register(
-      "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-      AndroidTestVariantClasspathJar::class.java
-    ) {
-      group = KEEPER_TASK_GROUP
-      this.emitDebugInfo.value(emitDebugInfo)
-      this.appJarsFile.set(appJarsProvider)
+    val taskProvider =
+      tasks.register(
+        "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+        AndroidTestVariantClasspathJar::class.java
+      ) {
+        this.emitDebugInfo.value(emitDebugInfo)
+        this.appJarsFile.set(appJarsProvider)
 
-      with(testVariant) {
-        from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfiguration.classesJars())
+        val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
+        val diagnosticsDir =
+          layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
+        this.diagnosticsOutputDir.set(diagnosticsDir)
+        archiveFile.set(outputDir.map { it.file("classes.jar") })
       }
 
-      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}")
-      val diagnosticsDir =
-        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${testVariant.name}/diagnostics")
-      this.diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map { it.file("classes.jar") })
-    }
+    wireClassesAndJarsFor(testVariant, taskProvider)
+    return taskProvider
+  }
+
+  private fun wireClassesAndJarsFor(
+    component: Component,
+    taskProvider: TaskProvider<out KeeperJarTask>
+  ) {
+    component.artifacts
+      .forScope(ScopedArtifacts.Scope.ALL)
+      .use(taskProvider)
+      .toGet(ScopedArtifact.CLASSES, KeeperJarTask::allJars, KeeperJarTask::allDirectories)
   }
 
   /**
@@ -385,41 +417,34 @@ public class KeeperPlugin : Plugin<Project> {
     appVariant: ApplicationVariant,
     emitDebugInfo: Provider<Boolean>
   ): TaskProvider<out VariantClasspathJar> {
-    return tasks.register(
-      "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-      VariantClasspathJar::class.java
-    ) {
-      group = KEEPER_TASK_GROUP
-      this.emitDebugInfo.set(emitDebugInfo)
-      with(appVariant) {
-        from(artifacts.getAll(MultipleArtifact.ALL_CLASSES_DIRS))
-        allJars.from(runtimeConfiguration.classesJars())
-      }
+    val taskProvider =
+      tasks.register(
+        "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
+        VariantClasspathJar::class.java
+      ) {
+        this.emitDebugInfo.set(emitDebugInfo)
 
-      val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
-      val diagnosticsDir =
-        layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
-      diagnosticsOutputDir.set(diagnosticsDir)
-      archiveFile.set(outputDir.map { it.file("classes.jar") })
-      appJarsFile.set(outputDir.map { it.file("jars.txt") })
-    }
+        val outputDir = layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}")
+        val diagnosticsDir =
+          layout.buildDirectory.dir("$INTERMEDIATES_DIR/${appVariant.name}/diagnostics")
+        diagnosticsOutputDir.set(diagnosticsDir)
+        archiveFile.set(outputDir.map { it.file("classes.jar") })
+        appJarsFile.set(outputDir.map { it.file("jars.txt") })
+      }
+    wireClassesAndJarsFor(appVariant, taskProvider)
+    return taskProvider
   }
 }
 
-private fun Configuration.classesJars(): Provider<Set<File>> {
-  return artifactView(ArtifactType.CLASSES_JAR)
-}
-
-private fun Configuration.proguardFiles(): Provider<Set<File>> {
+private fun Configuration.proguardFiles(): FileCollection {
   return artifactView(ArtifactType.FILTERED_PROGUARD_RULES)
 }
 
-private fun Configuration.artifactView(artifactType: ArtifactType): Provider<Set<File>> {
+private fun Configuration.artifactView(artifactType: ArtifactType): FileCollection {
   return incoming
     .artifactView { attributes { attribute(AndroidArtifacts.ARTIFACT_TYPE, artifactType.type) } }
     .artifacts
-    .resolvedArtifacts
-    .map { it.asSequence().map { it.file }.toSet() }
+    .artifactFiles
 }
 
 /** Copy of the stdlib version until it's stable. */
