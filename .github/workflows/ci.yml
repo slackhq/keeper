@@ -127,7 +127,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install JDK ${{ matrix.java }}
+      - name: Install JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
