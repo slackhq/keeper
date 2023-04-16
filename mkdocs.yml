@@ -45,7 +45,7 @@ markdown_extensions:
 nav:
   - 'Overview': index.md
   - 'Configuration' : configuration.md
-  - 'API' : 0.x/keeper-gradle-plugin/com.slack.keeper/index.md
+  - 'API' : 0.x/keeper-gradle-plugin/com.slack.keeper/index.html
   - 'Changelog' : changelog.md
   - 'Contributing': contributing.md
   - 'Code of Conduct': code-of-conduct.md
