@@ -1,13 +1,13 @@
 [versions]
 agp = "8.0.0"
 androidx-test = "1.5.2"
-kotlin = "1.8.10"
+kotlin = "1.8.20"
 gjf = "1.16.0"
 ktfmt = "0.43"
 
 [plugins]
 agp-library = { id = "com.android.library", version.ref = "agp" }
-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.12.1" }
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.13.0" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.25.1" }
 spotless = { id = "com.diffplug.spotless", version = "6.18.0" }

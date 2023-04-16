@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  id("org.jetbrains.dokka") version "1.7.20"
+  id("org.jetbrains.dokka") version "1.8.10"
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
@@ -33,7 +33,7 @@ samWithReceiver { annotation("org.gradle.api.HasImplicitReceiver") }
 
 tasks.withType<KotlinCompile>().configureEach {
   compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_11)
+    jvmTarget.set(JvmTarget.JVM_17) // Match AGP's requirement
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
     apiVersion.set(KotlinVersion.KOTLIN_1_8)
     languageVersion.set(KotlinVersion.KOTLIN_1_8)
@@ -67,7 +67,7 @@ sourceSets {
 
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
 
-tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
+tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 
 gradlePlugin {
   plugins {

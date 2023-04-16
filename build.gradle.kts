@@ -21,7 +21,7 @@ plugins {
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.agp.library) apply false
   // Version just here to make gradle happy. It's always substituted as an included build
-  id("com.slack.keeper") version "0.12.0" apply false
+  id("com.slack.keeper") version "0.14.0" apply false
   alias(libs.plugins.spotless)
 }
 

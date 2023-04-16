@@ -15,7 +15,7 @@ build type that you test against is controlled by the `testBuildType` flag, whic
 
 This is a workaround until AGP supports this: https://issuetracker.google.com/issues/126429384.
 
-**Note:** Keeper uses private APIs from AGP and could break between releases. See the changelog to 
+**Note:** Keeper uses private APIs from AGP and could break between releases. See the changelog to
 check what versions are supported with each release.
 
 ## Installation
