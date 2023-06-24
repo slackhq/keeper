@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  id("org.jetbrains.dokka") version "1.8.10"
+  id("org.jetbrains.dokka") version "1.8.20"
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
