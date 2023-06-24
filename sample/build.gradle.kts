@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import com.google.common.truth.Truth.assertThat
 import com.slack.keeper.InferAndroidTestKeepRules
@@ -119,7 +118,6 @@ keeper {
 // To speed up testing, we can also eagerly check that the generated rules match what we expect.
 // This is _solely_ for CI use with Keeper!
 val isCi = providers.environmentVariable("CI").orElse("false").get() == "true"
-val verifyL8 = providers.gradleProperty("keeper.verifyL8").orElse("false").get() == "true"
 
 if (isCi) {
   tasks.withType<InferAndroidTestKeepRules>().configureEach {
@@ -134,29 +132,6 @@ if (isCi) {
         assertThat(outputRules).isEqualTo(expectedRules)
       }
     }
-  }
-
-  if (verifyL8) {
-    tasks
-      .withType<L8DexDesugarLibTask>()
-      .matching { it.name == "l8DexDesugarLibExternalStagingAndroidTest" }
-      .configureEach {
-        doLast {
-          println("Checking expected input rules from diagnostics output")
-          val diagnosticFilePath =
-            "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStagingAndroidTest/patchedL8Rules.pro"
-          val diagnostics = file(diagnosticFilePath).readText()
-          if ("-dontobfuscate" !in diagnostics) {
-            throw IllegalStateException(
-              "L8 diagnostic rules don't have Keeper's configured '-dontobfuscate', see $diagnosticFilePath"
-            )
-          } else if ("-keep class j\$.time.Instant" !in diagnostics) {
-            throw IllegalStateException(
-              "L8 diagnostic rules include the main variant's R8-generated rules, see $diagnosticFilePath"
-            )
-          }
-        }
-      }
   }
 
   tasks
