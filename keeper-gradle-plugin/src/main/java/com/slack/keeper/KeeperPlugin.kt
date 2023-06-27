@@ -116,7 +116,7 @@ public class KeeperPlugin : Plugin<Project> {
         project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
       val extension = project.extensions.create("keeper", KeeperExtension::class.java)
       project.configureKeepRulesGeneration(appExtension, appComponentsExtension, extension)
-      project.configureL8(appExtension, appComponentsExtension, extension)
+      configureL8(project, appExtension, appComponentsExtension, extension)
     }
   }
 
@@ -145,7 +145,8 @@ public class KeeperPlugin : Plugin<Project> {
    * the source of truth. To force this, we simply clear all the generated output dex files from the
    * androidTest [L8DexDesugarLibTask] task.
    */
-  private fun Project.configureL8(
+  private fun configureL8(
+    project: Project,
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
@@ -174,14 +175,13 @@ public class KeeperPlugin : Plugin<Project> {
 
               // Diagnostics
               if (extension.emitDebugInformation.getOrElse(false)) {
+                val taskName = name
+                val diagnosticOutputDir =
+                  project.layout.buildDirectory
+                    .dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+                    .get()
+                    .asFile
                 doLast {
-                  val taskName = name
-                  val diagnosticOutputDir =
-                    layout.buildDirectory
-                      .dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
-                      .get()
-                      .asFile
-
                   // We can't actually declare this because AGP's NonIncrementalTask will clear it
                   // during the task action
                   // outputs.dir(diagnosticOutputDir)
