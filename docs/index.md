@@ -82,6 +82,24 @@ automatically run as part of the target app variant's full minified APK.
 The tasks themselves take roughly ~20 seconds total extra work in our Slack android app, with the
 infer and app jar tasks each taking around 8-10 seconds and the androidTest jar taking around 2 seconds.
 
+## Core Library Desugaring (L8) Support
+
+Library Desugaring (L8) was introduced in Android Gradle Plugin 4.0. To make this work, the R8 task
+will generate proguard rules indicating which `j$` types are used in source, which the `L8DexDesugarLibTask`
+then uses to know which desugared APIs to keep. This approach can have flaws at runtime though, as the
+classpath of the test APK may not have the right `j$` classes available on its classpath to run app
+code it is invoking. To work around this, Keeper does two things:
+
+1. Keeper merges generated L8 rules from both the androidTest and target app to ensure they cover all
+   used APIs. These merged rules are given to the target app `L8DexDesugarLibTask`.
+2. L8 will still, by default, generate a dex file of backported APIs into both the test app and target
+   app, which can cause confusing runtime classpath issues due to L8 generating different implementations
+   in each app. Keeper works around this by forcing the use of a single dex file in the target app and
+   preventing the inclusion of a backport dex file in the test app.
+
+This L8 support is automatically enabled if `android.compileOptions.coreLibraryDesugaringEnabled` is
+true in AGP.
+
 License
 -------
 

@@ -30,6 +30,7 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
 import com.android.build.gradle.internal.scope.InternalArtifactType
+import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import java.io.File
 import java.io.IOException
@@ -98,6 +99,10 @@ public class KeeperPlugin : Plugin<Project> {
     fun interpolateR8TaskName(variantName: String): String {
       return "minify${variantName.capitalize(Locale.US)}WithR8"
     }
+
+    fun interpolateL8TaskName(variantName: String): String {
+      return "l8DexDesugarLib${variantName.capitalize(Locale.US)}"
+    }
   }
 
   override fun apply(project: Project) {
@@ -111,6 +116,105 @@ public class KeeperPlugin : Plugin<Project> {
         project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
       val extension = project.extensions.create("keeper", KeeperExtension::class.java)
       project.configureKeepRulesGeneration(appExtension, appComponentsExtension, extension)
+      project.configureL8(appExtension, appComponentsExtension, extension)
+    }
+  }
+
+  /**
+   * Configures L8 support via rule sharing and clearing androidTest dex file generation by patching
+   * the respective app and test [L8DexDesugarLibTask] tasks.
+   *
+   * By default, L8 will generate separate rules for test app and androidTest app L8 rules. This can
+   * cause problems in minified tests for a couple reasons though! This tries to resolve these via
+   * two steps.
+   *
+   * Issue 1: L8 will try to minify the backported APIs otherwise and can result in conflicting
+   * class names between the app and test APKs. This is a little confusing because L8 treats
+   * "minified" as "obfuscated" and tries to match. Since we don't care about obfuscating here, we
+   * can just disable it.
+   *
+   * Issue 2: L8 packages `j$` classes into androidTest but doesn't match what's in the target app.
+   * This causes confusion when invoking code in the target app from the androidTest classloader and
+   * it then can't find some expected `j$` classes. To solve this, we feed the the test app's
+   * generated `j$` rules in as inputs to the app L8 task's input rules.
+   *
+   * More details can be found here: https://issuetracker.google.com/issues/158018485
+   *
+   * Issue 3: In order for this to work, there needs to only be _one_ dex file generated and it
+   * _must_ be the one in the app. This way we avoid classpath conflicts and the one in the app is
+   * the source of truth. To force this, we simply clear all the generated output dex files from the
+   * androidTest [L8DexDesugarLibTask] task.
+   */
+  private fun Project.configureL8(
+    appExtension: AppExtension,
+    appComponentsExtension: ApplicationAndroidComponentsExtension,
+    extension: KeeperExtension
+  ) {
+    appComponentsExtension.onApplicableVariants(project, verifyMinification = false) {
+      testVariant,
+      appVariant ->
+      // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
+      if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
+
+        // To support this, we need to:
+        // - Get the androidTest L8DexDesugarLibTask
+        // - Pipe its output keep rules into an intermediate mapped provider
+        // - Pipe those rules into app L8DexDesugarLibTask's keepRulesConfigurations
+
+        // namedLazy nesting here is unfortunate but necessary because these L8 tasks don't
+        // exist yet during this callback. https://issuetracker.google.com/issues/199509581
+        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name)) { testL8Task
+          ->
+          project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { appL8Task
+            ->
+            appL8Task.configure {
+              keepRulesConfigurations.addAll(
+                testL8Task.flatMap { it.keepRules }.map { it.asFile.readLines() }
+              )
+
+              // Diagnostics
+              if (extension.emitDebugInformation.getOrElse(false)) {
+                doLast {
+                  val taskName = name
+                  val diagnosticOutputDir =
+                    layout.buildDirectory
+                      .dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+                      .get()
+                      .asFile
+
+                  // We can't actually declare this because AGP's NonIncrementalTask will clear it
+                  // during the task action
+                  // outputs.dir(diagnosticOutputDir)
+                  //     .withPropertyName("diagnosticsDir")
+                  val outputFile = keepRules.asFile.get()
+                  val mergedFilesContent =
+                    "# Source: ${outputFile.absolutePath}\n${outputFile.readText()}"
+
+                  val configurations =
+                    keepRulesConfigurations.orNull
+                      .orEmpty()
+                      .joinToString("\n", prefix = "# Source: extra configurations\n")
+
+                  File(diagnosticOutputDir, "patchedL8Rules.pro")
+                    .apply {
+                      if (exists()) {
+                        delete()
+                      }
+                      parentFile.mkdirs()
+                      createNewFile()
+                    }
+                    .writeText("$mergedFilesContent\n$configurations")
+                }
+              }
+            }
+          }
+        }
+
+        // Now clear the outputs from androidTest's L8 task to end with
+        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name)) {
+          it.configure { doLast { clearDir(desugarLibDex.asFile.get()) } }
+        }
+      }
     }
   }
 
@@ -266,7 +370,8 @@ public class KeeperPlugin : Plugin<Project> {
       .configureEach {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
-        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't propagate
+        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
+        // propagate
         // task dependencies and breaks in Gradle 8.
         if (!disableTestProguardFiles) {
           configurationFiles.from(testProguardFiles)

@@ -120,6 +120,7 @@ keeper {
 val isCi = providers.environmentVariable("CI").orElse("false").get() == "true"
 
 if (isCi) {
+  // TODO create a dependent lifecycle task
   tasks.withType<InferAndroidTestKeepRules>().configureEach {
     doLast {
       println("Checking expected rules")
@@ -130,6 +131,21 @@ if (isCi) {
           "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'"
         )
         assertThat(outputRules).isEqualTo(expectedRules)
+      }
+    }
+  }
+
+  tasks.register("validateL8") {
+    dependsOn("l8DexDesugarLibExternalStaging")
+    doFirst {
+      println("Checking expected input rules from diagnostics output")
+      val diagnosticFilePath =
+        "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStaging/patchedL8Rules.pro"
+      val diagnostics = file(diagnosticFilePath).readText()
+      if ("-keep class j\$.time.Instant" !in diagnostics) {
+        throw IllegalStateException(
+          "L8 diagnostic rules include the main variant's R8-generated rules, see $diagnosticFilePath"
+        )
       }
     }
   }

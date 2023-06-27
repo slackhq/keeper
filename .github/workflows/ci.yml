@@ -57,7 +57,7 @@ jobs:
         if: matrix.job == 'instrumentation'
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :sample:minifyExternalStagingWithR8 --stacktrace
+          arguments: :sample:minifyExternalStagingWithR8 validateL8 --stacktrace
 
       # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
 #      - name: AVD cache
