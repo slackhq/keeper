@@ -58,10 +58,10 @@
   <div class="breadcrumbs"><a href="../../../index.html">keeper-gradle-plugin</a><span class="delimiter">/</span><a href="../index.html">com.slack.keeper</a><span class="delimiter">/</span><span class="current">AndroidTestVariantClasspathJar</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Android</span><wbr></wbr><span>Test</span><wbr></wbr><span>Variant</span><wbr></wbr><span>Classpath</span><wbr></wbr><span><span>Jar</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/tasks/CacheableTask.html"><span class="token annotation builtin">CacheableTask</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">AndroidTestVariantClasspathJar</a> : <a href="../-keeper-jar-task/index.html">KeeperJarTask</a></div><p class="paragraph">A <a href="../-keeper-jar-task/index.html">KeeperJarTask</a> task that sources from both the androidTest compiled sources <i>and</i> its distinct dependencies (as compared to the <a href="app-jars-file.html">appJarsFile</a>). R8's <code class="lang-kotlin">TraceReferences</code> requires no class overlap between the two jars it's comparing, so at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be APIs that <i>they</i> use that are used in the target app runtime, and we want R8 to account for those usages as well.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/tasks/CacheableTask.html"><span class="token annotation builtin">CacheableTask</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">AndroidTestVariantClasspathJar</a> : <a href="../-keeper-jar-task/index.html">KeeperJarTask</a></div><p class="paragraph">A <a href="../-keeper-jar-task/index.html">KeeperJarTask</a> task that sources from both the androidTest compiled sources <i>and</i> its distinct dependencies (as compared to the <a href="app-jars-file.html">appJarsFile</a>). R8's <code class="lang-kotlin">TraceReferences</code> requires no class overlap between the two jars it's comparing, so at copy-time this will compute the unique androidTest dependencies. We need to have them because there may be APIs that <i>they</i> use that are used in the target app runtime, and we want R8 to account for those usages as well.</p></div></div>
   </div>
   <div class="tabbedcontent">
-    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="">Constructors</h2>
@@ -82,25 +82,6 @@
           </div>
         </div>
       </div>
-      <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-1786876935%2FFunctions%2F769193423" anchor-label="createJar" id="-1786876935%2FFunctions%2F769193423" data-filterable-set=":dokkaHtml/main"></a>
-          <div class="table-row" data-filterable-current=":dokkaHtml/main" data-filterable-set=":dokkaHtml/main">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="create-jar.html"><span>create</span><wbr></wbr><span><span>Jar</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1786876935%2FFunctions%2F769193423"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="create-jar.html"><span class="token function">createJar</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       <div data-togglable="PROPERTY">
         <h2 class="">Properties</h2>
         <div class="table"><a data-name="147345635%2FProperties%2F769193423" anchor-label="appJarsFile" id="147345635%2FProperties%2F769193423" data-filterable-set=":dokkaHtml/main"></a>
@@ -113,7 +94,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/tasks/PathSensitive.html"><span class="token annotation builtin">PathSensitive</span></a><span class="token punctuation">(</span><span>value<span class="token operator"> = </span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/tasks/PathSensitivity.NONE.html">PathSensitivity.NONE</a></span><wbr></wbr><span class="token punctuation">)</span></div><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/tasks/InputFile.html"><span class="token annotation builtin">InputFile</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="app-jars-file.html">appJarsFile</a><span class="token operator">: </span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/tasks/PathSensitive.html"><span class="token annotation builtin">PathSensitive</span></a><span class="token punctuation">(</span><span>value<span class="token operator"> = </span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/tasks/PathSensitivity.NONE.html">PathSensitivity.NONE</a></span><wbr></wbr><span class="token punctuation">)</span></div><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/tasks/InputFile.html"><span class="token annotation builtin">InputFile</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="app-jars-file.html">appJarsFile</a><span class="token operator">: </span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -128,7 +109,26 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/tasks/OutputFile.html"><span class="token annotation builtin">OutputFile</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="archive-file.html">archiveFile</a><span class="token operator">: </span><a href="https://docs.gradle.org/8.1/javadoc/allpackages-index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@get:</span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/tasks/OutputFile.html"><span class="token annotation builtin">OutputFile</span></a></div></div><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="archive-file.html">archiveFile</a><span class="token operator">: </span><a href="https://docs.gradle.org/8.2.1/javadoc/allpackages-index.html/org/gradle/api/file/RegularFileProperty.html">RegularFileProperty</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1786876935%2FFunctions%2F769193423" anchor-label="createJar" id="-1786876935%2FFunctions%2F769193423" data-filterable-set=":dokkaHtml/main"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/main" data-filterable-set=":dokkaHtml/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-jar.html"><span>create</span><wbr></wbr><span><span>Jar</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1786876935%2FFunctions%2F769193423"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/main"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="create-jar.html"><span class="token function">createJar</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
