@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.net.URL
+import java.net.URI
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  id("org.jetbrains.dokka") version "1.8.10"
+  id("org.jetbrains.dokka") version "1.8.20"
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
@@ -86,13 +86,16 @@ tasks.withType<DokkaTask>().configureEach {
     skipDeprecated.set(true)
     suppressInheritedMembers.set(true)
     externalDocumentationLink {
-      url.set(URL("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html"))
+      url.set(
+        URI("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html")
+          .toURL()
+      )
     }
     externalDocumentationLink {
       packageListUrl.set(
-        URL("https://developer.android.com/reference/tools/gradle-api/7.3/package-list")
+        URI("https://developer.android.com/reference/tools/gradle-api/7.3/package-list").toURL()
       )
-      url.set(URL("https://developer.android.com/reference/tools/gradle-api/7.3/classes"))
+      url.set(URI("https://developer.android.com/reference/tools/gradle-api/7.3/classes").toURL())
     }
   }
 }

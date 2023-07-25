@@ -116,7 +116,7 @@ public class KeeperPlugin : Plugin<Project> {
         project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
       val extension = project.extensions.create("keeper", KeeperExtension::class.java)
       project.configureKeepRulesGeneration(appExtension, appComponentsExtension, extension)
-      project.configureL8(appExtension, appComponentsExtension, extension)
+      configureL8(project, appExtension, appComponentsExtension, extension)
     }
   }
 
@@ -145,7 +145,8 @@ public class KeeperPlugin : Plugin<Project> {
    * the source of truth. To force this, we simply clear all the generated output dex files from the
    * androidTest [L8DexDesugarLibTask] task.
    */
-  private fun Project.configureL8(
+  private fun configureL8(
+    project: Project,
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension
@@ -155,48 +156,55 @@ public class KeeperPlugin : Plugin<Project> {
       appVariant ->
       // TODO ideally move to components entirely https://issuetracker.google.com/issues/199411020
       if (appExtension.compileOptions.isCoreLibraryDesugaringEnabled) {
-        // namedLazy nesting here is unfortunate but necessary because these R8/L8 tasks don't
+
+        // To support this, we need to:
+        // - Get the androidTest L8DexDesugarLibTask
+        // - Pipe its output keep rules into an intermediate mapped provider
+        // - Pipe those rules into app L8DexDesugarLibTask's keepRulesConfigurations
+
+        // namedLazy nesting here is unfortunate but necessary because these L8 tasks don't
         // exist yet during this callback. https://issuetracker.google.com/issues/199509581
-        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { l8Task ->
-          // First merge the L8 rules into the app's L8 task
-          project.namedLazy<R8Task>(interpolateR8TaskName(testVariant.name)) { provider ->
-            l8Task.configure { keepRulesFiles.from(provider.flatMap { it.projectOutputKeepRules }) }
-          }
+        project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(testVariant.name)) { testL8Task
+          ->
+          project.namedLazy<L8DexDesugarLibTask>(interpolateL8TaskName(appVariant.name)) { appL8Task
+            ->
+            appL8Task.configure {
+              keepRulesConfigurations.addAll(
+                testL8Task.flatMap { it.keepRules }.map { it.asFile.readLines() }
+              )
 
-          l8Task.configure {
-            val taskName = name
-            keepRulesConfigurations.set(listOf("-dontobfuscate"))
-            val diagnosticOutputDir =
-              layout.buildDirectory.dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName").get().asFile
+              // Diagnostics
+              if (extension.emitDebugInformation.getOrElse(false)) {
+                val taskName = name
+                val diagnosticOutputDir =
+                  project.layout.buildDirectory
+                    .dir("$INTERMEDIATES_DIR/l8-diagnostics/$taskName")
+                    .get()
+                    .asFile
+                doLast {
+                  // We can't actually declare this because AGP's NonIncrementalTask will clear it
+                  // during the task action
+                  // outputs.dir(diagnosticOutputDir)
+                  //     .withPropertyName("diagnosticsDir")
+                  val outputFile = keepRules.asFile.get()
+                  val mergedFilesContent =
+                    "# Source: ${outputFile.absolutePath}\n${outputFile.readText()}"
 
-            // We can't actually declare this because AGP's NonIncrementalTask will clear it
-            // during the task action
-            //                  outputs.dir(diagnosticOutputDir)
-            //                      .withPropertyName("diagnosticsDir")
+                  val configurations =
+                    keepRulesConfigurations.orNull
+                      .orEmpty()
+                      .joinToString("\n", prefix = "# Source: extra configurations\n")
 
-            if (extension.emitDebugInformation.getOrElse(false)) {
-              doFirst {
-                val mergedFilesContent =
-                  keepRulesFiles.files
-                    .asSequence()
-                    .flatMap { it.walkTopDown() }
-                    .filterNot { it.isDirectory }
-                    .joinToString("\n") { "# Source: ${it.absolutePath}\n${it.readText()}" }
-
-                val configurations =
-                  keepRulesConfigurations.orNull
-                    .orEmpty()
-                    .joinToString("\n", prefix = "# Source: extra configurations\n")
-
-                File(diagnosticOutputDir, "patchedL8Rules.pro")
-                  .apply {
-                    if (exists()) {
-                      delete()
+                  File(diagnosticOutputDir, "patchedL8Rules.pro")
+                    .apply {
+                      if (exists()) {
+                        delete()
+                      }
+                      parentFile.mkdirs()
+                      createNewFile()
                     }
-                    parentFile.mkdirs()
-                    createNewFile()
-                  }
-                  .writeText("$mergedFilesContent\n$configurations")
+                    .writeText("$mergedFilesContent\n$configurations")
+                }
               }
             }
           }
@@ -362,7 +370,8 @@ public class KeeperPlugin : Plugin<Project> {
       .configureEach {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
-        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't propagate
+        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
+        // propagate
         // task dependencies and breaks in Gradle 8.
         if (!disableTestProguardFiles) {
           configurationFiles.from(testProguardFiles)
