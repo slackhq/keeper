@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.15.0
+------
+
+_2023-07-25_
+
+- **Enhancement**: Support AGP 8.1.0. AGP 8.1.0 is the minimum required version now due to breaking API changes.
+- Update Gradle to `8.2.1`.
+
 0.14.0
 ------
 
