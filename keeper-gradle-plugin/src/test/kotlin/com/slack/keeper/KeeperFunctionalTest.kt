@@ -404,13 +404,13 @@ private fun buildGradleFile(
   tasks.withType(KotlinCompile).configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
 
   android {
-    compileSdkVersion 33
+    compileSdkVersion 34
     namespace "com.slack.keeper.sample"
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
       minSdk 21
-      targetSdk 33
+      targetSdk 34
     }
 
     compileOptions {

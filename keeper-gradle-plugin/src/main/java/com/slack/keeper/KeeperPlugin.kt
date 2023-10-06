@@ -92,9 +92,9 @@ public class KeeperPlugin : Plugin<Project> {
 
   internal companion object {
     const val INTERMEDIATES_DIR = "intermediates/keeper"
-    const val TRACE_REFERENCES_DEFAULT_VERSION = "3.2.78"
+    const val TRACE_REFERENCES_DEFAULT_VERSION = "8.0.34"
     const val CONFIGURATION_NAME = "keeperR8"
-    private val MIN_GRADLE_VERSION = GradleVersion.version("7.5")
+    private val MIN_GRADLE_VERSION = GradleVersion.version("8.0")
 
     fun interpolateR8TaskName(variantName: String): String {
       return "minify${variantName.capitalize(Locale.US)}WithR8"

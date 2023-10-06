@@ -27,7 +27,7 @@ plugins {
 
 subprojects {
   pluginManager.withPlugin("java") {
-    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
+    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
 
     tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
   }
@@ -41,6 +41,15 @@ subprojects {
     }
   }
 }
+
+configurations
+  .matching { it.name.startsWith("spotless") }
+  .configureEach {
+    resolutionStrategy {
+      // Guava's new gradle metadat is a dumpster fire https://github.com/google/guava/issues/6612
+      force("com.google.guava:guava:32.0.1-jre")
+    }
+  }
 
 spotless {
   format("misc") {
