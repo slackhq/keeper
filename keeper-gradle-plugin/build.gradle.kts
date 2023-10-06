@@ -65,7 +65,7 @@ sourceSets {
   getByName("test").resources.srcDirs(project.layout.buildDirectory.dir("pluginUnderTestMetadata"))
 }
 
-java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
 
 tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 
