@@ -114,7 +114,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: error-report
+          name: error-report-${{ matrix.job }}-${{ matrix.agp }}
           path: build-reports.zip
 
   publish-snapshots:
