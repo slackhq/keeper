@@ -46,7 +46,7 @@ configurations
   .matching { it.name.startsWith("spotless") }
   .configureEach {
     resolutionStrategy {
-      // Guava's new gradle metadat is a dumpster fire https://github.com/google/guava/issues/6612
+      // Guava's new gradle metadata is a dumpster fire https://github.com/google/guava/issues/6612
       force("com.google.guava:guava:32.0.1-jre")
     }
   }
