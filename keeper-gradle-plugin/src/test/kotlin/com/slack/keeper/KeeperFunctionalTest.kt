@@ -394,23 +394,23 @@ private fun buildGradleFile(
   }
 
   plugins {
-    id 'com.android.application' version '8.0.0-beta03'
-    id 'org.jetbrains.kotlin.android' version '1.8.10'
+    id 'com.android.application' version '8.1.2'
+    id 'org.jetbrains.kotlin.android' version '1.9.10'
     id 'com.slack.keeper'
   }
 
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(19)) } }
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
 
   tasks.withType(KotlinCompile).configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
 
   android {
-    compileSdkVersion 33
+    compileSdkVersion 34
     namespace "com.slack.keeper.sample"
 
     defaultConfig {
       applicationId "com.slack.keeper.sample"
       minSdk 21
-      targetSdk 33
+      targetSdk 34
     }
 
     compileOptions {

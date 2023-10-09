@@ -25,22 +25,22 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        agp: ['8.1.0', '8.2.0-alpha13']
+        agp: ['8.1.2', '8.2.0-beta06', '8.3.0-alpha07']
         job: ['instrumentation', 'plugin']
     env:
       DEP_OVERRIDE_agp: ${{ matrix.agp }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Install JDK ${{ matrix.java }}
+      - name: Install JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '19'
+          java-version: '20'
 
       - name: Spot check
         run: ./gradlew spotlessCheck
@@ -114,7 +114,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: error-report
+          name: error-report-${{ matrix.job }}-${{ matrix.agp }}
           path: build-reports.zip
 
   publish-snapshots:
@@ -124,13 +124,13 @@ jobs:
     needs: 'build'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '19'
+          java-version: '20'
 
       # Just here to restore cache
       - name: Gradle prep
