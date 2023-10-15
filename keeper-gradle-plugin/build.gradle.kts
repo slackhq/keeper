@@ -91,11 +91,16 @@ tasks.withType<DokkaTask>().configureEach {
           .toURL()
       )
     }
+
+    val agpBaseUrlProvider =
+      libs.versions.agp
+        .map { it.substringBeforeLast('.') }
+        .map { agpBaseVersion ->
+          "https://developer.android.com/reference/tools/gradle-api/$agpBaseVersion"
+        }
     externalDocumentationLink {
-      packageListUrl.set(
-        URI("https://developer.android.com/reference/tools/gradle-api/8.1/package-list").toURL()
-      )
-      url.set(URI("https://developer.android.com/reference/tools/gradle-api/8.1/classes").toURL())
+      packageListUrl.set(agpBaseUrlProvider.map { "$it/package-list" }.map { URI(it).toURL() })
+      url.set(agpBaseUrlProvider.map { "$it/classes" }.map { URI(it).toURL() })
     }
   }
 }
