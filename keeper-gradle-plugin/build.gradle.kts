@@ -108,9 +108,10 @@ mavenPublishing {
 // Fix missing implicit task dependency in Gradle's test kit
 tasks.named("processTestResources") { dependsOn("pluginUnderTestMetadata") }
 
-val addTestPlugin: Configuration = configurations.create("addTestPlugin")
+// TODO how can we lazily chain this to other configurations?
+val addTestPlugin = configurations.dependencyScope("addTestPlugin").get()
 
-configurations { testImplementation.get().extendsFrom(addTestPlugin) }
+configurations { testImplementation.configure { extendsFrom(addTestPlugin) } }
 
 tasks.pluginUnderTestMetadata {
   // make sure the test can access plugins for coordination.
@@ -123,7 +124,7 @@ dependencies {
   compileOnly(libs.zipflinger)
   compileOnly(libs.agp)
 
-  addTestPlugin(libs.agp)
+  addTestPlugin.invoke(libs.agp)
   addTestPlugin(libs.kgp)
   addTestPlugin(libs.kgp.api)
   testImplementation(libs.javapoet)
