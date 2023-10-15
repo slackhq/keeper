@@ -225,7 +225,7 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     // Set up r8 configuration
     val r8Configuration =
-      configurations.resolvable(CONFIGURATION_NAME) {
+      configurations.dependencyScope(CONFIGURATION_NAME) {
         description = "R8 dependencies for Keeper. This is used solely for the TraceReferences CLI"
         isVisible = false
         defaultDependencies {

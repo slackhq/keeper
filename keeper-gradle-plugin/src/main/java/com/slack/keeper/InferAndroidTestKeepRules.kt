@@ -19,7 +19,7 @@ import java.util.Locale
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.artifacts.ResolvableConfiguration
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -137,7 +137,7 @@ constructor(private val execOps: ExecOperations) : DefaultTask() {
       enableAssertions: Property<Boolean>,
       extensionJvmArgs: ListProperty<String>,
       traceReferencesArgs: ListProperty<String>,
-      r8Configuration: NamedDomainObjectProvider<ResolvableConfiguration>
+      r8Configuration: NamedDomainObjectProvider<DependencyScopeConfiguration>
     ): InferAndroidTestKeepRules.() -> Unit = {
       if (automaticallyAddR8Repo.get()) {
         // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is
