@@ -93,9 +93,9 @@ tasks.withType<DokkaTask>().configureEach {
     }
     externalDocumentationLink {
       packageListUrl.set(
-        URI("https://developer.android.com/reference/tools/gradle-api/7.3/package-list").toURL()
+        URI("https://developer.android.com/reference/tools/gradle-api/8.1/package-list").toURL()
       )
-      url.set(URI("https://developer.android.com/reference/tools/gradle-api/7.3/classes").toURL())
+      url.set(URI("https://developer.android.com/reference/tools/gradle-api/8.1/classes").toURL())
     }
   }
 }
