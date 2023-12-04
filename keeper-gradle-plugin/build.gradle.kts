@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  id("org.jetbrains.dokka") version "1.8.20"
+  id("org.jetbrains.dokka") version "1.9.0"
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
@@ -35,8 +35,8 @@ tasks.withType<KotlinCompile>().configureEach {
   compilerOptions {
     jvmTarget.set(JvmTarget.JVM_17) // Match AGP's requirement
     // Because Gradle's Kotlin handling is stupid, this falls out of date quickly
-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+    apiVersion.set(KotlinVersion.KOTLIN_1_9)
+    languageVersion.set(KotlinVersion.KOTLIN_1_9)
     //   freeCompilerArgs.add(listOf("-progressive"))
     // We use class SAM conversions because lambdas compiled into invokedynamic are not
     // Serializable, which causes accidental headaches with Gradle configuration caching. It's
@@ -91,11 +91,16 @@ tasks.withType<DokkaTask>().configureEach {
           .toURL()
       )
     }
+
+    val agpBaseUrlProvider =
+      libs.versions.agp
+        .map { it.substringBeforeLast('.') }
+        .map { agpBaseVersion ->
+          "https://developer.android.com/reference/tools/gradle-api/$agpBaseVersion"
+        }
     externalDocumentationLink {
-      packageListUrl.set(
-        URI("https://developer.android.com/reference/tools/gradle-api/7.3/package-list").toURL()
-      )
-      url.set(URI("https://developer.android.com/reference/tools/gradle-api/7.3/classes").toURL())
+      packageListUrl.set(agpBaseUrlProvider.map { "$it/package-list" }.map { URI(it).toURL() })
+      url.set(agpBaseUrlProvider.map { "$it/classes" }.map { URI(it).toURL() })
     }
   }
 }
@@ -108,9 +113,10 @@ mavenPublishing {
 // Fix missing implicit task dependency in Gradle's test kit
 tasks.named("processTestResources") { dependsOn("pluginUnderTestMetadata") }
 
-val addTestPlugin: Configuration = configurations.create("addTestPlugin")
+// TODO how can we lazily chain this to other configurations?
+val addTestPlugin = configurations.dependencyScope("addTestPlugin").get()
 
-configurations { testImplementation.get().extendsFrom(addTestPlugin) }
+configurations { testImplementation.configure { extendsFrom(addTestPlugin) } }
 
 tasks.pluginUnderTestMetadata {
   // make sure the test can access plugins for coordination.
@@ -123,7 +129,7 @@ dependencies {
   compileOnly(libs.zipflinger)
   compileOnly(libs.agp)
 
-  addTestPlugin(libs.agp)
+  addTestPlugin.invoke(libs.agp)
   addTestPlugin(libs.kgp)
   addTestPlugin(libs.kgp.api)
   testImplementation(libs.javapoet)
