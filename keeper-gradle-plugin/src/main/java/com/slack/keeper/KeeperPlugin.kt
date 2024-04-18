@@ -291,14 +291,31 @@ public class KeeperPlugin : Plugin<Project> {
           )
         )
 
-      afterEvaluate {
-        val prop =
-          layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
-        val testProguardFiles =
-          project.provider { testVariant.runtimeConfiguration.proguardFiles() }
-        val testProguardFile =
-          (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
-        applyGeneratedRules(appVariant.name, prop, testProguardFiles, testProguardFile)
+      val prop =
+        layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+
+      configureR8Task(appVariant.name) {
+        logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
+        configurationFiles.from(prop)
+      }
+
+      val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
+
+      if (!disableTestProguardFiles) {
+        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
+        // propagate
+        // task dependencies and breaks in Gradle 8.
+        afterEvaluate {
+          val testProguardFiles =
+            project.provider { testVariant.runtimeConfiguration.proguardFiles() }
+          val testProguardFile =
+            (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
+          configureR8Task(appVariant.name) {
+            logger.debug("$TAG: Patching task '$name' with test-specific proguard rules")
+            configurationFiles.from(testProguardFiles)
+            configurationFiles.from(testProguardFile)
+          }
+        }
       }
     }
   }
@@ -355,29 +372,16 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.applyGeneratedRules(
+  private fun Project.configureR8Task(
     appVariant: String,
-    prop: Provider<Directory>,
-    testProguardFiles: Provider<FileCollection>,
-    testProguardFile: Provider<RegularFile>
+    action: R8Task.() -> Unit,
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
     tasks
       .withType(R8Task::class.java)
       .matching { it.name == targetName }
-      .configureEach {
-        logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
-        configurationFiles.from(prop)
-        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
-        // propagate
-        // task dependencies and breaks in Gradle 8.
-        if (!disableTestProguardFiles) {
-          configurationFiles.from(testProguardFiles)
-          configurationFiles.from(testProguardFile)
-        }
-      }
+      .configureEach(action)
   }
 
   /**
