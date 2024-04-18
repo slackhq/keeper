@@ -225,11 +225,9 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     // Set up r8 configuration
     val r8Configuration =
-      configurations.create(CONFIGURATION_NAME) {
+      configurations.dependencyScope(CONFIGURATION_NAME) {
         description = "R8 dependencies for Keeper. This is used solely for the TraceReferences CLI"
         isVisible = false
-        isCanBeConsumed = false
-        isCanBeResolved = true
         defaultDependencies {
           logger.debug("keeper r8 default version: $TRACE_REFERENCES_DEFAULT_VERSION")
           add(project.dependencies.create("com.android.tools:r8:$TRACE_REFERENCES_DEFAULT_VERSION"))
