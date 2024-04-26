@@ -41,7 +41,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -291,8 +290,7 @@ public class KeeperPlugin : Plugin<Project> {
           )
         )
 
-      val prop =
-        layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
 
       configureR8Task(appVariant.name) {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
@@ -378,10 +376,7 @@ public class KeeperPlugin : Plugin<Project> {
   ) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks
-      .withType(R8Task::class.java)
-      .matching { it.name == targetName }
-      .configureEach(action)
+    tasks.withType(R8Task::class.java).matching { it.name == targetName }.configureEach(action)
   }
 
   /**
