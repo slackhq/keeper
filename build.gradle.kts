@@ -74,7 +74,7 @@ spotless {
     endWithNewline()
     licenseHeaderFile(
       "spotless/copyright.kt",
-      "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)"
+      "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)",
     )
   }
   java {

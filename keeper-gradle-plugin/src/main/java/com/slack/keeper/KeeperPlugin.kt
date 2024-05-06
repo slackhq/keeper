@@ -41,7 +41,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -149,7 +148,7 @@ public class KeeperPlugin : Plugin<Project> {
     project: Project,
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
-    extension: KeeperExtension
+    extension: KeeperExtension,
   ) {
     appComponentsExtension.onApplicableVariants(project, verifyMinification = false) {
       testVariant,
@@ -221,7 +220,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.configureKeepRulesGeneration(
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
-    extension: KeeperExtension
+    extension: KeeperExtension,
   ) {
     // Set up r8 configuration
     val r8Configuration =
@@ -243,7 +242,7 @@ public class KeeperPlugin : Plugin<Project> {
             appExtension,
             appComponentsExtension,
             "android.jar",
-            checkIfExisting = true
+            checkIfExisting = true,
           )
         }
       )
@@ -254,7 +253,7 @@ public class KeeperPlugin : Plugin<Project> {
             appExtension,
             appComponentsExtension,
             "optional/android.test.base.jar",
-            checkIfExisting = false
+            checkIfExisting = false,
           )
         }
       )
@@ -265,13 +264,13 @@ public class KeeperPlugin : Plugin<Project> {
       val intermediateAppJar =
         createIntermediateAppJar(
           appVariant = appVariant,
-          emitDebugInfo = extension.emitDebugInformation
+          emitDebugInfo = extension.emitDebugInformation,
         )
       val intermediateAndroidTestJar =
         createIntermediateAndroidTestJar(
           emitDebugInfo = extension.emitDebugInformation,
           testVariant = testVariant,
-          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
+          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile },
         )
       val inferAndroidTestUsageProvider =
         tasks.register(
@@ -287,12 +286,11 @@ public class KeeperPlugin : Plugin<Project> {
             enableAssertions = extension.enableAssertions,
             extensionJvmArgs = extension.r8JvmArgs,
             traceReferencesArgs = extension.traceReferences.arguments,
-            r8Configuration = r8Configuration
-          )
+            r8Configuration = r8Configuration,
+          ),
         )
 
-      val prop =
-        layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
 
       configureR8Task(appVariant.name) {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
@@ -332,7 +330,7 @@ public class KeeperPlugin : Plugin<Project> {
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     path: String,
-    checkIfExisting: Boolean
+    checkIfExisting: Boolean,
   ): File {
     val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found")
     val file =
@@ -348,7 +346,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
     verifyMinification: Boolean,
-    body: (AndroidTest, ApplicationVariant) -> Unit
+    body: (AndroidTest, ApplicationVariant) -> Unit,
   ) {
     onVariants { appVariant ->
       val buildType = appVariant.buildType ?: return@onVariants
@@ -372,16 +370,10 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.configureR8Task(
-    appVariant: String,
-    action: R8Task.() -> Unit,
-  ) {
+  private fun Project.configureR8Task(appVariant: String, action: R8Task.() -> Unit) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks
-      .withType(R8Task::class.java)
-      .matching { it.name == targetName }
-      .configureEach(action)
+    tasks.withType(R8Task::class.java).matching { it.name == targetName }.configureEach(action)
   }
 
   /**
@@ -391,12 +383,12 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.createIntermediateAndroidTestJar(
     emitDebugInfo: Provider<Boolean>,
     testVariant: AndroidTest,
-    appJarsProvider: Provider<RegularFile>
+    appJarsProvider: Provider<RegularFile>,
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
     val taskProvider =
       tasks.register(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-        AndroidTestVariantClasspathJar::class.java
+        AndroidTestVariantClasspathJar::class.java,
       ) {
         this.emitDebugInfo.value(emitDebugInfo)
         this.appJarsFile.set(appJarsProvider)
@@ -414,7 +406,7 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun wireClassesAndJarsFor(
     component: Component,
-    taskProvider: TaskProvider<out KeeperJarTask>
+    taskProvider: TaskProvider<out KeeperJarTask>,
   ) {
     component.artifacts
       .forScope(ScopedArtifacts.Scope.ALL)
@@ -428,12 +420,12 @@ public class KeeperPlugin : Plugin<Project> {
    */
   private fun Project.createIntermediateAppJar(
     appVariant: ApplicationVariant,
-    emitDebugInfo: Provider<Boolean>
+    emitDebugInfo: Provider<Boolean>,
   ): TaskProvider<out VariantClasspathJar> {
     val taskProvider =
       tasks.register(
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-        VariantClasspathJar::class.java
+        VariantClasspathJar::class.java,
       ) {
         this.emitDebugInfo.set(emitDebugInfo)
 
@@ -486,7 +478,7 @@ internal fun String.capitalize(locale: Locale): String {
  */
 private inline fun <reified T : Task> Project.namedLazy(
   targetName: String,
-  crossinline action: (TaskProvider<T>) -> Unit
+  crossinline action: (TaskProvider<T>) -> Unit,
 ) {
   try {
     action(tasks.named(targetName, T::class.java))

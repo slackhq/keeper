@@ -89,8 +89,8 @@ internal class KeeperFunctionalTest {
         buildGradleFile(
           "staging",
           "external",
-          keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED
-        )
+          keeperExtraConfig = KeeperExtraConfig.TRACE_REFERENCES_ENABLED,
+        ),
       )
 
     val result = projectDir.runAsWiredStaging()
@@ -139,8 +139,8 @@ internal class KeeperFunctionalTest {
         buildGradleFile(
           "release",
           "external",
-          androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_RELEASE
-        )
+          androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_RELEASE,
+        ),
       )
 
     val result =
@@ -151,7 +151,7 @@ internal class KeeperFunctionalTest {
         "-x",
         "lintVitalExternalRelease",
         "-x",
-        "lintVitalInternalRelease"
+        "lintVitalInternalRelease",
       )
     assertThat(result.findTask("jarExternalReleaseAndroidTestClassesForKeeper")).isNull()
     assertThat(result.findTask("jarExternalReleaseClassesForKeeper")).isNull()
@@ -175,8 +175,8 @@ internal class KeeperFunctionalTest {
         buildGradleFile(
           "debug",
           "internal",
-          androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_DEBUG
-        )
+          androidExtraConfig = AndroidExtraConfig.ONLY_INTERNAL_DEBUG,
+        ),
       )
 
     val result = runGradle(projectDir, "assembleInternalDebug")
@@ -209,8 +209,8 @@ internal class KeeperFunctionalTest {
         extraDependencies =
           mapOf(
             "implementation" to "\"org.threeten:threetenbp:1.4.0:no-tzdb\"",
-            "androidTestImplementation" to "\"org.threeten:threetenbp:1.4.0\""
-          )
+            "androidTestImplementation" to "\"org.threeten:threetenbp:1.4.0\"",
+          ),
       )
     val (projectDir, _) = prepareProject(temporaryFolder, buildFile)
     projectDir.runSingleTask("jarExternalStagingAndroidTestClassesForKeeper")
@@ -285,8 +285,8 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> =
     "-keep class com.slack.keeper.sample.TestOnlyKotlinClass" to
       listOf(
         "public void testOnlyMethod();",
-        "com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;"
-      )
+        "com.slack.keeper.sample.TestOnlyKotlinClass INSTANCE;",
+      ),
   )
 
 private fun indentRules(header: String, content: List<String>?) =
@@ -315,7 +315,7 @@ internal enum class KeeperExtraConfig(val groovy: String) {
       traceReferences {}
     """
       .trimIndent()
-  )
+  ),
 }
 
 internal enum class AndroidExtraConfig(val groovy: String) {
@@ -363,7 +363,7 @@ internal enum class AndroidExtraConfig(val groovy: String) {
       }
     """
       .trimIndent()
-  )
+  ),
 }
 
 @Language("groovy")
@@ -374,7 +374,7 @@ private fun buildGradleFile(
   keeperExtraConfig: KeeperExtraConfig = KeeperExtraConfig.NONE,
   androidExtraConfig: AndroidExtraConfig = AndroidExtraConfig.ONLY_EXTERNAL_STAGING,
   emitDebugInformation: Boolean = true,
-  extraDependencies: Map<String, String> = emptyMap()
+  extraDependencies: Map<String, String> = emptyMap(),
 ): String {
   val testVariant = "$testFlavor${testBuildType.capitalize(Locale.US)}"
   @Suppress("UnnecessaryVariable")
@@ -394,12 +394,12 @@ private fun buildGradleFile(
   }
 
   plugins {
-    id 'com.android.application' version '8.1.2'
-    id 'org.jetbrains.kotlin.android' version '1.9.10'
+    id 'com.android.application' version '8.4.0'
+    id 'org.jetbrains.kotlin.android' version '1.9.23'
     id 'com.slack.keeper'
   }
 
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
   tasks.withType(KotlinCompile).configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
 
@@ -503,7 +503,7 @@ private val MAIN_SOURCES =
         addStatement("super.onCreate()")
         addStatement(
           "\$T.applicationCalledMethod()",
-          ClassName.get("com.slack.keeper.sample", "ApplicationUsedClass")
+          ClassName.get("com.slack.keeper.sample", "ApplicationUsedClass"),
         )
       }
     },
@@ -526,7 +526,7 @@ private val MAIN_SOURCES =
         addModifiers(STATIC)
         addComment("This class and method are completely unused")
       }
-    }
+    },
   )
 
 private val ANDROID_TEST_SOURCES =
@@ -536,7 +536,7 @@ private val ANDROID_TEST_SOURCES =
       methodSpec("callTestOnlyMethod") {
         addStatement(
           "\$T.testOnlyMethod()",
-          ClassName.get("com.slack.keeper.sample", "TestOnlyClass")
+          ClassName.get("com.slack.keeper.sample", "TestOnlyClass"),
         )
       }
     },
@@ -545,10 +545,10 @@ private val ANDROID_TEST_SOURCES =
       funSpec("callTestOnlyMethod") {
         addStatement(
           "%T.testOnlyMethod()",
-          KpClassName("com.slack.keeper.sample", "TestOnlyKotlinClass")
+          KpClassName("com.slack.keeper.sample", "TestOnlyKotlinClass"),
         )
       }
-    }
+    },
   )
 
 // We include Unit.class here because that allows us to also test that App's transitive dependencies
