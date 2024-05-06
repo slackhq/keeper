@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false # We want to see all results
       matrix:
-        agp: ['8.1.2', '8.2.0-beta06', '8.3.0-alpha07']
+        agp: ['8.4.0', '8.5.0-alpha08']
         job: ['instrumentation', 'plugin']
     env:
       DEP_OVERRIDE_agp: ${{ matrix.agp }}
