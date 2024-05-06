@@ -20,7 +20,7 @@ jobs:
   build:
     name: ${{ matrix.job }} / AGP ${{ matrix.agp }}
     # Use macOS for emulator hardware acceleration
-    runs-on: 'macOS-latest'
+    runs-on: 'ubuntu-latest'
     timeout-minutes: 30
     strategy:
       fail-fast: false # We want to see all results
@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '20'
+          java-version: '21'
 
       - name: Spot check
         run: ./gradlew spotlessCheck
@@ -130,7 +130,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '20'
+          java-version: '21'
 
       # Just here to restore cache
       - name: Gradle prep
