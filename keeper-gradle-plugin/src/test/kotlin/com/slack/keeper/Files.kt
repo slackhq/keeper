@@ -67,7 +67,9 @@ internal sealed class SourceFile(val name: String) {
 
   data class KotlinSourceFile(val fileSpec: FileSpec) :
     SourceFile(fileSpec.members.filterIsInstance<TypeSpec>().first().name!!) {
-    override fun writeTo(file: File) = fileSpec.writeTo(file)
+    override fun writeTo(file: File) {
+      fileSpec.writeTo(file)
+    }
   }
 }
 
