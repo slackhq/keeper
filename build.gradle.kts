@@ -27,7 +27,7 @@ plugins {
 
 subprojects {
   pluginManager.withPlugin("java") {
-    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
+    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
     tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
   }

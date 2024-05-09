@@ -115,7 +115,7 @@ internal class KeeperFunctionalTest {
 
     // Assert we correctly generated rules
     val generatedRules =
-      projectDir.generatedChild("externalStagingAndroidTest/inferredKeepRules.pro")
+      projectDir.generatedChild("ExternalStagingAndroidTest/inferredKeepRules.pro")
     assertThat(generatedRules.readText().trim())
       .isEqualTo(
         EXPECTED_TRACE_REFERENCES_CONFIG.map { indentRules(it.key, it.value) }.joinToString("\n")

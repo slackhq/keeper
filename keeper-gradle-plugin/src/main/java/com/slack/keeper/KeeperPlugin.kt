@@ -17,10 +17,7 @@
 
 package com.slack.keeper
 
-import com.android.build.api.artifact.Artifacts
 import com.android.build.api.artifact.ScopedArtifact
-import com.android.build.api.artifact.impl.ArtifactsImpl
-import com.android.build.api.component.analytics.AnalyticsEnabledArtifacts
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
@@ -29,7 +26,6 @@ import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
-import com.android.build.gradle.internal.scope.InternalArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import java.io.File
@@ -295,34 +291,11 @@ public class KeeperPlugin : Plugin<Project> {
       configureR8Task(appVariant.name) {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
+        configurationFiles.from(
+          project.provider { testVariant.runtimeConfiguration.proguardFiles() }
+        )
+        configurationFiles.from(testVariant.proguardFiles)
       }
-
-      val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
-
-      if (!disableTestProguardFiles) {
-        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
-        // propagate
-        // task dependencies and breaks in Gradle 8.
-        afterEvaluate {
-          val testProguardFiles =
-            project.provider { testVariant.runtimeConfiguration.proguardFiles() }
-          val testProguardFile =
-            (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
-          configureR8Task(appVariant.name) {
-            logger.debug("$TAG: Patching task '$name' with test-specific proguard rules")
-            configurationFiles.from(testProguardFiles)
-            configurationFiles.from(testProguardFile)
-          }
-        }
-      }
-    }
-  }
-
-  private fun Artifacts.unwrap(): ArtifactsImpl {
-    return when (this) {
-      is ArtifactsImpl -> this
-      is AnalyticsEnabledArtifacts -> delegate.unwrap()
-      else -> error("Unrecognized artifacts type $javaClass")
     }
   }
 
