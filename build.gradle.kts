@@ -27,7 +27,7 @@ plugins {
 
 subprojects {
   pluginManager.withPlugin("java") {
-    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(20)) } }
+    configure<JavaPluginExtension> { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
     tasks.withType<JavaCompile>().configureEach { options.release.set(11) }
   }
@@ -74,7 +74,7 @@ spotless {
     endWithNewline()
     licenseHeaderFile(
       "spotless/copyright.kt",
-      "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)"
+      "(import|plugins|buildscript|dependencies|dependencyResolutionManagement|pluginManagement|rootProject)",
     )
   }
   java {

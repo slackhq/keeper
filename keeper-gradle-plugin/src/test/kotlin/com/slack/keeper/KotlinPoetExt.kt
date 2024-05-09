@@ -23,11 +23,11 @@ import java.io.File
 internal fun kotlinFile(
   packageName: String,
   className: String,
-  body: TypeSpec.Builder.() -> Unit
+  body: TypeSpec.Builder.() -> Unit,
 ): SourceFile {
   return FileSpec.get(
       packageName = packageName,
-      typeSpec = TypeSpec.objectBuilder(className).apply(body).build()
+      typeSpec = TypeSpec.objectBuilder(className).apply(body).build(),
     )
     .asSourceFile()
 }

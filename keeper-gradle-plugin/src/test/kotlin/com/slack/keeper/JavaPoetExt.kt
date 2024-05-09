@@ -23,11 +23,11 @@ import javax.lang.model.element.Modifier.PUBLIC
 internal fun javaFile(
   packageName: String,
   className: String,
-  body: TypeSpec.Builder.() -> Unit
+  body: TypeSpec.Builder.() -> Unit,
 ): SourceFile {
   return JavaFile.builder(
       packageName,
-      TypeSpec.classBuilder(className).addModifiers(PUBLIC).apply(body).build()
+      TypeSpec.classBuilder(className).addModifiers(PUBLIC).apply(body).build(),
     )
     .build()
     .asSourceFile()

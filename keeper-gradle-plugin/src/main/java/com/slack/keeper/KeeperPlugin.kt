@@ -17,10 +17,7 @@
 
 package com.slack.keeper
 
-import com.android.build.api.artifact.Artifacts
 import com.android.build.api.artifact.ScopedArtifact
-import com.android.build.api.artifact.impl.ArtifactsImpl
-import com.android.build.api.component.analytics.AnalyticsEnabledArtifacts
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
@@ -29,7 +26,6 @@ import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
-import com.android.build.gradle.internal.scope.InternalArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import com.android.build.gradle.internal.tasks.R8Task
 import java.io.File
@@ -41,7 +37,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -149,7 +144,7 @@ public class KeeperPlugin : Plugin<Project> {
     project: Project,
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
-    extension: KeeperExtension
+    extension: KeeperExtension,
   ) {
     appComponentsExtension.onApplicableVariants(project, verifyMinification = false) {
       testVariant,
@@ -221,7 +216,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.configureKeepRulesGeneration(
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
-    extension: KeeperExtension
+    extension: KeeperExtension,
   ) {
     // Set up r8 configuration
     val r8Configuration =
@@ -243,7 +238,7 @@ public class KeeperPlugin : Plugin<Project> {
             appExtension,
             appComponentsExtension,
             "android.jar",
-            checkIfExisting = true
+            checkIfExisting = true,
           )
         }
       )
@@ -254,7 +249,7 @@ public class KeeperPlugin : Plugin<Project> {
             appExtension,
             appComponentsExtension,
             "optional/android.test.base.jar",
-            checkIfExisting = false
+            checkIfExisting = false,
           )
         }
       )
@@ -265,13 +260,13 @@ public class KeeperPlugin : Plugin<Project> {
       val intermediateAppJar =
         createIntermediateAppJar(
           appVariant = appVariant,
-          emitDebugInfo = extension.emitDebugInformation
+          emitDebugInfo = extension.emitDebugInformation,
         )
       val intermediateAndroidTestJar =
         createIntermediateAndroidTestJar(
           emitDebugInfo = extension.emitDebugInformation,
           testVariant = testVariant,
-          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile }
+          appJarsProvider = intermediateAppJar.flatMap { it.appJarsFile },
         )
       val inferAndroidTestUsageProvider =
         tasks.register(
@@ -287,44 +282,20 @@ public class KeeperPlugin : Plugin<Project> {
             enableAssertions = extension.enableAssertions,
             extensionJvmArgs = extension.r8JvmArgs,
             traceReferencesArgs = extension.traceReferences.arguments,
-            r8Configuration = r8Configuration
-          )
+            r8Configuration = r8Configuration,
+          ),
         )
 
-      val prop =
-        layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
+      val prop = layout.dir(inferAndroidTestUsageProvider.flatMap { it.outputProguardRules.asFile })
 
       configureR8Task(appVariant.name) {
         logger.debug("$TAG: Patching task '$name' with inferred androidTest proguard rules")
         configurationFiles.from(prop)
+        configurationFiles.from(
+          project.provider { testVariant.runtimeConfiguration.proguardFiles() }
+        )
+        configurationFiles.from(testVariant.proguardFiles)
       }
-
-      val disableTestProguardFiles = project.hasProperty("keeper.disableTestProguardFiles")
-
-      if (!disableTestProguardFiles) {
-        // We offer an option to disable this because the FILTERED_PROGUARD_RULES doesn't
-        // propagate
-        // task dependencies and breaks in Gradle 8.
-        afterEvaluate {
-          val testProguardFiles =
-            project.provider { testVariant.runtimeConfiguration.proguardFiles() }
-          val testProguardFile =
-            (testVariant.artifacts.unwrap()).get(InternalArtifactType.GENERATED_PROGUARD_FILE)
-          configureR8Task(appVariant.name) {
-            logger.debug("$TAG: Patching task '$name' with test-specific proguard rules")
-            configurationFiles.from(testProguardFiles)
-            configurationFiles.from(testProguardFile)
-          }
-        }
-      }
-    }
-  }
-
-  private fun Artifacts.unwrap(): ArtifactsImpl {
-    return when (this) {
-      is ArtifactsImpl -> this
-      is AnalyticsEnabledArtifacts -> delegate.unwrap()
-      else -> error("Unrecognized artifacts type $javaClass")
     }
   }
 
@@ -332,7 +303,7 @@ public class KeeperPlugin : Plugin<Project> {
     appExtension: AppExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     path: String,
-    checkIfExisting: Boolean
+    checkIfExisting: Boolean,
   ): File {
     val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found")
     val file =
@@ -348,7 +319,7 @@ public class KeeperPlugin : Plugin<Project> {
   private fun ApplicationAndroidComponentsExtension.onApplicableVariants(
     project: Project,
     verifyMinification: Boolean,
-    body: (AndroidTest, ApplicationVariant) -> Unit
+    body: (AndroidTest, ApplicationVariant) -> Unit,
   ) {
     onVariants { appVariant ->
       val buildType = appVariant.buildType ?: return@onVariants
@@ -372,16 +343,10 @@ public class KeeperPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.configureR8Task(
-    appVariant: String,
-    action: R8Task.() -> Unit,
-  ) {
+  private fun Project.configureR8Task(appVariant: String, action: R8Task.() -> Unit) {
     val targetName = interpolateR8TaskName(appVariant)
 
-    tasks
-      .withType(R8Task::class.java)
-      .matching { it.name == targetName }
-      .configureEach(action)
+    tasks.withType(R8Task::class.java).matching { it.name == targetName }.configureEach(action)
   }
 
   /**
@@ -391,12 +356,12 @@ public class KeeperPlugin : Plugin<Project> {
   private fun Project.createIntermediateAndroidTestJar(
     emitDebugInfo: Provider<Boolean>,
     testVariant: AndroidTest,
-    appJarsProvider: Provider<RegularFile>
+    appJarsProvider: Provider<RegularFile>,
   ): TaskProvider<out AndroidTestVariantClasspathJar> {
     val taskProvider =
       tasks.register(
         "jar${testVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-        AndroidTestVariantClasspathJar::class.java
+        AndroidTestVariantClasspathJar::class.java,
       ) {
         this.emitDebugInfo.value(emitDebugInfo)
         this.appJarsFile.set(appJarsProvider)
@@ -414,7 +379,7 @@ public class KeeperPlugin : Plugin<Project> {
 
   private fun wireClassesAndJarsFor(
     component: Component,
-    taskProvider: TaskProvider<out KeeperJarTask>
+    taskProvider: TaskProvider<out KeeperJarTask>,
   ) {
     component.artifacts
       .forScope(ScopedArtifacts.Scope.ALL)
@@ -428,12 +393,12 @@ public class KeeperPlugin : Plugin<Project> {
    */
   private fun Project.createIntermediateAppJar(
     appVariant: ApplicationVariant,
-    emitDebugInfo: Provider<Boolean>
+    emitDebugInfo: Provider<Boolean>,
   ): TaskProvider<out VariantClasspathJar> {
     val taskProvider =
       tasks.register(
         "jar${appVariant.name.capitalize(Locale.US)}ClassesForKeeper",
-        VariantClasspathJar::class.java
+        VariantClasspathJar::class.java,
       ) {
         this.emitDebugInfo.set(emitDebugInfo)
 
@@ -486,7 +451,7 @@ internal fun String.capitalize(locale: Locale): String {
  */
 private inline fun <reified T : Task> Project.namedLazy(
   targetName: String,
-  crossinline action: (TaskProvider<T>) -> Unit
+  crossinline action: (TaskProvider<T>) -> Unit,
 ) {
   try {
     action(tasks.named(targetName, T::class.java))

@@ -117,7 +117,7 @@ constructor(private val execOps: ExecOperations) : DefaultTask() {
         "--lib" to androidTestJar.get().asFile.takeIf { it.exists() }?.absolutePath,
         "--target" to appTargetJar.get().asFile.absolutePath,
         "--source" to androidTestSourceJar.get().asFile.absolutePath,
-        "--output" to outputProguardRules.get().asFile.absolutePath
+        "--output" to outputProguardRules.get().asFile.absolutePath,
       )
       .map { if (it.second != null) listOf(it.first, it.second) else listOf() }
       .reduce { acc, any -> acc + any }
@@ -136,7 +136,7 @@ constructor(private val execOps: ExecOperations) : DefaultTask() {
       enableAssertions: Property<Boolean>,
       extensionJvmArgs: ListProperty<String>,
       traceReferencesArgs: ListProperty<String>,
-      r8Configuration: Configuration
+      r8Configuration: Configuration,
     ): InferAndroidTestKeepRules.() -> Unit = {
       if (automaticallyAddR8Repo.get()) {
         // This is the maven repo where r8 tagged releases are hosted. Only the r8 artifact is
