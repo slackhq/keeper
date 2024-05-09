@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.16.0
+------
+
+_2024-05-09_
+
+- **Enhancement**: Support for AGP 8.4.0. AGP 8.4.0 is the minimum supported version now.
+- Update Gradle to `8.7`.
+- Remove support for `keeper.disableTestProguardFiles` as this API can no longer with with newer AGP versions.
+
+**HELP WANTED:** This project is no longer used by Slack. If your company uses this plugin and is interested in maintaining a fork, see https://github.com/slackhq/keeper/discussions/144.
+
 0.15.0
 ------
 
