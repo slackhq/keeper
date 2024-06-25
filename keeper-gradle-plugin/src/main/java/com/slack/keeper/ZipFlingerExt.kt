@@ -30,7 +30,7 @@ internal fun File.classesSequence(): Sequence<Pair<String, File>> {
     .filter { it.extension == "class" }
     .filterNot { "META-INF" in it.name }
     .sortedBy { it.invariantSeparatorsPath }
-    .map { it.absolutePath.removePrefix(prefix).removePrefix("/") to it }
+    .map { it.absolutePath.removePrefix(prefix).removePrefix(File.separator).replace(File.separator, "/") to it }
 }
 
 /** Extracts classes from the target [jar] into this archive. */
