@@ -11,6 +11,10 @@ on:
   # Always run on PRs
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   # Test on API 30 because that's the first version with ATDs
   API_LEVEL: '30'
