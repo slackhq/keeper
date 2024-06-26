@@ -63,6 +63,13 @@ jobs:
         if: matrix.job == 'instrumentation'
         run: ./gradlew :sample:minifyExternalStagingWithR8 validateL8 --stacktrace
 
+      - name: Enable KVM group perms
+        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
 #      - name: AVD cache
 #        uses: actions/cache@v3
