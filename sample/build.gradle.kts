@@ -124,11 +124,18 @@ if (isCi) {
   tasks.withType<InferAndroidTestKeepRules>().configureEach {
     doLast {
       println("Checking expected rules")
-      val outputRules = outputProguardRules.asFile.get().readText().trim()
-      val expectedRules = file("expectedRules.pro").readText().trim()
+      val outputFile = outputProguardRules.asFile.get()
+      val outputRules = outputFile.readText().trim()
+      val expectedFile = file("expectedRules.pro")
+      val expectedRules = expectedFile.readText().trim()
       if (outputRules != expectedRules) {
         System.err.println(
-          "Rules don't match expected, output rules are below. Compare them with 'expectedRules.pro'"
+          """
+            Rules don't match expected
+            Actual: file://$outputFile
+            Expected: file://$expectedFile
+          """
+            .trimIndent()
         )
         assertThat(outputRules).isEqualTo(expectedRules)
       }
