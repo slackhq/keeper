@@ -1,30 +1,30 @@
 [versions]
-agp = "8.4.0"
-androidx-test = "1.6.0-alpha07"
-kotlin = "1.9.23"
+agp = "8.5.0"
+androidx-test = "1.6.1"
+kotlin = "1.9.24"
 gjf = "1.22.0"
-ktfmt = "0.49"
+ktfmt = "0.51"
 
 [plugins]
 agp-library = { id = "com.android.library", version.ref = "agp" }
-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.13.2" }
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.15.0-Beta.3" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.28.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.29.0" }
 spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
 
 [libraries]
-androidx-annotation = "androidx.annotation:annotation:1.7.1"
-androidx-test-orchestrator = "androidx.test:orchestrator:1.5.0-alpha04"
-androidx-test-rules = { module = "androidx.test:rules", version = "1.6.0-alpha04" }
+androidx-annotation = "androidx.annotation:annotation:1.8.0"
+androidx-test-orchestrator = "androidx.test:orchestrator:1.5.0"
+androidx-test-rules = { module = "androidx.test:rules", version = "1.6.1" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
-androidx-test-truth = "androidx.test.ext:junit:1.1.5"
+androidx-test-truth = "androidx.test.ext:junit:1.2.1"
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 desugarJdkLibs = "com.android.tools:desugar_jdk_libs:2.0.4"
 javapoet = "com.squareup:javapoet:1.13.0"
 junit = "junit:junit:4.13.2"
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kgp-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
-kotlinpoet = "com.squareup:kotlinpoet:1.16.0"
+kotlinpoet = "com.squareup:kotlinpoet:1.17.0"
 okio = "com.squareup.okio:okio:3.9.0"
 truth = "com.google.truth:truth:1.4.2"
 zipflinger = { module = "com.android:zipflinger", version.ref = "agp" }
