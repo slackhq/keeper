@@ -30,7 +30,7 @@ jobs:
       fail-fast: false # We want to see all results
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest']
-        agp: ['8.4.0', '8.5.0-alpha08']
+        agp: ['8.5.0', '8.6.0-alpha08']
         job: ['instrumentation', 'plugin']
     env:
       DEP_OVERRIDE_agp: ${{ matrix.agp }}
@@ -68,42 +68,21 @@ jobs:
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
-#      - name: AVD cache
-#        uses: actions/cache@v3
-#        id: avd-cache
-#        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
-#        with:
-#          path: |
-#            ~/.android/avd/*
-#            ~/.android/adbkey
-#            ~/.android/adbkey.pub
-#          key: avd-${{ env.API_LEVEL }}-${{ env.AVD_TARGET }}
-#
-#      - name: Create AVD and generate snapshot for caching
-#        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest' && steps.avd-cache.outputs.cache-hit != 'true'
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: ${{ env.API_LEVEL }}
-#          force-avd-creation: false
-#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-#          disable-animations: true
-#          disable-spellchecker: true
-#          target: ${{ env.AVD_TARGET }}
-#          channel: canary # Necessary for ATDs
-#          script: echo "Generated AVD snapshot for caching."
+          sudo udevadm trigger --name-match=kvm   
 
       - name: Run instrumentation tests
         if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
+        id: gradle-instrumentation-fork
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ env.API_LEVEL }}
+          arch: x86_64
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           disable-spellchecker: true
+          disk-size: 6000M
+          heap-size: 600M
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
           script: |
