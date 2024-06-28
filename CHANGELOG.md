@@ -1,6 +1,14 @@
 Changelog
 =========
 
+**Unreleased**
+--------------
+
+- **Fix**: Support running on Windows.
+- Build against Gradle `8.8`.
+- Build against AGP `8.5.0`.
+- Build against Kotlin `1.9.24`.
+
 0.16.0
 ------
 
