@@ -118,7 +118,8 @@ internal class KeeperFunctionalTest {
       projectDir.generatedChild("ExternalStagingAndroidTest/inferredKeepRules.pro")
     assertThat(generatedRules.readText().trim())
       .isEqualTo(
-        EXPECTED_TRACE_REFERENCES_CONFIG.map { indentRules(it.key, it.value) }.joinToString("\n")
+        EXPECTED_TRACE_REFERENCES_CONFIG.map { indentRules(it.key, it.value) }
+          .joinToString(System.lineSeparator())
       )
 
     // Finally - verify our rules were included in the final minification execution.
@@ -292,7 +293,11 @@ private val EXPECTED_TRACE_REFERENCES_CONFIG: Map<String, List<String>?> =
 private fun indentRules(header: String, content: List<String>?) =
   if (content == null) header
   else {
-    "$header {\n${content.joinToString("\n") { "  $it" }}\n}"
+    "$header {" +
+      System.lineSeparator() +
+      content.joinToString(System.lineSeparator()) { "  $it" } +
+      System.lineSeparator() +
+      "}"
   }
 
 @Language("PROGUARD")
@@ -399,7 +404,10 @@ private fun buildGradleFile(
     id 'com.slack.keeper'
   }
 
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
+  // Ideally we use toolchains for a known version; this fails on windows w/WindowsRegistry access issues
+  // See: https://github.com/gradle/native-platform/issues/274
+  // So we will just rely on environment JDK
+  //java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
   tasks.withType(KotlinCompile).configureEach { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
 
@@ -480,7 +488,7 @@ private fun buildGradleFile(
   }
 
   dependencies {
-    ${extraDependencies.entries.joinToString("\n") { "    ${it.key} ${it.value}" }}
+    ${extraDependencies.entries.joinToString(System.lineSeparator()) { "    ${it.key} ${it.value}" }}
   }
   """
       .trimIndent()

@@ -11,6 +11,10 @@ on:
   # Always run on PRs
   pull_request:
 
+concurrency:
+  group: 'ci-${{ github.event.merge_group.head_ref || github.head_ref }}-${{ github.workflow }}'
+  cancel-in-progress: true
+
 env:
   # Test on API 30 because that's the first version with ATDs
   API_LEVEL: '30'
@@ -18,13 +22,14 @@ env:
 
 jobs:
   build:
-    name: ${{ matrix.job }} / AGP ${{ matrix.agp }}
+    name: ${{ matrix.job }} / AGP ${{ matrix.agp }} / OS ${{ matrix.os }}
     # Use macOS for emulator hardware acceleration
-    runs-on: 'ubuntu-latest'
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
       fail-fast: false # We want to see all results
       matrix:
+        os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest']
         agp: ['8.4.0', '8.5.0-alpha08']
         job: ['instrumentation', 'plugin']
     env:
@@ -58,11 +63,18 @@ jobs:
         if: matrix.job == 'instrumentation'
         run: ./gradlew :sample:minifyExternalStagingWithR8 validateL8 --stacktrace
 
+      - name: Enable KVM group perms
+        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       # TODO AVD caching disabled due to https://github.com/ReactiveCircus/android-emulator-runner/issues/278
 #      - name: AVD cache
 #        uses: actions/cache@v3
 #        id: avd-cache
-#        if: matrix.job == 'instrumentation'
+#        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
 #        with:
 #          path: |
 #            ~/.android/avd/*
@@ -71,7 +83,7 @@ jobs:
 #          key: avd-${{ env.API_LEVEL }}-${{ env.AVD_TARGET }}
 #
 #      - name: Create AVD and generate snapshot for caching
-#        if: matrix.job == 'instrumentation' && steps.avd-cache.outputs.cache-hit != 'true'
+#        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest' && steps.avd-cache.outputs.cache-hit != 'true'
 #        uses: reactivecircus/android-emulator-runner@v2
 #        with:
 #          api-level: ${{ env.API_LEVEL }}
@@ -84,7 +96,7 @@ jobs:
 #          script: echo "Generated AVD snapshot for caching."
 
       - name: Run instrumentation tests
-        if: matrix.job == 'instrumentation'
+        if: matrix.job == 'instrumentation' && matrix.os == 'ubuntu-latest'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ env.API_LEVEL }}
@@ -105,16 +117,14 @@ jobs:
             adb uninstall com.slack.keeper.sample || true
             adb uninstall com.slack.keeper.sample.androidTest || true
 
-      - name: (Fail-only) Bundle the build report
-        if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
-
-      - name: (Fail-only) Upload the build report
+      - name: (Fail-only) Upload the build reports
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: error-report-${{ matrix.job }}-${{ matrix.agp }}
-          path: build-reports.zip
+          name: error-report-${{ matrix.job }}-${{ matrix.agp }}-${{ matrix.os }}
+          path: |
+            keeper-gradle-plugin/build/reports
+            sample/build/reports
 
   publish-snapshots:
     name: Publish Snapshots
