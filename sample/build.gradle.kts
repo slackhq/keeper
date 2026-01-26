@@ -27,12 +27,11 @@ buildscript {
 
 plugins {
   id("com.android.application")
-  id("org.jetbrains.kotlin.android")
   id("com.slack.keeper")
 }
 
 android {
-  compileSdk = 33
+  compileSdk = 34
   namespace = "com.slack.keeper.sample"
 
   defaultConfig {
@@ -75,7 +74,7 @@ android {
     }
   }
 
-  flavorDimensionList.add("environment")
+  flavorDimensions.add("environment")
   productFlavors {
     create("internal") {
       dimension = "environment"
