@@ -400,7 +400,6 @@ private fun buildGradleFile(
 
   plugins {
     id 'com.android.application' version '8.4.0'
-    id 'org.jetbrains.kotlin.android' version '1.9.23'
     id 'com.slack.keeper'
   }
 
@@ -430,7 +429,7 @@ private fun buildGradleFile(
       release {
         minifyEnabled = true
         signingConfig = buildTypes.debug.signingConfig
-        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'testconfiguration.pro'
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'testconfiguration.pro'
         testProguardFiles('proguard-test-rules.pro')
       }
       staging {

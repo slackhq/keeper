@@ -18,12 +18,12 @@
 package com.slack.keeper
 
 import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.AndroidTest
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.Component
 import com.android.build.api.variant.ScopedArtifacts
-import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
@@ -106,7 +106,7 @@ public class KeeperPlugin : Plugin<Project> {
       "Keeper requires Gradle ${MIN_GRADLE_VERSION.version} or later."
     }
     project.pluginManager.withPlugin("com.android.application") {
-      val appExtension = project.extensions.getByType(AppExtension::class.java)
+      val appExtension = project.extensions.getByType(ApplicationExtension::class.java)
       val appComponentsExtension =
         project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
       val extension = project.extensions.create("keeper", KeeperExtension::class.java)
@@ -142,7 +142,7 @@ public class KeeperPlugin : Plugin<Project> {
    */
   private fun configureL8(
     project: Project,
-    appExtension: AppExtension,
+    appExtension: ApplicationExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension,
   ) {
@@ -214,7 +214,7 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun Project.configureKeepRulesGeneration(
-    appExtension: AppExtension,
+    appExtension: ApplicationExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     extension: KeeperExtension,
   ) {
@@ -300,15 +300,15 @@ public class KeeperPlugin : Plugin<Project> {
   }
 
   private fun resolveAndroidEmbeddedJar(
-    appExtension: AppExtension,
+    appExtension: ApplicationExtension,
     appComponentsExtension: ApplicationAndroidComponentsExtension,
     path: String,
     checkIfExisting: Boolean,
   ): File {
-    val compileSdkVersion = appExtension.compileSdkVersion ?: error("No compileSdkVersion found")
+    val compileSdkVersion = appExtension.compileSdk ?: error("No compileSdkVersion found")
     val file =
       File(
-        "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/$compileSdkVersion/$path"
+        "${appComponentsExtension.sdkComponents.sdkDirectory.get().asFile}/platforms/android-$compileSdkVersion/$path"
       )
     check(!checkIfExisting || file.exists()) {
       "No $path found! Expected to find it at: ${file.absolutePath}"
