@@ -310,14 +310,14 @@ private val TEST_PROGUARD_RULES =
   -dontshrink
   -ignorewarnings
   -dontnote **
-"""
+  """
     .trimIndent()
 
 internal enum class KeeperExtraConfig(val groovy: String) {
   NONE(""),
   TRACE_REFERENCES_ENABLED(
     """
-      traceReferences {}
+    traceReferences {}
     """
       .trimIndent()
   ),
@@ -326,46 +326,46 @@ internal enum class KeeperExtraConfig(val groovy: String) {
 internal enum class AndroidExtraConfig(val groovy: String) {
   ONLY_EXTERNAL_STAGING(
     """
-      androidComponents {
-        beforeVariants(selector().all()) { variantBuilder ->
-          if (variantBuilder.name == "externalStaging") {
-            variantBuilder.registerExtension(
-              com.slack.keeper.KeeperVariantMarker.class,
-              com.slack.keeper.KeeperVariantMarker.INSTANCE
-            )
-          }
+    androidComponents {
+      beforeVariants(selector().all()) { variantBuilder ->
+        if (variantBuilder.name == "externalStaging") {
+          variantBuilder.registerExtension(
+            com.slack.keeper.KeeperVariantMarker.class,
+            com.slack.keeper.KeeperVariantMarker.INSTANCE
+          )
         }
       }
+    }
     """
       .trimIndent()
   ),
   ONLY_INTERNAL_RELEASE(
     """
-      androidComponents {
-        beforeVariants(selector().all()) { variantBuilder ->
-          if (variantBuilder.name == "internalRelease") {
-            variantBuilder.registerExtension(
-              com.slack.keeper.KeeperVariantMarker.class,
-              com.slack.keeper.KeeperVariantMarker.INSTANCE
-            )
-          }
+    androidComponents {
+      beforeVariants(selector().all()) { variantBuilder ->
+        if (variantBuilder.name == "internalRelease") {
+          variantBuilder.registerExtension(
+            com.slack.keeper.KeeperVariantMarker.class,
+            com.slack.keeper.KeeperVariantMarker.INSTANCE
+          )
         }
       }
+    }
     """
       .trimIndent()
   ),
   ONLY_INTERNAL_DEBUG(
     """
-      androidComponents {
-        beforeVariants(selector().all()) { variantBuilder ->
-          if (variantBuilder.name == "internalDebug") {
-            variantBuilder.registerExtension(
-              com.slack.keeper.KeeperVariantMarker.class,
-              com.slack.keeper.KeeperVariantMarker.INSTANCE
-            )
-          }
+    androidComponents {
+      beforeVariants(selector().all()) { variantBuilder ->
+        if (variantBuilder.name == "internalDebug") {
+          variantBuilder.registerExtension(
+            com.slack.keeper.KeeperVariantMarker.class,
+            com.slack.keeper.KeeperVariantMarker.INSTANCE
+          )
         }
       }
+    }
     """
       .trimIndent()
   ),

@@ -19,10 +19,6 @@
 -keep class kotlin.KotlinNothingValueException {
   public <init>();
 }
--keep class kotlin.KotlinVersion {
-  public boolean isAtLeast(int,int,int);
-  kotlin.KotlinVersion CURRENT;
-}
 -keep interface kotlin.Lazy {
   public java.lang.Object getValue();
 }
@@ -170,7 +166,6 @@
 }
 -keep class kotlin.coroutines.ContinuationKt {
   public static kotlin.coroutines.Continuation createCoroutine(kotlin.jvm.functions.Function1,kotlin.coroutines.Continuation);
-  public static void startCoroutine(kotlin.jvm.functions.Function1,kotlin.coroutines.Continuation);
   public static void startCoroutine(kotlin.jvm.functions.Function2,java.lang.Object,kotlin.coroutines.Continuation);
 }
 -keep interface kotlin.coroutines.CoroutineContext {
@@ -202,9 +197,18 @@
   public static kotlin.coroutines.Continuation createCoroutineUnintercepted(kotlin.jvm.functions.Function1,kotlin.coroutines.Continuation);
   public static kotlin.coroutines.Continuation createCoroutineUnintercepted(kotlin.jvm.functions.Function2,java.lang.Object,kotlin.coroutines.Continuation);
   public static kotlin.coroutines.Continuation intercepted(kotlin.coroutines.Continuation);
+  public static java.lang.Object wrapWithContinuationImpl(kotlin.jvm.functions.Function1,kotlin.coroutines.Continuation);
+  public static java.lang.Object wrapWithContinuationImpl(kotlin.jvm.functions.Function2,java.lang.Object,kotlin.coroutines.Continuation);
 }
 -keep class kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsKt {
   public static java.lang.Object getCOROUTINE_SUSPENDED();
+}
+-keep class kotlin.coroutines.jvm.internal.BaseContinuationImpl {
+  public kotlin.coroutines.Continuation create(java.lang.Object,kotlin.coroutines.Continuation);
+  public kotlin.coroutines.Continuation create(kotlin.coroutines.Continuation);
+  public kotlin.coroutines.jvm.internal.CoroutineStackFrame getCallerFrame();
+  public java.lang.StackTraceElement getStackTraceElement();
+  protected java.lang.Object invokeSuspend(java.lang.Object);
 }
 -keep class kotlin.coroutines.jvm.internal.Boxing {
   public static java.lang.Boolean boxBoolean(boolean);
@@ -232,6 +236,11 @@
 }
 -keep class kotlin.coroutines.jvm.internal.SuspendLambda {
   public <init>(int,kotlin.coroutines.Continuation);
+}
+-keep interface kotlin.enums.EnumEntries {
+}
+-keep class kotlin.enums.EnumEntriesKt {
+  public static kotlin.enums.EnumEntries enumEntries(java.lang.Enum[]);
 }
 -keep class kotlin.io.ByteStreamsKt {
   public static byte[] readBytes(java.io.InputStream);
@@ -288,10 +297,8 @@
   public static void checkNotNull(java.lang.Object,java.lang.String);
   public static void checkNotNullExpressionValue(java.lang.Object,java.lang.String);
   public static void checkNotNullParameter(java.lang.Object,java.lang.String);
-  public static void checkParameterIsNotNull(java.lang.Object,java.lang.String);
   public static void needClassReification();
   public static void reifiedOperationMarker(int,java.lang.String);
-  public static void throwNpe();
   public static void throwUninitializedPropertyAccessException(java.lang.String);
 }
 -keep class kotlin.jvm.internal.Lambda {
@@ -329,12 +336,6 @@
 -keep interface kotlin.jvm.internal.markers.KMutableIterator {
 }
 -keep interface kotlin.jvm.internal.markers.KMutableMap$Entry {
-}
--keep class kotlin.random.Random {
-  kotlin.random.Random$Default Default;
-}
--keep class kotlin.random.Random$Default {
-  public int nextInt();
 }
 -keep class kotlin.ranges.IntRange {
 }
@@ -399,6 +400,8 @@
 -keep class kotlin.time.Duration {
   public static int compareTo-LRDsOJo(long,long);
   public static long getInWholeMilliseconds-impl(long);
+  public static boolean isPositive-impl(long);
+  public static long plus-LRDsOJo(long,long);
   public static java.lang.String toString-impl(long);
   public long unbox-impl();
   kotlin.time.Duration$Companion Companion;
@@ -413,6 +416,7 @@
 }
 -keep enum kotlin.time.DurationUnit {
   kotlin.time.DurationUnit MILLISECONDS;
+  kotlin.time.DurationUnit NANOSECONDS;
   kotlin.time.DurationUnit SECONDS;
 }
 -keep class okio.ByteString {

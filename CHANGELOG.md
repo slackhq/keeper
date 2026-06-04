@@ -3,6 +3,10 @@ Changelog
 
 **Unreleased**
 --------------
+**Enhancement**: Support for AGP 9.0.0.
+- Build against Gradle `9.3.0`.
+- Build against AGP `9.0.0`.
+- Build against Kotlin `2.3.0`.
 
 0.16.1
 ------

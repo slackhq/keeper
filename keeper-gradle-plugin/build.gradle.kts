@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.net.URI
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -22,7 +20,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   kotlin("jvm") version libs.versions.kotlin.get()
   `java-gradle-plugin`
-  id("org.jetbrains.dokka") version "1.9.20"
+  alias(libs.plugins.dokka)
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.binaryCompatibilityValidator)
   id("org.jetbrains.kotlin.plugin.sam.with.receiver") version libs.versions.kotlin.get()
@@ -65,7 +63,7 @@ sourceSets {
   getByName("test").resources.srcDirs(project.layout.buildDirectory.dir("pluginUnderTestMetadata"))
 }
 
-java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(25)) } }
 
 tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 
@@ -80,22 +78,19 @@ gradlePlugin {
 
 kotlin { explicitApi() }
 
-tasks.withType<DokkaTask>().configureEach {
-  outputDirectory.set(rootDir.resolve("../docs/0.x"))
+dokka {
+  dokkaPublications.configureEach {
+    suppressInheritedMembers.set(true)
+    outputDirectory.set(rootDir.resolve("../docs/0.x"))
+  }
   dokkaSourceSets.configureEach {
     skipDeprecated.set(true)
-    suppressInheritedMembers.set(true)
-    externalDocumentationLink {
-      url.set(
-        URI("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html")
-          .toURL()
-      )
+    externalDocumentationLinks.register("gradle-docs") {
+      url("https://docs.gradle.org/${gradle.gradleVersion}/javadoc/allpackages-index.html")
     }
-    externalDocumentationLink {
-      packageListUrl.set(
-        URI("https://developer.android.com/reference/tools/gradle-api/7.3/package-list").toURL()
-      )
-      url.set(URI("https://developer.android.com/reference/tools/gradle-api/7.3/classes").toURL())
+    externalDocumentationLinks.register("android-gralde-plugin-docs") {
+      packageListUrl("https://developer.android.com/reference/tools/gradle-api/7.3/package-list")
+      url("https://developer.android.com/reference/tools/gradle-api/7.3/classes")
     }
   }
 }

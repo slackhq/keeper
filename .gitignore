@@ -12,3 +12,4 @@ docs/contributing.md
 temp-clone
 site/
 docs/0.x/*
+.kotlin

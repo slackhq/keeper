@@ -32,13 +32,13 @@ plugins {
 }
 
 android {
-  compileSdk = 33
+  compileSdk = 36
   namespace = "com.slack.keeper.sample"
 
   defaultConfig {
     applicationId = "com.slack.keeper.example"
     minSdk = 21
-    targetSdk = 33
+    targetSdk = 36
     versionCode = 1
     versionName = "1"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -122,11 +122,11 @@ val isCi = providers.environmentVariable("CI").orElse("false").get() == "true"
 if (isCi) {
   // TODO create a dependent lifecycle task
   tasks.withType<InferAndroidTestKeepRules>().configureEach {
+    val expectedFile = file("expectedRules.pro")
     doLast {
       println("Checking expected rules")
       val outputFile = outputProguardRules.asFile.get()
       val outputRules = outputFile.readText().trim()
-      val expectedFile = file("expectedRules.pro")
       val expectedRules = expectedFile.readText().trim()
       if (outputRules != expectedRules) {
         System.err.println(
@@ -144,11 +144,12 @@ if (isCi) {
 
   tasks.register("validateL8") {
     dependsOn("l8DexDesugarLibExternalStaging")
-    doFirst {
+    val diagnosticFilePath =
+      "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStaging/patchedL8Rules.pro"
+    val diagnosticsFile = file(diagnosticFilePath)
+    doLast {
+      val diagnostics = diagnosticsFile.readText()
       println("Checking expected input rules from diagnostics output")
-      val diagnosticFilePath =
-        "build/intermediates/keeper/l8-diagnostics/l8DexDesugarLibExternalStaging/patchedL8Rules.pro"
-      val diagnostics = file(diagnosticFilePath).readText()
       if ("-keep class j\$.time.Instant" !in diagnostics) {
         throw IllegalStateException(
           "L8 diagnostic rules include the main variant's R8-generated rules, see $diagnosticFilePath"
